@@ -1,21 +1,27 @@
 const mongoose = require("mongoose");
+const { Schema, Types } = mongoose;
 
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    full_name: { type: String, required: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    },
+    phone: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    isAdmin: { type: Boolean, default: false, required: true },
-    phone: { type: Number, required: true },
-    address: { type: String },
-    avatar: { type: String },
-    comment: [
-      {
-        productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" }, // References productId
-        comment: { type: String, required: true }, // Content Description
-        createAt: { type: Date, default: Date.now }, // Date of created
-      },
-    ],
+    avatar: { type: String, default: "" },
+    gender: {
+      type: String,
+      enum: ["Male", "Female", "Other"],
+      default: "Other",
+    },
+    is_blocked: { type: Boolean, default: false },
+    birth_day: { type: Date },
+    is_deleted: { type: Boolean, default: false },
+    role_id: { type: Types.ObjectId, ref: "Role", required: true },
   },
   {
     timestamps: true,
