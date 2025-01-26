@@ -21,14 +21,14 @@ const userSchema = new mongoose.Schema(
     is_blocked: { type: Boolean, default: false },
     birth_day: { type: Date },
     is_deleted: { type: Boolean, default: false },
-    role_id: { type: Types.ObjectId, ref: "Role", required: true },
+    role_id: { type: Types.ObjectId, ref: "roles", required: true },
   },
   {
     timestamps: true,
   }
 );
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model("users", userSchema);
 module.exports = User;
 
 /* Tệp JavaScript này định nghĩa một model người dùng trong MongoDB bằng cách sử dụng Mongoose, một thư viện phổ biến để kết nối và làm việc với MongoDB trong Node.js.

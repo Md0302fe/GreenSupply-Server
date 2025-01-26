@@ -1,4 +1,5 @@
 const User = require("../models/UserModel");
+const Role = require("../models/Role");
 const bcrypt = require("bcrypt");
 
 const {
@@ -14,9 +15,8 @@ const createUser = (newUser) => {
       email: email,
     });
   };
-
   return new Promise(async (resolve, reject) => {
-    const { name, email, password, confirmPassword, phone } = newUser;
+    const { name, email, password, phone, role_check = false, birth_day } = newUser;
     try {
       const existedEmail = await User.findOne({
         email: email,
@@ -27,14 +27,26 @@ const createUser = (newUser) => {
           status: "ERROR",
           message: `Email ${existedEmail.email} đã được sử dụng !`,
         });
+        // truy vấn role
+      }
+      const roleName = role_check ? "Supplier" : "User";
+      const role = await Role.findOne({ role_name: roleName });
+      if (!role) {
+        return {
+          status: "ERROR",
+          message: `Không tìm thấy vai trò mặc định '${roleName}'.`,
+        };
       }
       //  Mã hóa dữ liệu password
       const hash = bcrypt.hashSync(password, 10);
+
       const createdUser = await User.create({
-        name,
+        full_name: name,
         email,
-        password: hash,
         phone,
+        password: hash,
+        role_id: role._id,
+        birth_day: birth_day ? new Date(birth_day) : null,
       });
       if (createdUser) {
         return resolve({

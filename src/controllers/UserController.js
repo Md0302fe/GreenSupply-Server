@@ -9,8 +9,8 @@ const createUser = async (req, res) => {
     //regex check email
     const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     const isCheckEmail = regex.test(email);
-
-    if (!name || !email || !password || !confirmPassword || !phone) {
+    console.log(req.body)
+    if (!name || !email || !password || !confirmPassword || !phone ) {
       return res.status(200).json({
         status: "ERROR",
         message: "Bạn cần điền thông tin",
