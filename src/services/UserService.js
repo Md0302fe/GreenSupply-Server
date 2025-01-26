@@ -1,34 +1,131 @@
 const User = require("../models/UserModel");
 const Role = require("../models/Role");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
+const otpStorage = new Map();
 
 const {
   genneralAccessToken,
   genneralRefreshToken,
 } = require("../services/JwtService");
 
-// Hàm tạo 1 user mới
-const createUser = (newUser) => {
-  // check existed email
-  const ExistedEmail = async (User, email) => {
-    const data = await User.findOne({
-      email: email,
-    });
-  };
+// Tạo mã otp
+const generateOTP = () => {
+  return crypto.randomInt(100000, 999999).toString(); // Tạo mã OTP ngẫu nhiên từ 100000 -> 999999
+};
+
+const sendOtpEmail = async (email, phone) => {
   return new Promise(async (resolve, reject) => {
-    const { name, email, password, phone, role_check = false, birth_day } = newUser;
     try {
+      // Kiểm tra email đã tồn tại
       const existedEmail = await User.findOne({
         email: email,
       });
-      // nếu existedEmail tồn tại
+
       if (existedEmail != null) {
         return resolve({
           status: "ERROR",
-          message: `Email ${existedEmail.email} đã được sử dụng !`,
+          message: `Email ${existedEmail.email} đã được sử dụng!`,
         });
-        // truy vấn role
       }
+      // Kiểm tra phone đã tồn tại
+      const existedPhone = await User.findOne({
+        phone: phone,
+      });
+
+      if (existedPhone != null) {
+        return resolve({
+          status: "ERROR",
+          message: `Số điện thoại ${existedPhone.phone} đã được sử dụng!`,
+        });
+      }
+
+      // Cấu hình transporter của nodemailer
+      const transporter = nodemailer.createTransport({
+        service: "gmail", // Sử dụng dịch vụ email, ví dụ Gmail
+        auth: {
+          user: process.env.EMAIL_USERNAME, // Email gửi
+          pass: process.env.EMAIL_PASSWORD, // Mật khẩu email (hoặc App Password)
+        },
+      });
+
+      // Tạo mã OTP
+      const otp = generateOTP(); // Hàm generateOTP() tạo mã OTP
+
+      // Nội dung email
+      const mailOptions = {
+        from: process.env.EMAIL_USERNAME, // Địa chỉ email gửi
+        to: email, // Email người nhận
+        subject: "Mã OTP của bạn",
+        text: `Xin chào,\n\nMã OTP của bạn là: ${otp}.\n\nMã này có hiệu lực trong vòng 5 phút.\n\nTrân trọng, \nĐội ngũ hỗ trợ`,
+      };
+
+      // Gửi email
+      await transporter.sendMail(mailOptions);
+      // Lưu OTP vào Map với thời gian sống 5 phút
+      otpStorage.set(email, { otp, expiresAt: Date.now() + 5 * 60 * 1000 });
+
+      // Trả về OTP cùng trạng thái thành công
+      return resolve({
+        status: "OK",
+        message: "OTP đã được gửi thành công!",
+      });
+    } catch (error) {
+      console.error("Lỗi khi gửi OTP qua email:", error);
+
+      // Trả về lỗi
+      return reject({
+        status: "ERROR",
+        message: "Không thể gửi OTP. Vui lòng thử lại sau.",
+        error: error.message,
+      });
+    }
+  });
+};
+
+const verifyOtp = async (email, otp) => {
+  const storedOtp = otpStorage.get(email);
+  if (!storedOtp || storedOtp.expiresAt < Date.now()) {
+    return {
+      status: "ERROR",
+      message: "OTP đã hết hạn hoặc không tồn tại.",
+    };
+  }
+
+  if (storedOtp.otp !== otp) {
+    return {
+      status: "ERROR",
+      message: "OTP không chính xác.",
+    };
+  }
+
+  // Xóa OTP sau khi xác minh thành công
+  otpStorage.delete(email);
+
+  return {
+    status: "OK",
+    message: "OTP đã được xác minh thành công.",
+  };
+};
+
+
+// Hàm tạo 1 user mới
+const createUser = (newUser) => {
+
+  return new Promise(async (resolve, reject) => {
+    const { name, email, password, phone, role_check = false, birth_day, otp } = newUser;
+    try {
+      // check otp
+      const verifyOtpResult = await verifyOtp(email, otp);
+      if (verifyOtpResult.status !== "OK") {
+        return resolve({
+          status: "ERROR",
+          message: verifyOtpResult.message, // Lấy thông báo lỗi từ verifyOtp
+        });
+      }
+
+      // truy vấn role
       const roleName = role_check ? "Supplier" : "User";
       const role = await Role.findOne({ role_name: roleName });
       if (!role) {
@@ -224,6 +321,7 @@ module.exports = {
   getAllUser,
   getDetailUser,
   deleteManyUser,
+  sendOtpEmail
 };
 
 // File services này là file dịch vụ /
