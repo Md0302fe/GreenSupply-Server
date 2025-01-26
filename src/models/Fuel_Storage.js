@@ -17,5 +17,5 @@ const FuelStoreSchema = new Schema(
   }
 );
 
-const FuelStorage = mongoose.model("FuelStorage", FuelStoreSchema);
+const FuelStorage = mongoose.model("Fuel_Storage", FuelStoreSchema);
 module.exports = FuelStorage;

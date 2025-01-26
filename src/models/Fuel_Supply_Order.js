@@ -7,7 +7,7 @@ const fuelSupplyOrderSchema = new Schema(
     fuel_name: { type: String, required: true }, // Tên nhiên liệu
     request_id: {
       type: Types.ObjectId,
-      ref: "FuelEntry",
+      ref: "Admin_Fuel_Entry",
       required: true,
     }, // ID nhập nhiên liệu
     quantity: { type: Number, required: true }, // Số lượng nhiên liệu

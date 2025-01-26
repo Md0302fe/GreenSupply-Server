@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
 const { Schema, Types } = mongoose;
 
+// Bảng yêu cầu thu hàng từ phía supplier
 const fuelRequestSchema = new Schema(
   {
-    supplier_id: { type: Types.ObjectId, ref: "Supplier", required: true },
+    supplier_id: { type: Types.ObjectId, ref: "Supplier", required: true }, // id _ nhà cung cấp
     fuel_name: { type: String, required: true }, // Tên nhiên liệu
     quantity: { type: Number, required: true }, // Số lượng
     price: { type: Number, required: true }, // Giá mỗi đơn vị

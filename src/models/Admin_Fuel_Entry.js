@@ -4,8 +4,7 @@ const { Schema, Types } = mongoose;
 const adminFuelEntrySchema = new Schema(
   {
     request_name: { type: String, required: true }, // Tên yêu cầu
-    fuel_name: { type: String, required: true }, // Tên nhiên liệu
-    fuel_type: { type: Types.ObjectId, ref: "FuelType", required: true }, // Loại nhiên liệu
+    fuel_type: { type: Types.ObjectId, ref: "Fuel_Type", required: true }, // Loại nhiên liệu
     fuel_image: { type: String, required: true }, // Hình ảnh nhiên liệu
     quantity: { type: Number, required: true, min: 0 }, // Số lượng nhiên liệu (không âm)
     due_date: { type: Date, required: true }, // Ngày cần hoàn thành chỉ tiêu
@@ -20,7 +19,7 @@ const adminFuelEntrySchema = new Schema(
 );
 
 const AdminFuelEntry = mongoose.model(
-  "AdminFuelEntry", // Đổi tên model để khớp với tên schema
+  "Admin_Fuel_Entry", // Đổi tên model để khớp với tên schema
   adminFuelEntrySchema
 );
 
