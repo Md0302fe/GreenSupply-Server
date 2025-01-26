@@ -12,6 +12,8 @@ const {
 
 // # CREATE - USER / POST
 router.post("/sign-up", UserController.createUser);
+// # CREATE - OTP / POST
+router.post("/create-otp", UserController.createOtp);
 // # LOGIN - USER / POST
 router.post("/sign-in", UserController.userLogin);
 // # LOGOUT - USER / POST

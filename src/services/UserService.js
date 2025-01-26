@@ -396,7 +396,8 @@ module.exports = {
   createAddress,
   updateAddress,
   deleteAddress,
-  getAllAddresses
+  getAllAddresses,
+  sendOtpEmail
 };
 
 // File services này là file dịch vụ /
