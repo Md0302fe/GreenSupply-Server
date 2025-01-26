@@ -16,5 +16,5 @@ const userAddressSchema = new Schema(
   }
 );
 
-const UserAddress = mongoose.model("user_address", userAddressSchema);
+const UserAddress = mongoose.model("user_address", userAddressSchema, "user_address");
 module.exports = UserAddress;

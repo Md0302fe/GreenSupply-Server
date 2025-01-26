@@ -1,6 +1,7 @@
 const User = require("../models/UserModel");
 const Role = require("../models/Role");
 const bcrypt = require("bcrypt");
+const UserAddress = require("../models/UserAdress");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const otpStorage = new Map();
@@ -312,6 +313,77 @@ const getDetailUser = (id) => {
     }
   });
 };
+// tạo địa chỉ
+const createAddress = async (data) => {
+  try {
+    const { user_id, full_name, company_name, address, phone, note } = data;
+
+    if (!user_id || !full_name || !address || !phone) {
+      return { status: "ERROR", message: "Thiếu thông tin bắt buộc." };
+    }
+
+    const newAddress = new UserAddress({ user_id, full_name, company_name, address, phone, note });
+    const savedAddress = await newAddress.save();
+
+    return { status: "OK", message: "Tạo địa chỉ thành công.", data: savedAddress };
+  } catch (error) {
+    console.error("Error in createAddress:", error);
+    return { status: "ERROR", message: "Lỗi khi tạo địa chỉ." };
+  }
+};
+
+// Cập nhật địa chỉ
+const updateAddress = async (id, data) => {
+  try {
+    const updatedAddress = await UserAddress.findByIdAndUpdate(id, data, { new: true });
+
+    if (!updatedAddress) {
+      return { status: "ERROR", message: "Không tìm thấy địa chỉ." };
+    }
+
+    return { status: "OK", message: "Cập nhật địa chỉ thành công.", data: updatedAddress };
+  } catch (error) {
+    console.error("Error in updateAddress:", error);
+    return { status: "ERROR", message: "Lỗi khi cập nhật địa chỉ." };
+  }
+};
+
+// Xóa địa chỉ
+const deleteAddress = async (id) => {
+  try {
+    const deletedAddress = await UserAddress.findByIdAndUpdate(id, { is_deleted: true }, { new: true });
+
+    if (!deletedAddress) {
+      return { status: "ERROR", message: "Không tìm thấy địa chỉ." };
+    }
+
+    return { status: "OK", message: "Xóa địa chỉ thành công.", data: deletedAddress };
+  } catch (error) {
+    console.error("Error in deleteAddress:", error);
+    return { status: "ERROR", message: "Lỗi khi xóa địa chỉ." };
+  }
+};
+
+// xem tất tả địa chỉ
+const getAllAddresses = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const addresses = await UserAddress.find({ is_deleted: false }); // Lấy các địa chỉ chưa bị xóa
+      resolve({
+        status: "OK",
+        message: "Get all addresses successfully",
+        data: addresses,
+      });
+    } catch (error) {
+      console.error("Error in getAllAddresses service:", error.message);
+      reject({
+        status: "ERROR",
+        message: "Failed to get all addresses",
+        error: error.message,
+      });
+    }
+  });
+};
 
 module.exports = {
   createUser,
@@ -321,6 +393,10 @@ module.exports = {
   getAllUser,
   getDetailUser,
   deleteManyUser,
+  createAddress,
+  updateAddress,
+  deleteAddress,
+  getAllAddresses,
   sendOtpEmail
 };
 

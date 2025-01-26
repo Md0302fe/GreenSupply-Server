@@ -31,6 +31,15 @@ router.post("/refresh-token", UserController.refreshToken);
 // # DELETE DELETE--MANY-TOKEN - DELETE
 router.delete("/delete-many", authMidleware, UserController.deleteManyUser);
 
+
+// Routes cho Address
+router.post("/address/create", UserController.createAddress);
+router.put("/address/update/:id", UserController.updateAddress);
+router.delete("/address/delete/:id", UserController.deleteAddress);
+router.get("/address/getAll", UserController.getAllAddresses);
+
+
+
 module.exports = router;
 // File này là UserRouter / Router dành riêng cho User
 
