@@ -1,10 +1,43 @@
 const UserService = require("../services/UserService");
 const JwtService = require("../services/JwtService");
 
+// Tạo OTP
+const createOtp = async (req, res) => {
+  try { 
+    const { name, email, password, confirmPassword, phone } = req.body;
+    //regex check email
+    const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    const isCheckEmail = regex.test(email);
+    if (!name || !email || !password || !confirmPassword || !phone ) {
+      return res.status(200).json({
+        status: "ERROR",
+        message: "Bạn cần điền thông tin",
+      });
+    } else if (!isCheckEmail) {
+      return res.status(200).json({
+        status: "ERROR",
+        message: "Sai định dạng email",
+      });
+    } else if (password != confirmPassword) {
+      return res.status(200).json({
+        status: "ERROR",
+        message: "Xác thực mật khẩu không chính xác",
+      });
+    }
+    const respone = await UserService.sendOtpEmail(email, phone);
+    // Log ra API check ,
+    return res.status(200).json(respone);
+  } catch (error) {
+    return res.status(404).json({
+      eMsg: error,
+    });
+  }
+};
+
+
 // Phương Thức Khởi Tạo 1 New User //
 const createUser = async (req, res) => {
-  try {
-    console.log("CHECK BE ")
+  try { 
     const { name, email, password, confirmPassword, phone } = req.body;
     //regex check email
     const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -224,6 +257,7 @@ module.exports = {
   refreshToken,
   userLogout,
   deleteManyUser,
+  createOtp
 };
 
 // File này nằm trong controller / Folder điều khiển
