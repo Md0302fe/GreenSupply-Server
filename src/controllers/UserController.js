@@ -1,43 +1,11 @@
 const UserService = require("../services/UserService");
 const JwtService = require("../services/JwtService");
 
-// Tạo OTP
-const createOtp = async (req, res) => {
-  try { 
-    const { name, email, password, confirmPassword, phone } = req.body;
-    //regex check email
-    const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    const isCheckEmail = regex.test(email);
-    if (!name || !email || !password || !confirmPassword || !phone ) {
-      return res.status(200).json({
-        status: "ERROR",
-        message: "Bạn cần điền thông tin",
-      });
-    } else if (!isCheckEmail) {
-      return res.status(200).json({
-        status: "ERROR",
-        message: "Sai định dạng email",
-      });
-    } else if (password != confirmPassword) {
-      return res.status(200).json({
-        status: "ERROR",
-        message: "Xác thực mật khẩu không chính xác",
-      });
-    }
-    const respone = await UserService.sendOtpEmail(email, phone);
-    // Log ra API check ,
-    return res.status(200).json(respone);
-  } catch (error) {
-    return res.status(404).json({
-      eMsg: error,
-    });
-  }
-};
-
 
 // Phương Thức Khởi Tạo 1 New User //
 const createUser = async (req, res) => {
-  try { 
+  try {
+    console.log("CHECK BE ")
     const { name, email, password, confirmPassword, phone } = req.body;
     //regex check email
     const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -74,8 +42,7 @@ const userLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
     console.log("Email : ", email);
-    console.log("password : ", password);
-
+  
     //regex check email
     const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     const isCheckEmail = regex.test(email);
@@ -114,6 +81,8 @@ const userLogin = async (req, res) => {
 // Phương Thức Update Thông Tin Của User
 const updateUser = async (req, res) => {
   try {
+    console.log("body: ", req.body);
+
     // Lấy được id người dùng thông qua URL (/update-user/:id) / get = params
     const userId = req.params.id;
     const data = req.body;
@@ -247,6 +216,55 @@ const userLogout = async (req, res) => {
   }
 };
 
+// Tạo địa chỉ mới
+const createAddress = async (req, res) => {
+  try {
+    const response = await UserService.createAddress(req.body);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Error in createAddress controller:", error);
+    return res.status(500).json({ status: "ERROR", message: "Lỗi server." });
+  }
+};
+
+// Cập nhật địa chỉ
+const updateAddress = async (req, res) => {
+  try {
+    const addressId = req.params.id;
+    const response = await UserService.updateAddress(addressId, req.body);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Error in updateAddress controller:", error);
+    return res.status(500).json({ status: "ERROR", message: "Lỗi server." });
+  }
+};
+
+// Xóa địa chỉ
+const deleteAddress = async (req, res) => {
+  try {
+    const addressId = req.params.id;
+    const response = await UserService.deleteAddress(addressId);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Error in deleteAddress controller:", error);
+    return res.status(500).json({ status: "ERROR", message: "Lỗi server." });
+  }
+};
+
+const getAllAddresses = async (req, res) => {
+  try {
+    const response = await UserService.getAllAddresses();
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Error in getAllAddresses controller:", error.message);
+    return res.status(500).json({
+      status: "ERROR",
+      message: "Server error while getting addresses",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   userLogin,
@@ -257,7 +275,10 @@ module.exports = {
   refreshToken,
   userLogout,
   deleteManyUser,
-  createOtp
+  createAddress,
+  updateAddress,
+  deleteAddress,
+  getAllAddresses
 };
 
 // File này nằm trong controller / Folder điều khiển
