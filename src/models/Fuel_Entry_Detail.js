@@ -5,7 +5,7 @@ const fuelEntryDetailSchema = new Schema(
   {
     request_id: {
       type: Types.ObjectId,
-      ref: "Admin_Fuel_Entry",
+      ref: "admin_fuel_entrys",
       required: true,
     }, // ID yêu cầu nhập nhiên liệu
     start_received: { type: Date, required: true }, // Thời gian nhận nhiên liệu (sửa kiểu String -> Date)
@@ -23,7 +23,7 @@ const fuelEntryDetailSchema = new Schema(
 );
 
 const FuelEntryDetail = mongoose.model(
-  "Fuel_Entry_Detail",
+  "fuel_entry_details",
   fuelEntryDetailSchema
 );
 module.exports = FuelEntryDetail;

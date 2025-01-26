@@ -3,11 +3,11 @@ const { Schema, Types } = mongoose;
 
 const fuelSupplyOrderSchema = new Schema(
   {
-    supplier_id: { type: Types.ObjectId, ref: "Supplier", required: true }, // Nhà cung cấp
+    supplier_id: { type: Types.ObjectId, ref: "suppliers", required: true }, // Nhà cung cấp
     fuel_name: { type: String, required: true }, // Tên nhiên liệu
     request_id: {
       type: Types.ObjectId,
-      ref: "Admin_Fuel_Entry",
+      ref: "admin_fuel_entrys",
       required: true,
     }, // ID nhập nhiên liệu
     quantity: { type: Number, required: true }, // Số lượng nhiên liệu
@@ -33,7 +33,7 @@ const fuelSupplyOrderSchema = new Schema(
 );
 
 const FuelSupplyOrder = mongoose.model(
-  "Fuel_Supply_Order",
+  "fuel_supply_orders",
   fuelSupplyOrderSchema
 );
 module.exports = FuelSupplyOrder;

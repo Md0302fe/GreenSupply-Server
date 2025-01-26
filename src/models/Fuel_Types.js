@@ -11,5 +11,5 @@ const FuelTypesSchema = new Schema(
   }
 );
 
-const FuelTypes = mongoose.model("Fuel_Type", FuelTypesSchema);
+const FuelTypes = mongoose.model("fuel_types", FuelTypesSchema);
 module.exports = FuelTypes;

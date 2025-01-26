@@ -3,7 +3,7 @@ const { Schema, Types } = mongoose;
 
 const userAddressSchema = new Schema(
   {
-    user_id: { type: Types.ObjectId, ref: "User", required: true },
+    user_id: { type: Types.ObjectId, ref: "users", required: true },
     full_name: { type: String, required: true }, // Tên người nhận
     company_name: { type: String, default: "" }, // Tên công ty (nếu có)
     address: { type: String, required: true },
@@ -16,5 +16,5 @@ const userAddressSchema = new Schema(
   }
 );
 
-const UserAddress = mongoose.model("UserAddress", userAddressSchema);
+const UserAddress = mongoose.model("user_address", userAddressSchema);
 module.exports = UserAddress;

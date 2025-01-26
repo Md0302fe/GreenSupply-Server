@@ -15,19 +15,18 @@ const SupplierSchema = new Schema(
     avatar: { type: String, default: "" },
     gender: {
       type: String,
-      enum: ["Male", "Female", "Other"],
-      default: "Other",
+      enum: ["Nam", "Nữ", "Khác"],
+      default: "Khác",
     },
     is_blocked: { type: Boolean, default: false },
     birth_day: { type: Date },
     is_deleted: { type: Boolean, default: false },
-    role_id: { type: Types.ObjectId, ref: "Role", required: true },
+    role_id: { type: Types.ObjectId, ref: "roles", required: true },
   },
   {
     timestamps: true, // Tự động thêm createdAt và updatedAt
   }
 );
 
-
-const Supplier = mongoose.model("Supplier", SupplierSchema);
+const Supplier = mongoose.model("suppliers", SupplierSchema);
 module.exports = Supplier;

@@ -3,7 +3,7 @@ const { Schema, Types } = mongoose;
 
 const FuelStoreSchema = new Schema(
   {
-    manager_id: { type: Types.ObjectId, ref: "User", required: true }, // Người quản lý kho
+    manager_id: { type: Types.ObjectId, ref: "users", required: true }, // Người quản lý kho
     name_storage: { type: String, required: true }, // Tên kho
     is_active: { type: Boolean, required: true, default: true }, // Trạng thái kho
     storage_conditions: { type: String }, // Điều kiện kho
@@ -17,5 +17,5 @@ const FuelStoreSchema = new Schema(
   }
 );
 
-const FuelStorage = mongoose.model("Fuel_Storage", FuelStoreSchema);
+const FuelStorage = mongoose.model("fuel_storages", FuelStoreSchema);
 module.exports = FuelStorage;
