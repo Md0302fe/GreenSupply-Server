@@ -12,6 +12,8 @@ const {
 
 // # CREATE - USER / POST
 router.post("/sign-up", UserController.createUser);
+// # COMPLETE PROFILE - USER / POST
+router.post("/complete-profile", UserController.completeProfile);
 // # CREATE - OTP / POST
 router.post("/create-otp", UserController.createOtp);
 // # LOGIN - USER / POST

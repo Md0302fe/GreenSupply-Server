@@ -5,6 +5,8 @@ const UserAddress = require("../models/UserAdress");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const otpStorage = new Map();
+const { OAuth2Client } = require("google-auth-library"); // Thư viện Google OAuth
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const {
   genneralAccessToken,
@@ -145,6 +147,45 @@ const createUser = (newUser) => {
         password: hash,
         role_id: role._id,
         birth_day: birth_day ? new Date(birth_day) : null,
+        googleId: null,
+      });
+      if (createdUser) {
+        return resolve({
+          status: "OK",
+          message: "Tạo tài khoản thành công",
+          data: createdUser,
+        });
+      }
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+// Hàm tạo 1 user mới
+const completeProfile = (newUser) => {
+
+  return new Promise(async (resolve, reject) => {
+    const { full_name, email, phone, role_check = false, birth_day, googleId } = newUser;
+    try {
+      // truy vấn role
+      const roleName = role_check ? "Supplier" : "User";
+      const role = await Role.findOne({ role_name: roleName });
+      if (!role) {
+        return {
+          status: "ERROR",
+          message: `Không tìm thấy vai trò mặc định '${roleName}'.`,
+        };
+      }
+      console.log(newUser)
+      const createdUser = await User.create({
+        full_name,
+        email,
+        phone,
+        password: null,
+        role_id: role._id,
+        birth_day: birth_day ? new Date(birth_day) : null,
+        googleId
       });
       if (createdUser) {
         return resolve({
@@ -162,29 +203,36 @@ const createUser = (newUser) => {
 // Hàm Handle Login User
 const userLogin = (userLogin) => {
   return new Promise(async (resolve, reject) => {
-    const { email, password } = userLogin;
+    const { email, password, googleToken } = userLogin; // Thêm googleToken vào input
+
     try {
-      // Tìm user trong hệ thống thông qua (email) / tìm email -> đợi -> dùng await
-      const user = await User.findOne({
-        email: email,
-      });
-      // Nếu user không tồn tại trong hệ thống
-      if (user === null) {
-        return resolve({
-          status: "ERROR",
-          message: `Tài khoảng không tồn tại`,
+      // Trường hợp đăng nhập bằng Google
+      if (googleToken) {
+        // 1. Xác thực token Google
+        const ticket = await client.verifyIdToken({
+          idToken: googleToken,
+          audience: process.env.GOOGLE_CLIENT_ID,
         });
-      }
-      // So sánh 2 passowrd (password người dùng nhập, password tồn tại trên hệ thống)
-      const comparePassword = bcrypt.compareSync(password, user.password);
-      // Nếu 2 pass không giống nhau -> res message đến người dùng
-      if (!comparePassword) {
-        return resolve({
-          status: "ERROR",
-          message: "Sai tài khoản hoặc mật khẩu !",
-        });
-      } else {
-        // Ngược lại 2 pass = nhau -> res message Successl , tạo token lưu trữ data user.
+
+        const payload = ticket.getPayload(); // Thông tin người dùng Google
+        const { email, name, picture, sub: googleId } = payload;
+        // 2. Kiểm tra xem người dùng đã tồn tại chưa
+        let user = await User.findOne({ email });
+
+        if (!user) {
+          return resolve({
+            status: "NEW_USER",
+            message: "Người dùng cần cập nhật thông tin bổ sung",
+            user: {
+              email: email,
+              full_name: name,
+              avatar: picture,
+              googleId
+            },
+          });
+        }
+
+        // 4. Tạo access_token và refresh_token
         const access_token = await genneralAccessToken({
           id: user.id,
           isAdmin: user.isAdmin,
@@ -193,14 +241,64 @@ const userLogin = (userLogin) => {
           id: user.id,
           isAdmin: user.isAdmin,
         });
-        // đăng nhập thành công trả về 1 object chứa 2 token.
+        // 5. Trả về thông tin đăng nhập
         return resolve({
           status: "OK",
-          message: "Đăng nhập thành công",
+          message: "Đăng nhập Google thành công",
           access_token,
           refresh_token,
+          user: {
+            email: user.email,
+            name: user.name,
+            avatar: user.avatar,
+          },
         });
       }
+
+      // Trường hợp đăng nhập bằng email và password
+      if (email && password) {
+        // Tìm user trong hệ thống thông qua email
+        const user = await User.findOne({ email });
+
+        if (user === null) {
+          return resolve({
+            status: "ERROR",
+            message: `Tài khoản không tồn tại`,
+          });
+        }
+
+        // So sánh password
+        const comparePassword = bcrypt.compareSync(password, user.password);
+        if (!comparePassword) {
+          return resolve({
+            status: "ERROR",
+            message: "Sai tài khoản hoặc mật khẩu !",
+          });
+        } else {
+          // Tạo token khi đăng nhập thành công
+          const access_token = await genneralAccessToken({
+            id: user.id,
+            isAdmin: user.isAdmin,
+          });
+          const refresh_token = await genneralRefreshToken({
+            id: user.id,
+            isAdmin: user.isAdmin,
+          });
+
+          return resolve({
+            status: "OK",
+            message: "Đăng nhập thành công",
+            access_token,
+            refresh_token,
+          });
+        }
+      }
+
+      // Nếu không có thông tin đăng nhập nào được cung cấp
+      return resolve({
+        status: "ERROR",
+        message: "Vui lòng cung cấp thông tin đăng nhập",
+      });
     } catch (error) {
       reject(error);
     }
@@ -397,7 +495,8 @@ module.exports = {
   updateAddress,
   deleteAddress,
   getAllAddresses,
-  sendOtpEmail
+  sendOtpEmail,
+  completeProfile
 };
 
 // File services này là file dịch vụ /
