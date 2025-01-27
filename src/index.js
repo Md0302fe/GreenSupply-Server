@@ -13,10 +13,12 @@ dotenv.config();
 // Tạo ứng dụng Express và cấu hình cổng
 const app = express(); // Tạo một instance của ứng dụng Express.
 const port = process.env.PORT; // Thiết lập port localhost
+const path = require("path");
 
 // Limit file load
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(express.json({ limit: "50mb" }));
+app.use("/product-image", express.static(path.join(__dirname, "assets/product-image")));
 
 app.use(cors());
 app.use(bodyParser.json()); // Sử dụng middleware bodyParser.json() dùng để parse request có dạng JSON.
