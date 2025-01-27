@@ -1,14 +1,16 @@
 const UserService = require("../services/UserService");
 const JwtService = require("../services/JwtService");
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Tạo OTP
 const createOtp = async (req, res) => {
-  try { 
+  try {
     const { name, email, password, confirmPassword, phone } = req.body;
     //regex check email
     const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     const isCheckEmail = regex.test(email);
-    if (!name || !email || !password || !confirmPassword || !phone ) {
+    if (!name || !email || !password || !confirmPassword || !phone) {
       return res.status(200).json({
         status: "ERROR",
         message: "Bạn cần điền thông tin",
@@ -44,7 +46,7 @@ const createUser = async (req, res) => {
     const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     const isCheckEmail = regex.test(email);
     console.log(req.body)
-    if (!name || !email || !password || !confirmPassword || !phone ) {
+    if (!name || !email || !password || !confirmPassword || !phone) {
       return res.status(200).json({
         status: "ERROR",
         message: "Bạn cần điền thông tin",
@@ -69,31 +71,43 @@ const createUser = async (req, res) => {
     });
   }
 };
+// Phương Thức Khởi Tạo 1 New User //
+const completeProfile = async (req, res) => {
+  try {
+    const respone = await UserService.completeProfile(req.body);
+    // Log ra API check ,
+    return res.status(200).json(respone);
+  } catch (error) {
+    return res.status(404).json({
+      eMsg: error,
+    });
+  }
+};
 
 // Phương Thức Login Của user
 const userLogin = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    console.log("Email : ", email);
-  
-    //regex check email
-    const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    const isCheckEmail = regex.test(email);
-    if (!email || !password) {
-      return res.status(200).json({
-        status: "ERROR",
-        message: "Bạn cần điền thông tin đăng nhập",
-      });
-    } else if (!isCheckEmail) {
-      return res.status(200).json({
-        status: "ERROR",
-        message: "Sai tài khoản hoặc mật khẩu",
-      });
+    const { email, password, googleToken } = req.body;
+    if (!googleToken) {
+      //regex check email
+      const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+      const isCheckEmail = regex.test(email);
+      if (!email || !password) {
+        return res.status(200).json({
+          status: "ERROR",
+          message: "Bạn cần điền thông tin đăng nhập",
+        });
+      } else if (!isCheckEmail) {
+        return res.status(200).json({
+          status: "ERROR",
+          message: "Sai tài khoản hoặc mật khẩu",
+        });
+      }
     }
+
     const respone = await UserService.userLogin(req.body);
     // Trả về 1 json(object) respone nhận được từ phía services.
     const { refresh_token, ...newRespone } = respone;
-
     // set option cookie
     res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
@@ -312,7 +326,8 @@ module.exports = {
   updateAddress,
   deleteAddress,
   getAllAddresses,
-  createOtp
+  createOtp,
+  completeProfile
 };
 
 // File này nằm trong controller / Folder điều khiển
