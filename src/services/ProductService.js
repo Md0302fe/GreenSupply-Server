@@ -8,7 +8,7 @@ const createProduct = async (productData) => {
   try {
     const newProduct = new product(productData);
     await newProduct.save();
-    return { status: "SUCCESS", product: newProduct };
+    return { status: "Create New Product Is Successfully!", product: newProduct };
   } catch (error) {
     throw new Error(error.message);
   }
@@ -21,37 +21,25 @@ const updateProduct = async (id, data) => {
     if (!updatedProduct) {
       throw new Error("Product not found");
     }
-    return { status: "SUCCESS", product: updatedProduct };
-  } catch (error) {
-    throw new Error(error.message);
-  }
-};
-
-// Xóa sản phẩm
-const deleteProduct = async (id) => {
-  try {
-    const deletedProduct = await product.findByIdAndDelete(id);
-    if (!deletedProduct) {
-      throw new Error("Product not found");
-    }
-    return { status: "SUCCESS", product: deletedProduct };
+    return { status: "Update Product Is Successfully!", product: updatedProduct };
   } catch (error) {
     throw new Error(error.message);
   }
 };
 
 // Lấy chi tiết sản phẩm
-const getDetailProduct = async (id) => {
+const getProductDetail = async (id) => {
   try {
-    const product = await product.findById(id);
-    if (!product) {
+    const productDetail = await product.findById(id);
+    if (!productDetail) {
       throw new Error("Product not found");
     }
-    return { status: "SUCCESS", product };
+    return { status: "Get Product Details Is Successfully!", productDetail };
   } catch (error) {
     throw new Error(error.message);
   }
 };
+
 
 // Lấy tất cả sản phẩm
 const getAllProduct = async (limit = 8, page = 0, sort, filter) => {
@@ -60,17 +48,45 @@ const getAllProduct = async (limit = 8, page = 0, sort, filter) => {
       .sort(sort)
       .limit(limit)
   
-    return { status: "SUCCESS", products };
+    return { status: "Get All Products Is Successfully!", products };
   } catch (error) {
     throw new Error(error.message);
   }
 };
 
+
+// Xóa sản phẩm
+const deleteProduct = async (id) => {
+  try {
+    const deletedProduct = await product.findByIdAndDelete(id);
+    if (!deletedProduct) {
+      throw new Error("Product not found");
+    }
+    return { status: "Delete Product Is Successfully!", product: deletedProduct };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Xóa tất cả sản phẩm
+const deleteAllProducts = async () => {
+  try {
+    const result = await product.deleteMany({});
+    return {
+      status: "Delete All Products Is Successfully!",
+      deletedCount: result.deletedCount, // Trả về số sản phẩm đã bị xóa
+    };
+  } catch (error) {
+    throw new Error("Failed to delete all products: " + error.message);
+  }
+};
+
+
 // Xóa nhiều sản phẩm
 const deleteManyProduct = async (ids) => {
   try {
     const deletedProducts = await product.deleteMany({ _id: { $in: ids } });
-    return { status: "SUCCESS", deletedCount: deletedProducts.deletedCount };
+    return { status: "Delete Many Products Is Successfully!", deletedCount: deletedProducts.deletedCount };
   } catch (error) {
     throw new Error(error.message);
   }
@@ -114,9 +130,10 @@ const searchProductByName = async (name) => {
 module.exports = {
   createProduct,
   updateProduct,
-  deleteProduct,
-  getDetailProduct,
+  getProductDetail,
   getAllProduct,
+  deleteProduct,
+  deleteAllProducts,
   deleteManyProduct,
   searchProductByName
 };
