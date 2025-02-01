@@ -23,9 +23,25 @@ const ProductSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    oldPrice: {
+      type: Number,
+      default: 0,
+    },
     description: {
       type: String,
       default: "",
+    },
+    quantity: {
+      type: Number,
+      default: 0,
+    },
+    origin: {
+      type: String,
+      required: true,
+    },
+    certifications: {
+      type: [String],
+      default: [],
     },
   },
   {
