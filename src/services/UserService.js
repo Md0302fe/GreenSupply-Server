@@ -86,6 +86,123 @@ const sendOtpEmail = async (email, phone) => {
     }
   });
 };
+const sendOtpEmailForgotPassword = async (email) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Kiểm tra email đã tồn tại
+      const existedEmail = await User.findOne({
+        email: email,
+      });
+
+      if (existedEmail == null) {
+        return resolve({
+          status: "ERROR",
+          message: `Email ${existedEmail.email} không tồn tại!`,
+        });
+      }
+
+      const transporter = nodemailer.createTransport({
+        service: "gmail", // Sử dụng dịch vụ email, ví dụ Gmail
+        auth: {
+          user: process.env.EMAIL_USERNAME, // Email gửi
+          pass: process.env.EMAIL_PASSWORD, // Mật khẩu email (hoặc App Password)
+        },
+      });
+
+      // Tạo mã OTP
+      const otp = generateOTP(); // Hàm generateOTP() tạo mã OTP
+
+      // Nội dung email
+      const mailOptions = {
+        from: process.env.EMAIL_USERNAME, // Địa chỉ email gửi
+        to: email, // Email người nhận
+        subject: "Mã OTP của bạn",
+        text: `Xin chào,\n\nMã OTP của bạn là: ${otp}.\n\nMã này có hiệu lực trong vòng 5 phút.\n\nTrân trọng, \nĐội ngũ hỗ trợ`,
+      };
+
+      // Gửi email
+      await transporter.sendMail(mailOptions);
+      // Lưu OTP vào Map với thời gian sống 5 phút
+      otpStorage.set(email, { otp, expiresAt: Date.now() + 5 * 60 * 1000 });
+      // Trả về OTP cùng trạng thái thành công
+      return resolve({
+        status: "OK",
+        message: "OTP đã được gửi thành công!",
+      });
+    } catch (error) {
+      console.error("Lỗi khi gửi OTP qua email:", error);
+
+      // Trả về lỗi
+      return reject({
+        status: "ERROR",
+        message: "Không thể gửi OTP. Vui lòng thử lại sau.",
+        error: error.message,
+      });
+    }
+  });
+};
+const checkEmailForgot = async (email) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Kiểm tra email đã tồn tại
+      const existedEmail = await User.findOne({
+        email: email,
+      });
+
+      if (existedEmail == null) {
+        return resolve({
+          status: "ERROR",
+          message: `Email ${existedEmail.email} không tồn tại!`,
+        });
+      }
+      const result = await sendOtpEmailForgotPassword(email);
+      resolve(result);
+    } catch (error) {
+      console.error("Lỗi khi kiểm tra email:", error);
+
+      // Trả về lỗi
+      return reject({
+        status: "ERROR",
+        message: "Không thể kiểm tra email. Vui lòng thử lại sau.",
+        error: error.message,
+      });
+    }
+  });
+};
+
+const updatePassword = async (newPassword, email) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Kiểm tra email có tồn tại không
+      const existedEmail = await User.findOne({ email: email });
+
+      if (!existedEmail) {
+        return resolve({
+          status: "ERROR",
+          message: "Email không tồn tại!",
+        });
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Cập nhật mật khẩu trong database
+      await User.updateOne({ email: email }, { password: hashedPassword });
+
+      return resolve({
+        status: "OK",
+        message: "Mật khẩu đã được cập nhật thành công!",
+      });
+    } catch (error) {
+      console.error("Lỗi khi cập nhật mật khẩu:", error);
+      return reject({
+        status: "ERROR",
+        message: "Không thể cập nhật mật khẩu. Vui lòng thử lại sau.",
+        error: error.message,
+      });
+    }
+  });
+};
+
 
 const verifyOtp = async (email, otp) => {
   const storedOtp = otpStorage.get(email);
@@ -496,7 +613,10 @@ module.exports = {
   deleteAddress,
   getAllAddresses,
   sendOtpEmail,
-  completeProfile
+  completeProfile,
+  checkEmailForgot,
+  verifyOtp,
+  updatePassword,
 };
 
 // File services này là file dịch vụ /

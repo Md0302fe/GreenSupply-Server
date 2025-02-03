@@ -12,6 +12,10 @@ const {
 
 // # CREATE - USER / POST
 router.post("/sign-up", UserController.createUser);
+// CHECK USER
+router.post("/check-email", UserController.checkEmail);
+router.post("/check-otp", UserController.checkOTP);
+router.post("/update-password", UserController.updatePassword);
 // # COMPLETE PROFILE - USER / POST
 router.post("/complete-profile", UserController.completeProfile);
 // # CREATE - OTP / POST

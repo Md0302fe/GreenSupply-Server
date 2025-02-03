@@ -71,6 +71,67 @@ const createUser = async (req, res) => {
     });
   }
 };
+// Phương Thức kiểm tra email //
+const checkEmail = async (req, res) => {
+  try {
+    const { emailForgot } = req.body;
+
+    //regex check email
+    const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    const isCheckEmail = regex.test(emailForgot);
+    if (!isCheckEmail) {
+      return res.status(200).json({
+        status: "ERROR",
+        message: "Bạn cần điền đúng định dạng email",
+      });
+    }
+    const respone = await UserService.checkEmailForgot(emailForgot);
+    // Log ra API check ,
+    return res.status(200).json(respone);
+  } catch (error) {
+    return res.status(404).json({
+      eMsg: error,
+    });
+  }
+};
+// Phương Thức kiểm tra OTP //
+const checkOTP = async (req, res) => {
+  try {
+    const { otp, emailForgot } = req.body;
+    if (!otp) {
+      return res.status(200).json({
+        status: "ERROR",
+        message: "Bạn cần điền đúng mã otp",
+      });
+    }
+    const respone = await UserService.verifyOtp(emailForgot, otp);
+    // Log ra API check ,
+    return res.status(200).json(respone);
+  } catch (error) {
+    return res.status(404).json({
+      eMsg: error,
+    });
+  }
+};
+// Phương Thức Đổi mật khẩu //
+const updatePassword = async (req, res) => {
+  try {
+    const { newPassword, email } = req.body;
+    if (!newPassword) {
+      return res.status(200).json({
+        status: "ERROR",
+        message: "Bạn cần điền mật khẩu mới",
+      });
+    }
+    const respone = await UserService.updatePassword(newPassword, email);
+    // Log ra API check ,
+    return res.status(200).json(respone);
+  } catch (error) {
+    return res.status(404).json({
+      eMsg: error,
+    });
+  }
+};
 // Phương Thức Khởi Tạo 1 New User //
 const completeProfile = async (req, res) => {
   try {
@@ -327,7 +388,10 @@ module.exports = {
   deleteAddress,
   getAllAddresses,
   createOtp,
-  completeProfile
+  completeProfile,
+  checkEmail,
+  checkOTP,
+  updatePassword,
 };
 
 // File này nằm trong controller / Folder điều khiển
