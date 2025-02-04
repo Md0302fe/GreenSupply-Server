@@ -44,7 +44,7 @@ const path = require("path");
 
 const createProduct = async (req, res) => {
   try {
-    const { name, masanpham, image, type, price, description } = req.body;
+    const { name, masanpham, image, type, price, oldPrice, description, quantity, origin, certifications } = req.body;
 
     // Kiểm tra các trường bắt buộc
     if (!name || !masanpham || !type || !price) {
@@ -83,7 +83,11 @@ const createProduct = async (req, res) => {
       image: finalImagePath, // Lưu đường dẫn cuối cùng vào DB
       type,
       price,
+      oldPrice,
       description,
+      quantity,
+      origin,
+      certifications,
     });
 
     return res.status(201).json({
@@ -110,7 +114,6 @@ function formatFileName(name) {
 }
 
 
-
 // Phương Thức Update Thông Tin Của Product
 const updateProduct = async (req, res) => {
   try {
@@ -133,19 +136,21 @@ const updateProduct = async (req, res) => {
   }
 };
 
-// Phương Thức Get Detail User
-const getDetailProduct = async (req, res) => {
+const getProductDetail = async (req, res) => {
   try {
     const productId = req.params.id;
-    const respone = await ProductService.getDetailProduct(productId);
-    // Log API Check
-    return res.status(200).json(respone);
+    const response = await ProductService.getProductDetail(productId);
+    return res.status(200).json(response);
   } catch (error) {
-    return res.status(404).json({
-      eMsg: error,
-    });
+    console.error("Error fetching product detail:", error);
+    return res.status(500).json({ message: error.message });
   }
 };
+
+module.exports = {
+  getProductDetail,
+};
+
 
 // Phương Thức Delele User
 const deleteProduct = async (req, res) => {
@@ -167,6 +172,25 @@ const deleteProduct = async (req, res) => {
     });
   }
 };
+
+// Phương thức xóa tất cả sản phẩm
+const deleteAllProducts = async (req, res) => {
+  try {
+    const deleteAllProducts = await ProductService.deleteAllProducts();
+    return res.status(200).json({
+      status: "SUCCESS",
+      message: "All products have been deleted successfully!",
+      data: deleteAllProducts, // Có thể trả về số sản phẩm đã xóa hoặc danh sách các sản phẩm bị xóa
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "ERROR",
+      message: "An error occurred while deleting all products.",
+      eMsg: error.message,
+    });
+  }
+};
+
 
 // Phương Thức DELETE Many
 const deleteManyProduct = async (req, res) => {
@@ -320,8 +344,9 @@ const searchProduct = async (req, res) => {
 module.exports = {
   createProduct,
   updateProduct,
-  getDetailProduct,
+  getProductDetail,
   deleteProduct,
+  deleteAllProducts,
   getAllProduct,
   deleteManyProduct,
   searchProduct

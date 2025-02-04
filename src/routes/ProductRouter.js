@@ -10,12 +10,13 @@ const {
     authUserMidleware,
   } = require("../middleware/AuthMidleware");
 
-
   // Routes cho Address
-  router.post("/create", ProductController.createProduct);
-  router.put("/update/:id", ProductController.updateProduct);
-  router.delete("/delete/:id", ProductController.deleteProduct);
-  router.get("/getAll", ProductController.getAllProduct);
-  router.get("/search", ProductController.searchProduct);    
+  router.post("/createProduct", ProductController.createProduct);
+  router.put("/updateProduct/:id", ProductController.updateProduct);
+  router.delete("/deleteProduct/:id", ProductController.deleteProduct);
+  router.delete('/deleteAllProducts', ProductController.deleteAllProducts);
+  router.get("/getAllProduct", ProductController.getAllProduct);
+  router.get("/searchProduct", ProductController.searchProduct);    
+  router.get("/getProductDetail/:id", ProductController.getProductDetail);    
 
   module.exports = router;
