@@ -9,13 +9,18 @@ const fuelRequestSchema = new Schema(
     quantity: { type: Number, required: true }, // Số lượng
     price: { type: Number, required: true }, // Giá mỗi đơn vị
     total_price: { type: Number, required: true }, // Tổng giá
-    status: { type: String, required: true }, // Trạng thái yêu cầu
+    address: { type: String, required: true },// Địa chỉ nhận hàng mới thêm 
+    status: {
+      type: String,
+      enum: ["Chờ duyệt", "Đã duyệt", "Từ chối", "Đã huỷ"],
+      default: "Chờ duyệt",
+    }, // Trạng thái yêu cầu
     is_deleted: { type: Boolean, default: false }, // Trạng thái xóa
     priority: { type: Number, default: 1 }, // Mức độ ưu tiên (1-5)
     note: { type: String, default: "" }, // Ghi chú
   },
   {
-    timestamps: true, // Tự động thêm createdAt và updatedAt
+    timestamps: true,
   }
 );
 
