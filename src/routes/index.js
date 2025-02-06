@@ -8,6 +8,7 @@ const routes = (app) => {
   app.use("/api/user", UserRouter);
   // Tất cả endpoint liên quan đến lịch sử sẽ có tiền tố /history
   app.use("/history", historyRoutes);
+  
 
 };
 module.exports = routes;

@@ -4,17 +4,17 @@ const FuelSupplyOrder = require("../models/Fuel_Supply_Order");
 exports.getFuelRequests = async (req, res) => {
   try {
     const requests = await FuelRequest.find({ is_deleted: false });
-    res.json(requests);
+    res.json({ success: true, data: requests });
   } catch (error) {
-    res.status(500).json({ error: "Lỗi khi lấy dữ liệu Fuel Requests" });
+    res.status(500).json({ success: false, error: "Lỗi khi lấy dữ liệu Fuel Requests" });
   }
 };
 
 exports.getFuelSupplyOrders = async (req, res) => {
   try {
     const orders = await FuelSupplyOrder.find({ is_deleted: false });
-    res.json(orders);
+    res.json({ success: true, data: orders });
   } catch (error) {
-    res.status(500).json({ error: "Lỗi khi lấy dữ liệu Fuel Supply Orders" });
+    res.status(500).json({ success: false, error: "Lỗi khi lấy dữ liệu Fuel Supply Orders" });
   }
 };
