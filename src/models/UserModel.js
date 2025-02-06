@@ -11,7 +11,12 @@ const userSchema = new mongoose.Schema(
       match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     },
     phone: { type: String, required: true, unique: true },
-    password: { type: String, required: true }, 
+    password: {
+      type: String,
+      required: function () {
+        return !this.googleId;
+      },
+    },
     gender: {
       type: String,
       enum: ["Nam", "Nữ", "Khác"],
@@ -21,6 +26,10 @@ const userSchema = new mongoose.Schema(
     birth_day: { type: Date },
     is_deleted: { type: Boolean, default: false },
     role_id: { type: Types.ObjectId, ref: "roles", required: true },
+    googleId: {
+      type: String, // Thêm googleId để lưu thông tin người dùng Google
+      required: false,
+    },
   },
   {
     timestamps: true,

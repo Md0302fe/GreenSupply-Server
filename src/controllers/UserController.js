@@ -1,14 +1,16 @@
 const UserService = require("../services/UserService");
 const JwtService = require("../services/JwtService");
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Tạo OTP
 const createOtp = async (req, res) => {
-  try { 
+  try {
     const { name, email, password, confirmPassword, phone } = req.body;
     //regex check email
     const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     const isCheckEmail = regex.test(email);
-    if (!name || !email || !password || !confirmPassword || !phone ) {
+    if (!name || !email || !password || !confirmPassword || !phone) {
       return res.status(200).json({
         status: "ERROR",
         message: "Bạn cần điền thông tin",
@@ -37,13 +39,14 @@ const createOtp = async (req, res) => {
 
 // Phương Thức Khởi Tạo 1 New User //
 const createUser = async (req, res) => {
-  try { 
+  try {
+    console.log("CHECK BE ")
     const { name, email, password, confirmPassword, phone } = req.body;
     //regex check email
     const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     const isCheckEmail = regex.test(email);
     console.log(req.body)
-    if (!name || !email || !password || !confirmPassword || !phone ) {
+    if (!name || !email || !password || !confirmPassword || !phone) {
       return res.status(200).json({
         status: "ERROR",
         message: "Bạn cần điền thông tin",
@@ -68,32 +71,104 @@ const createUser = async (req, res) => {
     });
   }
 };
+// Phương Thức kiểm tra email //
+const checkEmail = async (req, res) => {
+  try {
+    const { emailForgot } = req.body;
+
+    //regex check email
+    const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    const isCheckEmail = regex.test(emailForgot);
+    if (!isCheckEmail) {
+      return res.status(200).json({
+        status: "ERROR",
+        message: "Bạn cần điền đúng định dạng email",
+      });
+    }
+    const respone = await UserService.checkEmailForgot(emailForgot);
+    // Log ra API check ,
+    return res.status(200).json(respone);
+  } catch (error) {
+    return res.status(404).json({
+      eMsg: error,
+    });
+  }
+};
+// Phương Thức kiểm tra OTP //
+const checkOTP = async (req, res) => {
+  try {
+    const { otp, emailForgot } = req.body;
+    if (!otp) {
+      return res.status(200).json({
+        status: "ERROR",
+        message: "Bạn cần điền đúng mã otp",
+      });
+    }
+    const respone = await UserService.verifyOtp(emailForgot, otp);
+    // Log ra API check ,
+    return res.status(200).json(respone);
+  } catch (error) {
+    return res.status(404).json({
+      eMsg: error,
+    });
+  }
+};
+// Phương Thức Đổi mật khẩu //
+const updatePassword = async (req, res) => {
+  try {
+    const { newPassword, email } = req.body;
+    if (!newPassword) {
+      return res.status(200).json({
+        status: "ERROR",
+        message: "Bạn cần điền mật khẩu mới",
+      });
+    }
+    const respone = await UserService.updatePassword(newPassword, email);
+    // Log ra API check ,
+    return res.status(200).json(respone);
+  } catch (error) {
+    return res.status(404).json({
+      eMsg: error,
+    });
+  }
+};
+// Phương Thức Khởi Tạo 1 New User //
+const completeProfile = async (req, res) => {
+  try {
+    const respone = await UserService.completeProfile(req.body);
+    // Log ra API check ,
+    return res.status(200).json(respone);
+  } catch (error) {
+    return res.status(404).json({
+      eMsg: error,
+    });
+  }
+};
 
 // Phương Thức Login Của user
 const userLogin = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    console.log("Email : ", email);
-    console.log("password : ", password);
-
-    //regex check email
-    const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    const isCheckEmail = regex.test(email);
-    if (!email || !password) {
-      return res.status(200).json({
-        status: "ERROR",
-        message: "Bạn cần điền thông tin đăng nhập",
-      });
-    } else if (!isCheckEmail) {
-      return res.status(200).json({
-        status: "ERROR",
-        message: "Sai tài khoản hoặc mật khẩu",
-      });
+    const { email, password, googleToken } = req.body;
+    if (!googleToken) {
+      //regex check email
+      const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+      const isCheckEmail = regex.test(email);
+      if (!email || !password) {
+        return res.status(200).json({
+          status: "ERROR",
+          message: "Bạn cần điền thông tin đăng nhập",
+        });
+      } else if (!isCheckEmail) {
+        return res.status(200).json({
+          status: "ERROR",
+          message: "Sai tài khoản hoặc mật khẩu",
+        });
+      }
     }
+
     const respone = await UserService.userLogin(req.body);
     // Trả về 1 json(object) respone nhận được từ phía services.
     const { refresh_token, ...newRespone } = respone;
-
     // set option cookie
     res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
@@ -114,6 +189,8 @@ const userLogin = async (req, res) => {
 // Phương Thức Update Thông Tin Của User
 const updateUser = async (req, res) => {
   try {
+    console.log("body: ", req.body);
+
     // Lấy được id người dùng thông qua URL (/update-user/:id) / get = params
     const userId = req.params.id;
     const data = req.body;
@@ -247,6 +324,55 @@ const userLogout = async (req, res) => {
   }
 };
 
+// Tạo địa chỉ mới
+const createAddress = async (req, res) => {
+  try {
+    const response = await UserService.createAddress(req.body);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Error in createAddress controller:", error);
+    return res.status(500).json({ status: "ERROR", message: "Lỗi server." });
+  }
+};
+
+// Cập nhật địa chỉ
+const updateAddress = async (req, res) => {
+  try {
+    const addressId = req.params.id;
+    const response = await UserService.updateAddress(addressId, req.body);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Error in updateAddress controller:", error);
+    return res.status(500).json({ status: "ERROR", message: "Lỗi server." });
+  }
+};
+
+// Xóa địa chỉ
+const deleteAddress = async (req, res) => {
+  try {
+    const addressId = req.params.id;
+    const response = await UserService.deleteAddress(addressId);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Error in deleteAddress controller:", error);
+    return res.status(500).json({ status: "ERROR", message: "Lỗi server." });
+  }
+};
+
+const getAllAddresses = async (req, res) => {
+  try {
+    const response = await UserService.getAllAddresses();
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Error in getAllAddresses controller:", error.message);
+    return res.status(500).json({
+      status: "ERROR",
+      message: "Server error while getting addresses",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   userLogin,
@@ -257,7 +383,15 @@ module.exports = {
   refreshToken,
   userLogout,
   deleteManyUser,
-  createOtp
+  createAddress,
+  updateAddress,
+  deleteAddress,
+  getAllAddresses,
+  createOtp,
+  completeProfile,
+  checkEmail,
+  checkOTP,
+  updatePassword,
 };
 
 // File này nằm trong controller / Folder điều khiển
