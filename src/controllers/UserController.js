@@ -36,16 +36,15 @@ const createOtp = async (req, res) => {
   }
 };
 
-
 // Phương Thức Khởi Tạo 1 New User //
 const createUser = async (req, res) => {
   try {
-    console.log("CHECK BE ")
+    console.log("CHECK BE ");
     const { name, email, password, confirmPassword, phone } = req.body;
     //regex check email
     const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     const isCheckEmail = regex.test(email);
-    console.log(req.body)
+    console.log(req.body);
     if (!name || !email || !password || !confirmPassword || !phone) {
       return res.status(200).json({
         status: "ERROR",
@@ -327,10 +326,11 @@ const userLogout = async (req, res) => {
 // Tạo địa chỉ mới
 const createAddress = async (req, res) => {
   try {
-    const response = await UserService.createAddress(req.body);
+    const userId = req.user.id; // Lấy ID người dùng từ middleware
+    const response = await UserService.createAddress(userId, req.body);
     return res.status(200).json(response);
   } catch (error) {
-    console.error("Error in createAddress controller:", error);
+    console.error("Lỗi khi tạo địa chỉ:", error);
     return res.status(500).json({ status: "ERROR", message: "Lỗi server." });
   }
 };
@@ -338,11 +338,18 @@ const createAddress = async (req, res) => {
 // Cập nhật địa chỉ
 const updateAddress = async (req, res) => {
   try {
-    const addressId = req.params.id;
-    const response = await UserService.updateAddress(addressId, req.body);
+    const userId = req.user.id; // Lấy ID người dùng từ middleware
+    const addressId = req.params.id; // Lấy ID địa chỉ từ URL
+
+    if (!addressId) {
+      return res.status(400).json({ status: "ERROR", message: "Thiếu ID địa chỉ." });
+    }
+
+    const response = await UserService.updateAddress(userId, addressId, req.body);
+    
     return res.status(200).json(response);
   } catch (error) {
-    console.error("Error in updateAddress controller:", error);
+    console.error("Lỗi khi cập nhật địa chỉ:", error);
     return res.status(500).json({ status: "ERROR", message: "Lỗi server." });
   }
 };
@@ -350,24 +357,53 @@ const updateAddress = async (req, res) => {
 // Xóa địa chỉ
 const deleteAddress = async (req, res) => {
   try {
-    const addressId = req.params.id;
-    const response = await UserService.deleteAddress(addressId);
+    const userId = req.user.id; // Lấy ID người dùng từ middleware
+    const addressId = req.params.id; // Lấy ID địa chỉ từ URL
+
+    if (!addressId) {
+      return res.status(400).json({ status: "ERROR", message: "Thiếu ID địa chỉ." });
+    }
+
+    const response = await UserService.deleteAddress(userId, addressId);
+
     return res.status(200).json(response);
   } catch (error) {
-    console.error("Error in deleteAddress controller:", error);
+    console.error("Lỗi khi xóa địa chỉ:", error);
     return res.status(500).json({ status: "ERROR", message: "Lỗi server." });
   }
 };
 
-const getAllAddresses = async (req, res) => {
+// Lấy chi tiết một địa chỉ theo ID
+const getDetailAddress = async (req, res) => {
   try {
-    const response = await UserService.getAllAddresses();
+    const userId = req.user.id; // Lấy ID người dùng từ middleware
+    const addressId = req.params.id; // Lấy ID địa chỉ từ URL
+
+    if (!addressId) {
+      return res.status(400).json({ status: "ERROR", message: "Thiếu ID địa chỉ." });
+    }
+
+    const response = await UserService.getDetailAddress(userId, addressId);
     return res.status(200).json(response);
   } catch (error) {
-    console.error("Error in getAllAddresses controller:", error.message);
+    console.error("Lỗi khi lấy chi tiết địa chỉ:", error);
+    return res.status(500).json({ status: "ERROR", message: "Lỗi server." });
+  }
+};
+
+
+
+
+const getAllAddresses = async (req, res) => {
+  try {
+    const userId = req.user.id; // Lấy ID người dùng từ middleware
+    const response = await UserService.getAllAddresses(userId);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Lỗi trong getAllAddresses controller:", error.message);
     return res.status(500).json({
       status: "ERROR",
-      message: "Server error while getting addresses",
+      message: "Lỗi server khi lấy danh sách địa chỉ",
       error: error.message,
     });
   }
@@ -392,6 +428,7 @@ module.exports = {
   checkEmail,
   checkOTP,
   updatePassword,
+  getDetailAddress,
 };
 
 // File này nằm trong controller / Folder điều khiển
