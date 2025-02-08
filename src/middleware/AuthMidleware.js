@@ -92,9 +92,6 @@ const authUserMidleware = async (req, res, next) => {
           message: "Token không hợp lệ hoặc đã hết hạn.",
         });
       }
-
-      console.log("Dữ liệu từ token:", user); // Kiểm tra token có đúng không
-
       req.user = user; // Gán thông tin user vào request
       next();
     });
