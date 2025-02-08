@@ -22,8 +22,10 @@ router.post("/sign-in", UserController.userLogin);
 router.post("/log-out", UserController.userLogout);
 // # UPDATE - USER / PUT
 router.put("/update-user/:id", authUserMidleware, UserController.updateUser);
-// # DELETE - USER / DELETE
-router.delete("/delete-user/:id", authMidleware, UserController.deleteUser);
+// # PUT - USER / PUT
+router.put("/block-user/:id", authMidleware, UserController.blockUser);
+// # PUT - USER / PUT
+router.put("/unblock-user/:id", authMidleware, UserController.unBlockUser);
 // # GET ALL USER - USER / GET
 router.get("/getAll", authMidleware, UserController.getAllUser);
 // # GET DETAIL USER - USER / GET
