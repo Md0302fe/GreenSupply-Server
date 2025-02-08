@@ -2,6 +2,7 @@
 const UserRouter = require("./UserRouter");
 const ProductRouter = require("./ProductRouter");
 const HarvestRequestRouter = require("./HarvestRequestRouter");
+const SupplyRequestRouter = require("./SupplyRequestRouter");
 
 //  Định nghĩa hàm routes
 //  Đây là một hàm nhận vào đối tượng app (chính là instance của ứng dụng Express).
@@ -10,6 +11,7 @@ const routes = (app) => {
   app.use("/api/user", UserRouter);
   app.use("/api/product", ProductRouter);
   app.use("/api/harvest-request", HarvestRequestRouter);
+  app.use("/api/supply-request", SupplyRequestRouter);
 };
 module.exports = routes;
 

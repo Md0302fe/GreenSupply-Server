@@ -84,7 +84,6 @@ const updateHarvestRequest = async (req, res) => {
 const cancelHarvestRequest = async (req, res) => {
   try {
     const requestId = req.params.id;
-    const supplierId = req.body.supplier_id;
 
     if (!requestId) {
       return res.status(400).json({
@@ -94,12 +93,11 @@ const cancelHarvestRequest = async (req, res) => {
     }
 
     const response = await HarvestRequestService.cancelHarvestRequest(
-      requestId,
-      supplierId
+      requestId
     );
     return res.status(200).json(response);
   } catch (error) {
-    console.log("Error:", error);
+    console.error("Error:", error);
     return res.status(500).json({
       success: false,
       message: "Error Canceling Harvest Request",
