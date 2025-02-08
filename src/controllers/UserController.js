@@ -210,7 +210,7 @@ const updateUser = async (req, res) => {
 };
 
 // Phương Thức Delele User
-const deleteUser = async (req, res) => {
+const blockUser = async (req, res) => {
   try {
     // Lấy được id người dùng thông qua URL (/update-user/:id) / get = params
     const userId = req.params.id;
@@ -221,7 +221,30 @@ const deleteUser = async (req, res) => {
       });
     }
     // Nếu user đã login -> check có phải admin hay không ?
-    const respone = await UserService.deleteUser(userId);
+    const respone = await UserService.blockUser(userId);
+    // Log API Check
+    return res.status(200).json(respone);
+  } catch (error) {
+    return res.status(404).json({
+      eMsg: error,
+    });
+  }
+};
+
+// Phương Thức Delele User
+const unBlockUser = async (req, res) => {
+  try {
+    console.log("CON CAC");
+    // Lấy được id người dùng thông qua URL (/update-user/:id) / get = params
+    const userId = req.params.id;
+    if (!userId) {
+      res.status(200).json({
+        status: "ERROR",
+        message: "The userId is required !",
+      });
+    }
+    // Nếu user đã login -> check có phải admin hay không ?
+    const respone = await UserService.unBlockUser(userId);
     // Log API Check
     return res.status(200).json(respone);
   } catch (error) {
@@ -413,7 +436,7 @@ module.exports = {
   createUser,
   userLogin,
   updateUser,
-  deleteUser,
+  blockUser,
   getAllUser,
   getDetailUser,
   refreshToken,
@@ -429,6 +452,7 @@ module.exports = {
   checkOTP,
   updatePassword,
   getDetailAddress,
+  unBlockUser,
 };
 
 // File này nằm trong controller / Folder điều khiển
