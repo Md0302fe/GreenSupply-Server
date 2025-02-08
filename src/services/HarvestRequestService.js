@@ -1,5 +1,6 @@
 const FuelRequest = require("../models/Fuel_Request.js");
 const Supplier = require("../models/Supplier.js");
+const mongoose = require("mongoose");
 
 const createHarvestRequest = async (data) => {
   try {
@@ -94,32 +95,41 @@ const updateHarvestRequest = async (id, data) => {
 };
 
 // Hủy yêu cầu thu hàng (Chỉ khi trạng thái là "Chờ duyệt")
-const cancelHarvestRequest = async (id, supplierId) => {
+const cancelHarvestRequest = async (id) => {
   try {
-    const request = await FuelRequest.findOne({
-      _id: id,
-      supplier_id: supplierId,
-    });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new Error("ID yêu cầu thu hàng không hợp lệ!");
+    }
+
+    const request = await FuelRequest.findById(id);
 
     if (!request) {
-      throw new Error(
-        "Không tìm thấy yêu cầu thu hàng hoặc bạn không có quyền hủy!"
-      );
+      return {
+        success: false,
+        message: "Không tìm thấy yêu cầu thu hàng!",
+      };
     }
 
     if (request.status !== "Chờ duyệt") {
-      throw new Error("Không thể hủy đơn hàng đã được xử lý!");
+      return {
+        success: false,
+        message: "Không thể hủy đơn hàng đã được xử lý!",
+      };
     }
 
     request.status = "Đã huỷ";
     await request.save();
 
     return {
-      status: "Hủy yêu cầu thu hàng thành công!",
-      harvestRequest: request,
+      success: true,
+      message: "Hủy yêu cầu thu hàng thành công!",
+      harvestRequest: request.toObject(), // Trả về dữ liệu sạch hơn
     };
   } catch (error) {
-    throw new Error(error.message);
+    return {
+      success: false,
+      message: error.message || error,
+    };
   }
 };
 
