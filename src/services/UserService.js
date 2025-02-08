@@ -203,7 +203,6 @@ const updatePassword = async (newPassword, email) => {
   });
 };
 
-
 const verifyOtp = async (email, otp) => {
   const storedOtp = otpStorage.get(email);
   if (!storedOtp || storedOtp.expiresAt < Date.now()) {
@@ -229,12 +228,18 @@ const verifyOtp = async (email, otp) => {
   };
 };
 
-
 // Hàm tạo 1 user mới
 const createUser = (newUser) => {
-
   return new Promise(async (resolve, reject) => {
-    const { name, email, password, phone, role_check = false, birth_day, otp } = newUser;
+    const {
+      name,
+      email,
+      password,
+      phone,
+      role_check = false,
+      birth_day,
+      otp,
+    } = newUser;
     try {
       // check otp
       const verifyOtpResult = await verifyOtp(email, otp);
@@ -281,9 +286,15 @@ const createUser = (newUser) => {
 
 // Hàm tạo 1 user mới
 const completeProfile = (newUser) => {
-
   return new Promise(async (resolve, reject) => {
-    const { full_name, email, phone, role_check = false, birth_day, googleId } = newUser;
+    const {
+      full_name,
+      email,
+      phone,
+      role_check = false,
+      birth_day,
+      googleId,
+    } = newUser;
     try {
       // truy vấn role
       const roleName = role_check ? "Supplier" : "User";
@@ -294,7 +305,7 @@ const completeProfile = (newUser) => {
           message: `Không tìm thấy vai trò mặc định '${roleName}'.`,
         };
       }
-      console.log(newUser)
+      console.log(newUser);
       const createdUser = await User.create({
         full_name,
         email,
@@ -302,7 +313,7 @@ const completeProfile = (newUser) => {
         password: null,
         role_id: role._id,
         birth_day: birth_day ? new Date(birth_day) : null,
-        googleId
+        googleId,
       });
       if (createdUser) {
         return resolve({
@@ -334,7 +345,7 @@ const userLogin = (userLogin) => {
         const payload = ticket.getPayload(); // Thông tin người dùng Google
         const { email, name, picture, sub: googleId } = payload;
         // 2. Kiểm tra xem người dùng đã tồn tại chưa
-        let user = await User.findOne({ email });
+        let user = await User.findOne({ email }).populate("role_id");
 
         if (!user) {
           return resolve({
@@ -344,7 +355,7 @@ const userLogin = (userLogin) => {
               email: email,
               full_name: name,
               avatar: picture,
-              googleId
+              googleId,
             },
           });
         }
@@ -352,11 +363,11 @@ const userLogin = (userLogin) => {
         // 4. Tạo access_token và refresh_token
         const access_token = await genneralAccessToken({
           id: user.id,
-          isAdmin: user.isAdmin,
+          isAdmin: user.role_id.role_name,
         });
         const refresh_token = await genneralRefreshToken({
           id: user.id,
-          isAdmin: user.isAdmin,
+          isAdmin: user.role_id.role_name,
         });
         // 5. Trả về thông tin đăng nhập
         return resolve({
@@ -375,8 +386,8 @@ const userLogin = (userLogin) => {
       // Trường hợp đăng nhập bằng email và password
       if (email && password) {
         // Tìm user trong hệ thống thông qua email
-        const user = await User.findOne({ email });
-
+        const user = await User.findOne({ email }).populate("role_id");
+        console.log("debug => ", user);
         if (user === null) {
           return resolve({
             status: "ERROR",
@@ -395,11 +406,11 @@ const userLogin = (userLogin) => {
           // Tạo token khi đăng nhập thành công
           const access_token = await genneralAccessToken({
             id: user.id,
-            isAdmin: user.isAdmin,
+            isAdmin: user.role_id.role_name,
           });
           const refresh_token = await genneralRefreshToken({
             id: user.id,
-            isAdmin: user.isAdmin,
+            isAdmin: user.role_id.role_name,
           });
 
           return resolve({
@@ -493,7 +504,7 @@ const deleteManyUser = (ids) => {
 const getAllUser = () => {
   return new Promise(async (resolve, reject) => {
     try {
-      const allUser = await User.find();
+      const allUser = await User.find().populate("role_id");
       return resolve({
         status: "OK",
         message: "Get All User Success",
@@ -511,7 +522,7 @@ const getDetailUser = (id) => {
     try {
       const user = await User.findOne({
         _id: id,
-      });
+      }).populate("role_id");
       if (user === null) {
         return resolve({
           status: "OK",
@@ -528,78 +539,185 @@ const getDetailUser = (id) => {
     }
   });
 };
-// tạo địa chỉ
-const createAddress = async (data) => {
-  try {
-    const { user_id, full_name, company_name, address, phone, note } = data;
 
-    if (!user_id || !full_name || !address || !phone) {
-      return { status: "ERROR", message: "Thiếu thông tin bắt buộc." };
-    }
-
-    const newAddress = new UserAddress({ user_id, full_name, company_name, address, phone, note });
-    const savedAddress = await newAddress.save();
-
-    return { status: "OK", message: "Tạo địa chỉ thành công.", data: savedAddress };
-  } catch (error) {
-    console.error("Error in createAddress:", error);
-    return { status: "ERROR", message: "Lỗi khi tạo địa chỉ." };
-  }
-};
-
-// Cập nhật địa chỉ
-const updateAddress = async (id, data) => {
-  try {
-    const updatedAddress = await UserAddress.findByIdAndUpdate(id, data, { new: true });
-
-    if (!updatedAddress) {
-      return { status: "ERROR", message: "Không tìm thấy địa chỉ." };
-    }
-
-    return { status: "OK", message: "Cập nhật địa chỉ thành công.", data: updatedAddress };
-  } catch (error) {
-    console.error("Error in updateAddress:", error);
-    return { status: "ERROR", message: "Lỗi khi cập nhật địa chỉ." };
-  }
-};
-
-// Xóa địa chỉ
-const deleteAddress = async (id) => {
-  try {
-    const deletedAddress = await UserAddress.findByIdAndUpdate(id, { is_deleted: true }, { new: true });
-
-    if (!deletedAddress) {
-      return { status: "ERROR", message: "Không tìm thấy địa chỉ." };
-    }
-
-    return { status: "OK", message: "Xóa địa chỉ thành công.", data: deletedAddress };
-  } catch (error) {
-    console.error("Error in deleteAddress:", error);
-    return { status: "ERROR", message: "Lỗi khi xóa địa chỉ." };
-  }
-};
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // xem tất tả địa chỉ
-const getAllAddresses = () => {
+const getAllAddresses = (user_id) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const addresses = await UserAddress.find({ is_deleted: false }); // Lấy các địa chỉ chưa bị xóa
+      if (!user_id) {
+        return reject({
+          status: "ERROR",
+          message: "Thiếu user_id.",
+        });
+      }
+
+      const addresses = await UserAddress.find({ user_id, is_deleted: false });
+
       resolve({
         status: "OK",
-        message: "Get all addresses successfully",
+        message: "Lấy danh sách địa chỉ thành công",
         data: addresses,
       });
     } catch (error) {
-      console.error("Error in getAllAddresses service:", error.message);
+      console.error("Lỗi trong getAllAddresses:", error.message);
       reject({
         status: "ERROR",
-        message: "Failed to get all addresses",
+        message: "Không thể lấy danh sách địa chỉ",
         error: error.message,
       });
     }
   });
 };
 
+// tạo địa chỉ
+const createAddress = async (user_id, data) => {
+  try {
+    // Kiểm tra nếu thiếu user_id
+    if (!user_id) {
+      return { status: "ERROR", message: "Bạn cần đăng nhập để tạo địa chỉ." };
+    }
+
+    const { full_name, company_name, address, phone, note } = data;
+
+    // Kiểm tra nếu thiếu thông tin quan trọng
+    if (!full_name || !address || !phone) {
+      return {
+        status: "ERROR",
+        message: "Thiếu thông tin bắt buộc (full_name, address, phone).",
+      };
+    }
+
+    // Tạo địa chỉ mới
+    const newAddress = new UserAddress({
+      user_id,
+      full_name,
+      company_name,
+      address,
+      phone,
+      note,
+    });
+
+    const savedAddress = await newAddress.save();
+
+    return {
+      status: "OK",
+      message: "Tạo địa chỉ thành công.",
+      data: savedAddress,
+    };
+  } catch (error) {
+    console.error("Lỗi khi tạo địa chỉ:", error);
+    return { status: "ERROR", message: "Lỗi khi tạo địa chỉ." };
+  }
+};
+
+// Cập nhật địa chỉ
+const updateAddress = async (user_id, address_id, data) => {
+  try {
+    if (!user_id) {
+      return {
+        status: "ERROR",
+        message: "Bạn cần đăng nhập để cập nhật địa chỉ.",
+      };
+    }
+    // Kiểm tra địa chỉ có tồn tại không
+    const address = await UserAddress.findOne({ _id: address_id, user_id });
+
+    if (!address) {
+      return {
+        status: "ERROR",
+        message: "Không tìm thấy địa chỉ hoặc bạn không có quyền chỉnh sửa.",
+      };
+    }
+    // Không cho phép cập nhật user_id
+    if (data.user_id) {
+      return {
+        status: "ERROR",
+        message: "Không thể thay đổi quyền sở hữu địa chỉ.",
+      };
+    }
+    const updatedAddress = await UserAddress.findByIdAndUpdate(
+      address_id,
+      data,
+      { new: true }
+    );
+
+    return {
+      status: "OK",
+      message: "Cập nhật địa chỉ thành công.",
+      data: updatedAddress,
+    };
+  } catch (error) {
+    console.error("Lỗi khi cập nhật địa chỉ:", error);
+    return { status: "ERROR", message: "Lỗi khi cập nhật địa chỉ." };
+  }
+};
+
+const getDetailAddress = async (user_id, address_id) => {
+  try {
+    if (!user_id) {
+      return { status: "ERROR", message: "Bạn cần đăng nhập để xem địa chỉ." };
+    }
+
+    const address = await UserAddress.findOne({
+      _id: address_id,
+      user_id,
+      is_deleted: false,
+    });
+
+    if (!address) {
+      return {
+        status: "ERROR",
+        message: "Không tìm thấy địa chỉ hoặc bạn không có quyền truy cập.",
+      };
+    }
+
+    return {
+      status: "OK",
+      message: "Lấy chi tiết địa chỉ thành công.",
+      data: address,
+    };
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết địa chỉ:", error);
+    return { status: "ERROR", message: "Lỗi server khi lấy địa chỉ." };
+  }
+};
+
+// Xóa địa chỉ
+const deleteAddress = async (user_id, address_id) => {
+  try {
+    if (!user_id) {
+      return { status: "ERROR", message: "Bạn cần đăng nhập để xóa địa chỉ." };
+    }
+
+    // Kiểm tra địa chỉ có tồn tại không và có thuộc về user không
+    const address = await UserAddress.findOne({ _id: address_id, user_id });
+
+    if (!address) {
+      return {
+        status: "ERROR",
+        message: "Không tìm thấy địa chỉ hoặc bạn không có quyền xóa.",
+      };
+    }
+
+    // Cập nhật trạng thái is_deleted = true (Không xóa hẳn)
+    const deletedAddress = await UserAddress.findByIdAndUpdate(
+      address_id,
+      { is_deleted: true },
+      { new: true }
+    );
+
+    return {
+      status: "OK",
+      message: "Xóa địa chỉ thành công.",
+      data: deletedAddress,
+    };
+  } catch (error) {
+    console.error("Lỗi khi xóa địa chỉ:", error);
+    return { status: "ERROR", message: "Lỗi khi xóa địa chỉ." };
+  }
+};
 module.exports = {
   createUser,
   userLogin,
@@ -617,6 +735,7 @@ module.exports = {
   checkEmailForgot,
   verifyOtp,
   updatePassword,
+  getDetailAddress,
 };
 
 // File services này là file dịch vụ /

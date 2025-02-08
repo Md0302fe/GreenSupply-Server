@@ -1,0 +1,20 @@
+// import express
+const express = require("express");
+// import express router
+const router = express.Router();
+
+const HarvestrequestController = require('../controllers/HarvestRequestController');
+
+const {
+  authMidleware,
+  authUserMidleware,
+} = require("../middleware/AuthMidleware");
+
+router.post('/createHarvestRequest', HarvestrequestController.createHarvestRequest);
+router.put('/updateHarvestRequest/:id', HarvestrequestController.updateHarvestRequest);
+router.put('/cancelHarvestRequest/:id', HarvestrequestController.cancelHarvestRequest);
+router.get('/getHarvestRequestById/:id', HarvestrequestController.getHarvestRequestById);
+router.get('/getAllHarvestRequests', HarvestrequestController.getAllHarvestRequests);
+
+module.exports = router;
+

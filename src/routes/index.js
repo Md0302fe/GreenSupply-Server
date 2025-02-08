@@ -1,5 +1,7 @@
 //Dòng này dùng để import UserRouter từ file ./UserRouter. File này chứa tất cả các route liên quan đến người dùng (user), ví dụ như các API cho việc đăng ký, đăng nhập, cập nhật thông tin người dùng, v.v.
 const UserRouter = require("./UserRouter");
+const ProductRouter = require("./ProductRouter");
+const HarvestRequestRouter = require("./HarvestRequestRouter");
 
 const historyRoutes = require("./historyRoutes");
 const ProductRouter = require("./ProductRouter");
@@ -11,7 +13,8 @@ const routes = (app) => {
 
   // Tất cả endpoint liên quan đến lịch sử sẽ có tiền tố /history
   app.use("/history", historyRoutes);
- app.use("/api/product", ProductRouter);
+  app.use("/api/product", ProductRouter);
+  app.use("/api/harvest-request", HarvestRequestRouter);
 };
 module.exports = routes;
 

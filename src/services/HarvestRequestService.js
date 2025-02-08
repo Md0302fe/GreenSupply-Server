@@ -1,0 +1,173 @@
+const FuelRequest = require("../models/Fuel_Request.js");
+const Supplier = require("../models/Supplier.js");
+
+const createHarvestRequest = async (data) => {
+  try {
+    const existingSupplier = await Supplier.findById(data.supplier_id);
+    if (!existingSupplier) {
+      throw new Error("Không tìm thấy Supplier với ID: " + data.supplier_id);
+    }
+
+    // Kiểm tra tên mặt hàng
+    if (
+      !data.fuel_name ||
+      !/^[a-zA-Z0-9\s\u00C0-\u1EF9]+$/.test(data.fuel_name)
+    ) {
+      throw new Error(
+        "Tên mặt hàng không hợp lệ! Chỉ được chứa chữ cái, số và khoảng trắng."
+      );
+    }
+
+    // Kiểm tra số lượng
+    if (
+      !data.quantity ||
+      typeof data.quantity !== "number" ||
+      data.quantity <= 0
+    ) {
+      throw new Error("Số lượng phải là số nguyên dương!");
+    }
+
+    // Kiểm tra giá
+    if (!data.price || typeof data.price !== "number" || data.price <= 0) {
+      throw new Error("Giá phải là số nguyên dương!");
+    }
+
+    // Kiểm tra địa chỉ
+    if (
+      !data.address ||
+      !/^[a-zA-Z0-9\s\u00C0-\u1EF9,.-]+$/.test(data.address)
+    ) {
+      throw new Error("Địa chỉ không hợp lệ!");
+    }
+
+    // Tự động tính tổng giá
+    data.total_price = data.price * data.quantity;
+
+    if (!data.status) {
+      data.status = "Chờ duyệt";
+    }
+
+    const newRequest = new FuelRequest(data);
+    await newRequest.save();
+
+    return {
+      status: "Tạo yêu cầu thu hàng thành công!",
+      harvestRequest: newRequest,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Cập nhật thông tin yêu cầu thu hàng (chỉ khi trạng thái là "Chờ duyệt")
+const updateHarvestRequest = async (id, data) => {
+  try {
+    const existingRequest = await FuelRequest.findById(id);
+
+    if (!existingRequest) {
+      throw new Error("Yêu cầu thu hàng không tồn tại!");
+    }
+
+    if (existingRequest.status !== "Chờ duyệt") {
+      throw new Error("Không thể cập nhật đơn hàng đã được xử lý!");
+    }
+
+    if (data.address && data.address.trim() === "") {
+      throw new Error("Địa chỉ nhận hàng không được để trống!");
+    }
+
+    if (typeof data.price === "number" && typeof data.quantity === "number") {
+      data.total_price = data.price * data.quantity;
+    }
+
+    const updatedRequest = await FuelRequest.findByIdAndUpdate(id, data, {
+      new: true,
+    });
+
+    return {
+      status: "Cập nhật yêu cầu thu hàng thành công!",
+      harvestRequest: updatedRequest,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Hủy yêu cầu thu hàng (Chỉ khi trạng thái là "Chờ duyệt")
+const cancelHarvestRequest = async (id, supplierId) => {
+  try {
+    const request = await FuelRequest.findOne({
+      _id: id,
+      supplier_id: supplierId,
+    });
+
+    if (!request) {
+      throw new Error(
+        "Không tìm thấy yêu cầu thu hàng hoặc bạn không có quyền hủy!"
+      );
+    }
+
+    if (request.status !== "Chờ duyệt") {
+      throw new Error("Không thể hủy đơn hàng đã được xử lý!");
+    }
+
+    request.status = "Đã huỷ";
+    await request.save();
+
+    return {
+      status: "Hủy yêu cầu thu hàng thành công!",
+      harvestRequest: request,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+const getHarvestRequestById = async (id) => {
+  try {
+    const request = await FuelRequest.findById(id).populate(
+      "supplier_id",
+      "full_name email phone"
+    );
+
+    if (!request) {
+      throw new Error(
+        "Không tìm thấy yêu cầu thu hàng hoặc yêu cầu không tồn tại!"
+      );
+    }
+
+    return {
+      status: "Lấy chi tiết yêu cầu thu hàng thành công!",
+      harvestRequest: request,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+const getAllHarvestRequests = async () => {
+  try {
+    const requests = await FuelRequest.find()
+      .populate("supplier_id", "full_name email phone")
+      .sort({ createdAt: -1 });
+
+    if (!requests.length) {
+      throw new Error("Hiện không có yêu cầu thu hàng nào trong hệ thống!");
+    }
+
+    return {
+      status: "Lấy danh sách yêu cầu thu hàng thành công!",
+      requests,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+module.exports = {
+  createHarvestRequest,
+  updateHarvestRequest,
+  cancelHarvestRequest,
+  getHarvestRequestById,
+  getAllHarvestRequests,
+};

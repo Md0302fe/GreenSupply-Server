@@ -12,10 +12,6 @@ const {
 
 // # CREATE - USER / POST
 router.post("/sign-up", UserController.createUser);
-// CHECK USER
-router.post("/check-email", UserController.checkEmail);
-router.post("/check-otp", UserController.checkOTP);
-router.post("/update-password", UserController.updatePassword);
 // # COMPLETE PROFILE - USER / POST
 router.post("/complete-profile", UserController.completeProfile);
 // # CREATE - OTP / POST
@@ -39,10 +35,11 @@ router.delete("/delete-many", authMidleware, UserController.deleteManyUser);
 
 
 // Routes cho Address
-router.post("/address/create", UserController.createAddress);
-router.put("/address/update/:id", UserController.updateAddress);
-router.delete("/address/delete/:id", UserController.deleteAddress);
-router.get("/address/getAll", UserController.getAllAddresses);
+router.post("/address/create", authUserMidleware, UserController.createAddress);
+router.put("/address/update/:id", authUserMidleware, UserController.updateAddress);
+router.delete("/address/delete/:id", authUserMidleware, UserController.deleteAddress);
+router.get("/address/getAll", authUserMidleware, UserController.getAllAddresses);
+router.get("/address/detail/:id", authUserMidleware, UserController.getDetailAddress);
 
 
 
