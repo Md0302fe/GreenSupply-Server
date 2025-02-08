@@ -12,6 +12,7 @@ const {
   genneralAccessToken,
   genneralRefreshToken,
 } = require("../services/JwtService");
+const { default: mongoose } = require("mongoose");
 
 // Tạo mã otp
 const generateOTP = () => {
@@ -446,14 +447,17 @@ const updateUser = (id, data) => {
           message: `Cập nhật người dùng thất bại`,
         });
       }
-
+      const createObjectId = new mongoose.Types.ObjectId(data?.role_id);
+      console.log("createObjectId ",createObjectId)
       // gọi và update user by id + data cần update , nếu muốn trả về object mới cập nhật thì cần thêm {new:true}
-      const updateUser = await User.findByIdAndUpdate(id, data, { new: true });
+      const updateUser = await User.findByIdAndUpdate(id, {...data , role_id :createObjectId}, { new: true });
+      console.log("updateUser ==> ", updateUser)
       return resolve({
         status: "OK",
         message: "Cập nhật người dùng thành công",
       });
     } catch (error) {
+      console.log("Có lỗi trong quá trình cập nhật người dùng => ",error )
       reject(error);
     }
   });
