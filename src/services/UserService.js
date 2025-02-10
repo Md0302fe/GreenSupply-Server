@@ -486,8 +486,7 @@ const updateUser = (id, data) => {
       // gọi và update user by id + data cần update , nếu muốn trả về object mới cập nhật thì cần thêm {new:true}
       const updateUser = await User.findByIdAndUpdate(
         id,
-        { ...data, role_id: createObjectId },
-        { new: true }
+        { ...data, role_id: createObjectId }
       );
       console.log("updateUser ==> ", updateUser);
       return resolve({
@@ -500,6 +499,33 @@ const updateUser = (id, data) => {
     }
   });
 };
+
+// Hàm Update User
+const updateAccount = (id, data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Tìm id trong hệ thống thông qua (_id) / tìm id -> đợi -> dùng await
+      const user = await User.findOne({ _id: id });
+      // Nếu user không tồn tại trong hệ thống
+      if (user === null) {
+        return resolve({
+          status: "OK",
+          message: `Cập nhật người dùng thất bại`,
+        });
+      }
+
+      // gọi và update user by id + data cần update , nếu muốn trả về object mới cập nhật thì cần thêm {new:true}
+      const updateUser = await User.findByIdAndUpdate(id, data, { new: true });
+      return resolve({
+        status: "OK",
+        message: "Cập nhật người dùng thành công",
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 
 // Hàm Delete User
 const blockUser = (id) => {
@@ -815,7 +841,8 @@ module.exports = {
   updatePassword,
   getDetailAddress,
   unBlockUser,
-  checkPassword
+  checkPassword,
+  updateAccount
 };
 
 // File services này là file dịch vụ /

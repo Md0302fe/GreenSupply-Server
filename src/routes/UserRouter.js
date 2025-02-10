@@ -22,6 +22,8 @@ router.post("/sign-in", UserController.userLogin);
 router.post("/log-out", UserController.userLogout);
 // # UPDATE - USER / PUT
 router.put("/update-user/:id", authUserMidleware, UserController.updateUser);
+// # UPDATE - ACCOUNT / PUT
+router.put("/update-account/:id", authUserMidleware, UserController.updateAccount);
 // # PUT - USER / PUT
 router.put("/block-user/:id", authMidleware, UserController.blockUser);
 // # PUT - USER / PUT

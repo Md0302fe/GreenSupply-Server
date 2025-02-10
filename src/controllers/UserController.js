@@ -240,6 +240,29 @@ const updateUser = async (req, res) => {
     });
   }
 };
+// Phương Thức Update Thông Tin Của User
+const updateAccount = async (req, res) => {
+  try {
+    console.log("body: ", req.body);
+
+    // Lấy được id người dùng thông qua URL (/update-user/:id) / get = params
+    const userId = req.params.id;
+    const data = req.body;
+    if (!userId) {
+      res.status(200).json({
+        status: "ERROR",
+        message: "The userId is required!",
+      });
+    }
+    const respone = await UserService.updateAccount(userId, data);
+    // Log API Check
+    return res.status(200).json(respone);
+  } catch (error) {
+    return res.status(404).json({
+      eMsg: error,
+    });
+  }
+};
 
 // Phương Thức Delele User
 const blockUser = async (req, res) => {
@@ -486,7 +509,8 @@ module.exports = {
   getDetailAddress,
   unBlockUser,
   checkPassword,
-  checkOtpChangePassword
+  checkOtpChangePassword,
+  updateAccount
 };
 
 // File này nằm trong controller / Folder điều khiển
