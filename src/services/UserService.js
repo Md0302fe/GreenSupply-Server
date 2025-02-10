@@ -170,6 +170,40 @@ const checkEmailForgot = async (email) => {
     }
   });
 };
+const checkPassword = async (email, password) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const user = await User.findOne({ email }).populate("role_id");
+      console.log("debug => ", user);
+      if (user === null) {
+        return resolve({
+          status: "ERROR",
+          message: `Tài khoản không tồn tại`,
+        });
+      }
+
+      // So sánh password
+      const comparePassword = bcrypt.compareSync(password, user.password);
+      if (!comparePassword) {
+        return resolve({
+          status: "ERROR",
+          message: "Sai mật khẩu !",
+        });
+      }
+      const result = await sendOtpEmailForgotPassword(email);
+      resolve(result);
+    } catch (error) {
+      console.error("Lỗi khi kiểm tra email:", error);
+
+      // Trả về lỗi
+      return reject({
+        status: "ERROR",
+        message: "Không thể kiểm tra email. Vui lòng thử lại sau.",
+        error: error.message,
+      });
+    }
+  });
+};
 
 const updatePassword = async (newPassword, email) => {
   return new Promise(async (resolve, reject) => {
@@ -781,6 +815,7 @@ module.exports = {
   updatePassword,
   getDetailAddress,
   unBlockUser,
+  checkPassword
 };
 
 // File services này là file dịch vụ /

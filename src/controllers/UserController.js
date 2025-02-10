@@ -85,6 +85,19 @@ const checkEmail = async (req, res) => {
       });
     }
     const respone = await UserService.checkEmailForgot(emailForgot);
+    // Log ra API check
+    return res.status(200).json(respone);
+  } catch (error) {
+    return res.status(404).json({
+      eMsg: error,
+    });
+  }
+};
+// Phương Thức kiểm tra email //
+const checkPassword = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const respone = await UserService.checkPassword(email, password);
     // Log ra API check ,
     return res.status(200).json(respone);
   } catch (error) {
@@ -104,6 +117,25 @@ const checkOTP = async (req, res) => {
       });
     }
     const respone = await UserService.verifyOtp(emailForgot, otp);
+    // Log ra API check ,
+    return res.status(200).json(respone);
+  } catch (error) {
+    return res.status(404).json({
+      eMsg: error,
+    });
+  }
+};
+// Phương Thức kiểm tra OTP //
+const checkOtpChangePassword = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!otp) {
+      return res.status(200).json({
+        status: "ERROR",
+        message: "Bạn cần điền đúng mã otp",
+      });
+    }
+    const respone = await UserService.verifyOtp(email, otp);
     // Log ra API check ,
     return res.status(200).json(respone);
   } catch (error) {
@@ -453,6 +485,8 @@ module.exports = {
   updatePassword,
   getDetailAddress,
   unBlockUser,
+  checkPassword,
+  checkOtpChangePassword
 };
 
 // File này nằm trong controller / Folder điều khiển
