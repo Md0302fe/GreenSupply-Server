@@ -2,6 +2,7 @@
 const UserRouter = require("./UserRouter");
 const ProductRouter = require("./ProductRouter");
 const HarvestRequestRouter = require("./HarvestRequestRouter");
+const SupplyRequestRouter = require("./SupplyRequestRouter");
 
 const OrderRoutes = require("./OrderRoutes");
 //  Định nghĩa hàm routes
@@ -14,6 +15,7 @@ const routes = (app) => {
   app.use("/api/orders", OrderRoutes);
   app.use("/api/product", ProductRouter);
   app.use("/api/harvest-request", HarvestRequestRouter);
+  app.use("/api/supply-request", SupplyRequestRouter);
 };
 module.exports = routes;
 

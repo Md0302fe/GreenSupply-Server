@@ -12,6 +12,7 @@ const {
   genneralAccessToken,
   genneralRefreshToken,
 } = require("../services/JwtService");
+const { default: mongoose } = require("mongoose");
 
 // Tạo mã otp
 const generateOTP = () => {
@@ -446,40 +447,83 @@ const updateUser = (id, data) => {
           message: `Cập nhật người dùng thất bại`,
         });
       }
-
+      const createObjectId = new mongoose.Types.ObjectId(data?.role_id);
+      console.log("createObjectId ", createObjectId);
       // gọi và update user by id + data cần update , nếu muốn trả về object mới cập nhật thì cần thêm {new:true}
-      const updateUser = await User.findByIdAndUpdate(id, data, { new: true });
+      const updateUser = await User.findByIdAndUpdate(
+        id,
+        { ...data, role_id: createObjectId },
+        { new: true }
+      );
+      console.log("updateUser ==> ", updateUser);
       return resolve({
         status: "OK",
         message: "Cập nhật người dùng thành công",
       });
     } catch (error) {
+      console.log("Có lỗi trong quá trình cập nhật người dùng => ", error);
       reject(error);
     }
   });
 };
 
 // Hàm Delete User
-const deleteUser = (id) => {
+const blockUser = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
-      // Tìm user(object) trong hệ thống thông qua (_id) / tìm id -> đợi -> dùng await
-      const user = await User.findOne({ _id: id });
-      // Nếu user không tồn tại trong hệ thống
-      if (user === null) {
+      // gọi và delete user by id
+      const blockUser = await User.findByIdAndUpdate(
+        id,
+        { is_blocked: true },
+        { new: true }
+      );
+      if (!blockUser) {
         return resolve({
-          status: "OK",
-          message: `User is not defined !`,
+          status: "ERR",
+          message: `Có lỗi sảy ra trong quá trình block tài khoản!`,
         });
       }
-      // gọi và delete user by id
-      const deleteUser = await User.findByIdAndDelete(id);
+      console.log("blockUser ", blockUser);
       return resolve({
         status: "OK",
-        message: "Xóa tài khoản thành công",
+        message: "Chặn tài khoản người dùng thành công",
       });
     } catch (error) {
-      reject(error);
+      console.log("Có lỗi xảy ra trong quá trình chặn tài khoản : ", error);
+      return resolve({
+        status: "ERR",
+        message: "Chặn tài khoản người dùng thất bại",
+      });
+    }
+  });
+};
+
+const unBlockUser = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // gọi và delete user by id
+      const blockUser = await User.findByIdAndUpdate(
+        id,
+        { is_blocked: false },
+        { new: true }
+      );
+      if (!blockUser) {
+        return resolve({
+          status: "ERR",
+          message: `Có lỗi sảy ra trong quá trình gỡ block tài khoản!`,
+        });
+      }
+      console.log("blockUser ", blockUser);
+      return resolve({
+        status: "OK",
+        message: "Gỡ chặn tài khoản người dùng thành công",
+      });
+    } catch (error) {
+      console.log("Có lỗi xảy ra trong quá trình gỡ chặn tài khoản : ", error);
+      return resolve({
+        status: "ERR",
+        message: "Chặn tài khoản người dùng thất bại",
+      });
     }
   });
 };
@@ -722,7 +766,7 @@ module.exports = {
   createUser,
   userLogin,
   updateUser,
-  deleteUser,
+  blockUser,
   getAllUser,
   getDetailUser,
   deleteManyUser,
@@ -736,6 +780,7 @@ module.exports = {
   verifyOtp,
   updatePassword,
   getDetailAddress,
+  unBlockUser,
 };
 
 // File services này là file dịch vụ /

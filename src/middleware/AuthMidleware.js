@@ -8,7 +8,6 @@ const authMidleware = async (req, res, next) => {
   const token = stringToken[1];
 
   jwt.verify(token, process.env.ACCESS_TOKEN, function (err, user) {
-
     // err: như token không hợp lệ, hết hạn, hoặc không thể giải mã
     if (err) {
       return res.status(404).json({
@@ -18,7 +17,7 @@ const authMidleware = async (req, res, next) => {
     } else {
       // ngược lại nếu tìm thấy token -> tiếp đến check admin và tiến hành xóa user
       //  nếu là admin -> next() / ngược lại res về lỗi
-      if (user?.isAdmin) {
+      if (user?.isAdmin === "Admin") {
         next();
       } else {
         return res.status(404).json({
@@ -92,9 +91,6 @@ const authUserMidleware = async (req, res, next) => {
           message: "Token không hợp lệ hoặc đã hết hạn.",
         });
       }
-
-      console.log("Dữ liệu từ token:", user); // Kiểm tra token có đúng không
-
       req.user = user; // Gán thông tin user vào request
       next();
     });
