@@ -221,7 +221,7 @@ const updatePassword = async (newPassword, email) => {
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
       // Cập nhật mật khẩu trong database
-      await User.updateOne({ email: email }, { password: hashedPassword });
+      await User.updateOne({ email: email }, { password: hashedPassword }, { new: true });
 
       return resolve({
         status: "OK",
