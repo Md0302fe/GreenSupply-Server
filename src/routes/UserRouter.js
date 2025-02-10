@@ -35,6 +35,12 @@ router.post("/refresh-token", UserController.refreshToken);
 // # DELETE DELETE--MANY-TOKEN - DELETE
 router.delete("/delete-many", authMidleware, UserController.deleteManyUser);
 
+// 
+router.post("/check-email", UserController.checkEmail);
+router.post("/check-password", UserController.checkPassword);
+router.post("/check-otp", UserController.checkOTP);
+router.post("/check-otp-change-password", UserController.checkOtpChangePassword);
+router.post("/update-password", UserController.updatePassword);
 
 // Routes cho Address
 router.post("/address/create", authUserMidleware, UserController.createAddress);
