@@ -3,8 +3,7 @@ const UserRouter = require("./UserRouter");
 const ProductRouter = require("./ProductRouter");
 const HarvestRequestRouter = require("./HarvestRequestRouter");
 
-const historyRoutes = require("./historyRoutes");
-const ProductRouter = require("./ProductRouter");
+const OrderRoutes = require("./OrderRoutes");
 //  Định nghĩa hàm routes
 //  Đây là một hàm nhận vào đối tượng app (chính là instance của ứng dụng Express).
 const routes = (app) => {
@@ -12,7 +11,7 @@ const routes = (app) => {
   app.use("/api/user", UserRouter);
 
   // Tất cả endpoint liên quan đến lịch sử sẽ có tiền tố /history
-  app.use("/history", historyRoutes);
+  app.use("/api/orders", OrderRoutes);
   app.use("/api/product", ProductRouter);
   app.use("/api/harvest-request", HarvestRequestRouter);
 };
