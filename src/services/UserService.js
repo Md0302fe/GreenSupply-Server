@@ -221,7 +221,11 @@ const updatePassword = async (newPassword, email) => {
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
       // Cập nhật mật khẩu trong database
-      await User.updateOne({ email: email }, { password: hashedPassword }, { new: true });
+      await User.updateOne(
+        { email: email },
+        { password: hashedPassword },
+        { new: true }
+      );
 
       return resolve({
         status: "OK",
@@ -395,6 +399,14 @@ const userLogin = (userLogin) => {
           });
         }
 
+        if (user && user?.is_blocked) {
+          console.log("blocked");
+          return resolve({
+            status: "BLOCKED",
+            message:
+              "Tài khoản của bạn vi phạm một số chính sách của hệ thống nên đã bị khóa",
+          });
+        }
         // 4. Tạo access_token và refresh_token
         const access_token = await genneralAccessToken({
           id: user.id,
@@ -422,11 +434,18 @@ const userLogin = (userLogin) => {
       if (email && password) {
         // Tìm user trong hệ thống thông qua email
         const user = await User.findOne({ email }).populate("role_id");
-        console.log("debug => ", user);
+
         if (user === null) {
           return resolve({
             status: "ERROR",
             message: `Tài khoản không tồn tại`,
+          });
+        }
+        if (user && user?.is_blocked) {
+          return resolve({
+            status: "BLOCKED",
+            message:
+              "Tài khoản của bạn vi phạm một số chính sách của hệ thống nên đã bị khóa",
           });
         }
 
@@ -482,13 +501,13 @@ const updateUser = (id, data) => {
         });
       }
       const createObjectId = new mongoose.Types.ObjectId(data?.role_id);
+      console.log("data ", data);
       console.log("createObjectId ", createObjectId);
       // gọi và update user by id + data cần update , nếu muốn trả về object mới cập nhật thì cần thêm {new:true}
-      const updateUser = await User.findByIdAndUpdate(
-        id,
-        { ...data, role_id: createObjectId }
-      );
-      console.log("updateUser ==> ", updateUser);
+      const updateUser = await User.findByIdAndUpdate(id, {
+        ...data,
+        role_id: createObjectId,
+      });
       return resolve({
         status: "OK",
         message: "Cập nhật người dùng thành công",
@@ -525,7 +544,6 @@ const updateAccount = (id, data) => {
     }
   });
 };
-
 
 // Hàm Delete User
 const blockUser = (id) => {
@@ -842,7 +860,7 @@ module.exports = {
   getDetailAddress,
   unBlockUser,
   checkPassword,
-  updateAccount
+  updateAccount,
 };
 
 // File services này là file dịch vụ /

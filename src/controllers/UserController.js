@@ -220,8 +220,6 @@ const userLogin = async (req, res) => {
 // Phương Thức Update Thông Tin Của User
 const updateUser = async (req, res) => {
   try {
-    console.log("body: ", req.body);
-
     // Lấy được id người dùng thông qua URL (/update-user/:id) / get = params
     const userId = req.params.id;
     const data = req.body;
