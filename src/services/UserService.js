@@ -174,7 +174,6 @@ const checkPassword = async (email, password) => {
   return new Promise(async (resolve, reject) => {
     try {
       const user = await User.findOne({ email }).populate("role_id");
-      console.log("debug => ", user);
       if (user === null) {
         return resolve({
           status: "ERROR",
@@ -344,7 +343,6 @@ const completeProfile = (newUser) => {
           message: `Không tìm thấy vai trò mặc định '${roleName}'.`,
         };
       }
-      console.log(newUser);
       const createdUser = await User.create({
         full_name,
         email,
@@ -400,7 +398,6 @@ const userLogin = (userLogin) => {
         }
 
         if (user && user?.is_blocked) {
-          console.log("blocked");
           return resolve({
             status: "BLOCKED",
             message:
@@ -501,8 +498,6 @@ const updateUser = (id, data) => {
         });
       }
       const createObjectId = new mongoose.Types.ObjectId(data?.role_id);
-      console.log("data ", data);
-      console.log("createObjectId ", createObjectId);
       // gọi và update user by id + data cần update , nếu muốn trả về object mới cập nhật thì cần thêm {new:true}
       const updateUser = await User.findByIdAndUpdate(id, {
         ...data,
