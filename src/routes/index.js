@@ -13,6 +13,7 @@ const routes = (app) => {
 
   // Tất cả endpoint liên quan đến lịch sử sẽ có tiền tố /history
   app.use("/api/orders", OrderRoutes);
+  
   app.use("/api/product", ProductRouter);
   app.use("/api/harvest-request", HarvestRequestRouter);
   app.use("/api/supply-request", SupplyRequestRouter);
