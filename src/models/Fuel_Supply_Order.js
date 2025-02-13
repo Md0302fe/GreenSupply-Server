@@ -3,7 +3,7 @@ const { Schema, Types } = mongoose;
 
 const fuelSupplyOrderSchema = new Schema(
   {
-    supplier_id: { type: Types.ObjectId, ref: "suppliers", required: true }, // Nhà cung cấp
+    supplier_id: { type: Types.ObjectId, ref: "users", required: true }, // Nhà cung cấp
     fuel_name: { type: String, required: true }, // Tên nhiên liệu
     request_id: {
       type: Types.ObjectId,
