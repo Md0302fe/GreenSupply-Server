@@ -10,6 +10,10 @@ const adminFuelEntrySchema = new Schema(
     due_date: { type: Date, required: true }, // Ngày cần hoàn thành chỉ tiêu
     is_deleted: { type: Boolean, default: false }, // Trạng thái xóa
     estimate_price: { type: Number, required: true, min: 0 }, // Giá ước tính mỗi đơn vị (không âm)
+    start_received: { type: Date, required: true }, // Thời gian nhận nhiên liệu (sửa kiểu String -> Date)
+    end_received: { type: Date, required: true }, // Thời gian kết thúc nhận nhiên liệu (sửa kiểu String -> Date)
+    price: { type: Number, required: true, min: 1 }, // Giá mỗi đơn vị
+    priority: { type: Number, required: true, min: 1, max: 5 }, // Mức độ ưu tiên (có thể sử dụng giá trị từ 1 đến 5)
     status: {
       type: String,
       enum: ["Chờ duyệt", "Đã duyệt", "Từ chối", "Đã huỷ"],
