@@ -124,7 +124,8 @@ const getHarvestRequestById = async (req, res) => {
 
 const getAllHarvestRequests = async (req, res) => {
   try {
-    const response = await HarvestRequestService.getAllHarvestRequests();
+    const filters = req.query;
+    const response = await HarvestRequestService.getAllHarvestRequests(filters);
     return res.status(200).json(response);
   } catch (error) {
     console.log("Error:", error);
