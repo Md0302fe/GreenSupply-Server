@@ -14,4 +14,10 @@ router.get("/fuel-supply-orders/:id", OrderController.getFuelSupplyOrderById); /
 router.post("/fuel-supply-orders/:id/accept", OrderController.acceptFuelSupplyOrder); // Endpoint chấp nhận đơn hàng
 router.post("/fuel-supply-orders/:id/reject", OrderController.rejectFuelSupplyOrder); // Endpoint từ chối đơn hàng
 
+
+
+///API  cho hiện thị trạng thái thành công của đơn thu hàng dành cho admin
+
+router.get("/fuel-request/GetALLstatusSuccess", OrderController.getAllorderbySucess); // Endpoint cho lịch sử yêu cầu nhiên liệu theo ID", OrderController.rejectFuelSupplyOrder);
+
 module.exports = router;

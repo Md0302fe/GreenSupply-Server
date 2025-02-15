@@ -1,10 +1,11 @@
 const FuelRequest = require("../models/Fuel_Request.js");
 const Supplier = require("../models/Supplier.js");
+const UserModel = require("../models/UserModel.js");
 const mongoose = require("mongoose");
 
 const createHarvestRequest = async (data) => {
   try {
-    const existingSupplier = await Supplier.findById(data.supplier_id);
+    const existingSupplier = await UserModel.findById(data.supplier_id);
     if (!existingSupplier) {
       throw new Error("Không tìm thấy Supplier với ID: " + data.supplier_id);
     }
@@ -59,6 +60,9 @@ const createHarvestRequest = async (data) => {
     throw new Error(error.message);
   }
 };
+
+
+
 
 // Cập nhật thông tin yêu cầu thu hàng (chỉ khi trạng thái là "Chờ duyệt")
 const updateHarvestRequest = async (id, data) => {
