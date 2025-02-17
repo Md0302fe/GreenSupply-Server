@@ -26,6 +26,7 @@ const fuelSupplyOrderSchema = new Schema(
     status: { type: String, required: true }, // Trạng thái yêu cầu
     is_deleted: { type: Boolean, default: false }, // Trạng thái xóa
     note: { type: String, default: "" }, // Ghi chú
+    fuel_type: { type: String, default: "" },
   },
   {
     timestamps: true, // Tự động thêm createdAt và updatedAt
