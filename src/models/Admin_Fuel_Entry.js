@@ -7,6 +7,7 @@ const adminFuelEntrySchema = new Schema(
     fuel_type: { type: Types.ObjectId, ref: "fuel_types", required: true }, // Loại nhiên liệu
     fuel_image: { type: String, required: true }, // Hình ảnh nhiên liệu
     quantity: { type: Number, required: true, min: 1 }, // Số lượng nhiên liệu (không âm)
+    quantity_remain: { type: Number, required: true, min: 1 }, // Số lượng nhiên liệu (không âm)
     due_date: { type: Date, required: true }, // Ngày cần hoàn thành chỉ tiêu
     is_deleted: { type: Boolean, default: false }, // Trạng thái xóa
     estimate_price: { type: Number, required: true, min: 0 }, // Giá ước tính mỗi đơn vị (không âm)

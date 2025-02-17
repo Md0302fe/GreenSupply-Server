@@ -14,6 +14,18 @@ const getAll = async (req, res) => {
   }
 };
 
+const getFuelEntryDetail = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const response = await FuelEntryService.getFuelEntryDetail(id);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Error fetching product detail:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getAll,
+  getFuelEntryDetail
 };

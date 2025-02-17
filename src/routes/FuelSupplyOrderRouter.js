@@ -9,5 +9,8 @@ const {
 } = require("../middleware/AuthMidleware");
 
 router.post('/createFuelSupplyRequest', FuelSupplyOrderController.createFuelSupplyRequest);
+router.get('/getAllFuelSupplyRequest', FuelSupplyOrderController.getAllFuelSupplyRequest);
+router.put('/deleteFuelSupplyRequest/:id', FuelSupplyOrderController.deleteFuelSupplyRequest);
+router.put('/updateFuelSupplyRequest/:id', FuelSupplyOrderController.updateFuelSupplyRequest);
 
 module.exports = router; 

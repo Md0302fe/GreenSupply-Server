@@ -4,6 +4,7 @@ const FuelEntryController = require("../controllers/FuelEntryController");
 
 // API cho lịch sử yêu cầu nhiên liệu
 router.get("/fuel-list", FuelEntryController.getAll);
+router.get("/fuel-detail/:id", FuelEntryController.getFuelEntryDetail);
 
 
 module.exports = router;
