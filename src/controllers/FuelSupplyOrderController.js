@@ -24,6 +24,84 @@ const createFuelSupplyRequest = async (req, res) => {
   }
 };
 
+const getAllFuelSupplyRequest = async (req, res) => {
+  try {
+    const filters = req.query;
+    const response = await FuelSupplyOrderService.getAllFuelSupplyRequest(filters);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.log("Error:", error);
+    return res.status(500).json({
+      status: "ERROR",
+      message: error.message,
+    });
+  }
+};
+
+// API hủy yêu cầu thu hàng
+const deleteFuelSupplyRequest = async (req, res) => {
+  try {
+    const requestId = req.params.id;
+
+    if (!requestId) {
+      return res.status(400).json({
+        status: "ERROR",
+        message: "Yêu cầu thu hàng ID là bắt buộc!",
+      });
+    }
+
+    const response = await FuelSupplyOrderService.deleteFuelSupplyRequest(
+      requestId
+    );
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error Canceling Harvest Request",
+      error: error.message,
+    });
+  }
+};
+
+// API cập nhật yêu cầu thu hàng
+const updateFuelSupplyRequest = async (req, res) => {
+  try {
+    const requestId = req.params.id;
+    const data = req.body;
+
+    if (!requestId) {
+      return res.status(400).json({
+        status: "ERROR",
+        message: "Yêu cầu thu hàng ID là bắt buộc!",
+      });
+    }
+
+    if (data.address && data.address.trim() === "") {
+      return res.status(400).json({
+        status: "ERROR",
+        message: "Địa chỉ nhận hàng không được để trống!",
+      });
+    }
+
+    const response = await FuelSupplyOrderService.updateFuelSupplyRequest(
+      requestId,
+      data
+    );
+    return res.status(200).json(response);
+  } catch (error) {
+    console.log("Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error Updating Harvest Request",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   createFuelSupplyRequest,
+  getAllFuelSupplyRequest,
+  deleteFuelSupplyRequest,
+  updateFuelSupplyRequest
 };
