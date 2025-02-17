@@ -83,12 +83,12 @@ const authUserMidleware = async (req, res, next) => {
     }
 
     const token = tokenParts[1]; // Lấy token thật
-
+    
     jwt.verify(token, process.env.ACCESS_TOKEN, (err, user) => {
       if (err) {
         return res.status(403).json({
           status: "ERROR",
-          message: "Token không hợp lệ hoặc đã hết hạn.",
+          message: token,
         });
       }
       req.user = user; // Gán thông tin user vào request

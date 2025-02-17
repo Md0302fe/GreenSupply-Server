@@ -6,9 +6,9 @@ const OrderServices = require("../services/OrderService");
 
 
 /// GetAll order by status đã duyệt
-const getAllorderbySucess = async (req, res) => {
+const getAllApprovedRequests = async (req, res) => {
   try {
-    const response = await OrderServices.getAllorderbySucess();
+    const response = await OrderServices.getAllApprovedRequests();
     return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({
@@ -16,6 +16,35 @@ const getAllorderbySucess = async (req, res) => {
     });
   }
 };
+
+/// API lấy danh sách đã duyệt từ bảng FuelRequest
+const getAllApprovedFuelRequests = async (req, res) => {
+  try {
+    const response = await OrderServices.getAllApprovedFuelRequests();
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({
+      eMsg: error.message || "Lỗi không lấy được danh sách yêu cầu thu hàng đã duyệt",
+    });
+  }
+};
+
+/// API lấy danh sách đã duyệt từ bảng FuelSupplyOrder
+const getAllApprovedFuelSupplyOrders = async (req, res) => {
+  try {
+    const response = await OrderServices.getAllApprovedFuelSupplyOrders();
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({
+      eMsg: error.message || "Lỗi không lấy được danh sách đơn cung cấp nhiên liệu đã duyệt",
+    });
+  }
+};
+
+
+
+
+
 
 
 // Lấy tất cả yêu cầu nhiên liệu với các bộ lọc
@@ -121,7 +150,7 @@ const rejectFuelSupplyOrder = async (req, res) => {
 
 
 module.exports = {
-  getAllorderbySucess,
+  getAllApprovedRequests,
   getFuelRequests,
   getFuelSupplyOrders,
   getFuelRequestById,
@@ -130,4 +159,6 @@ module.exports = {
   getFuelSupplyOrderById,
   acceptFuelSupplyOrder,
   rejectFuelSupplyOrder,
+  getAllApprovedFuelSupplyOrders,
+  getAllApprovedFuelRequests
 };

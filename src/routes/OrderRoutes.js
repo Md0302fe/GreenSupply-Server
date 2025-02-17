@@ -18,6 +18,9 @@ router.post("/fuel-supply-orders/:id/reject", OrderController.rejectFuelSupplyOr
 
 ///API  cho hiện thị trạng thái thành công của đơn thu hàng dành cho admin
 
-router.get("/fuel-request/GetALLstatusSuccess", OrderController.getAllorderbySucess); // Endpoint cho lịch sử yêu cầu nhiên liệu theo ID", OrderController.rejectFuelSupplyOrder);
+router.get("/fuel-request/GetALLstatusSuccess", OrderController.getAllApprovedRequests); // Endpoint cho lịch sử yêu cầu nhiên liệu theo ID", OrderController.rejectFuelSupplyOrder);
+router.get("/approved-fuel-requests", OrderController.getAllApprovedFuelRequests);
+router.get("/approved-fuel-supply-orders", OrderController.getAllApprovedFuelSupplyOrders);
+
 
 module.exports = router;
