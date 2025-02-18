@@ -20,7 +20,7 @@ const routes = (app) => {
   app.use("/api/product", ProductRouter);
   app.use("/api/harvest-request", HarvestRequestRouter);
   app.use("/api/fuel-supply-request", FuelSupplyOrderRouter);
-  app.use("/api/Storage", FuelStorageReceipt);
+  app.use("/api/fuel-storage", FuelStorageReceipt);
   // app.use("/api/fuel-storage", FuelStorageReceipt);
 };
 module.exports = routes;

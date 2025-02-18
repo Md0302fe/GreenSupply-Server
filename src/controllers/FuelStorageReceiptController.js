@@ -18,4 +18,28 @@ const createFuelStorageReceipt = async (req, res) => {
     }
 };
 
-module.exports = { createFuelStorageReceipt };
+
+const getAllFuelStorageReceipts = async (req, res) => {
+  try {
+      const receipts = await FuelStorageReceiptService.getAllFuelStorageReceipts();
+      return res.status(200).json({ success: true, data: receipts });
+  } catch (error) {
+      return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const updateFuelStorageReceiptStatus = async (req, res) => {
+  try {
+      const { id } = req.params; // ID đơn nhập kho từ URL
+      const { status } = req.body; // Trạng thái mới từ body request
+
+      const updatedReceipt = await FuelStorageReceiptService.updateFuelStorageReceiptStatus(id, status);
+      return res.status(200).json({ success: true, data: updatedReceipt });
+  } catch (error) {
+      return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+
+module.exports = { createFuelStorageReceipt, getAllFuelStorageReceipts, updateFuelStorageReceiptStatus };
