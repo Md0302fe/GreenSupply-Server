@@ -28,6 +28,7 @@ const getAllFuelStorageReceipts = async (req, res) => {
   }
 };
 
+
 const updateFuelStorageReceiptStatus = async (req, res) => {
   try {
       const { id } = req.params; // ID đơn nhập kho từ URL
