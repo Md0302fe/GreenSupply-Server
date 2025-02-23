@@ -43,9 +43,6 @@ const getAllApprovedRequests = async () => {
   }
 };
 
-
-<<<<<<< HEAD
-
 const getAllProvideOrders = async (filters) => {
   try {
     let query = { is_deleted: false };
@@ -90,10 +87,6 @@ const getAllProvideOrders = async (filters) => {
   }
 };
 
-module.exports = { getAllorderbySucess,
-  getAllProvideOrders,
- };
-=======
 /// Lấy tất cả các yêu cầu thu hàng từ bảng FuelRequest
 const getAllApprovedFuelRequests = async () => {
   try {
@@ -149,6 +142,7 @@ const getAllApprovedFuelSupplyOrders = async () => {
 module.exports = { 
   getAllApprovedFuelRequests, 
   getAllApprovedRequests,
-  getAllApprovedFuelSupplyOrders
+  getAllApprovedFuelSupplyOrders,
+  getAllProvideOrders,
+  // getAllorderbySucess
 };
->>>>>>> 8f71d7c96b1562d0f238fd4009889506b68cd497

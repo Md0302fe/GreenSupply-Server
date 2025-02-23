@@ -17,11 +17,8 @@ router.post("/fuel-supply-orders/:id/reject", OrderController.rejectFuelSupplyOr
 router.post("/fuel-supply-orders/:id/complete", OrderController.completeFuelSupplyOrder); // Hoàn thành đơn cung cấp nhiên liệu
 
 // API hiển thị trạng thái thành công của đơn hàng dành cho admin
-router.get("/fuel-request/GetALLstatusSuccess", OrderController.getAllorderbySucess);
+// router.get("/fuel-request/GetALLstatusSuccess", OrderController.getAllorderbySucess);
 
-<<<<<<< HEAD
-module.exports = router;
-=======
 
 ///API  cho hiện thị trạng thái thành công của đơn thu hàng dành cho admin
 
@@ -31,4 +28,3 @@ router.get("/approved-fuel-supply-orders", OrderController.getAllApprovedFuelSup
 
 
 module.exports = router;
->>>>>>> 8f71d7c96b1562d0f238fd4009889506b68cd497
