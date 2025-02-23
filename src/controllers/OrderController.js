@@ -4,8 +4,6 @@ const AdminFuelEntry = require("../models/Admin_Fuel_Entry");
 
 const OrderServices = require("../services/OrderService");
 
-
-
 /// GetAll order by status đã duyệt
 const getAllApprovedRequests = async (req, res) => {
   try {
@@ -18,6 +16,12 @@ const getAllApprovedRequests = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+// Lấy tất cả yêu cầu nhiên liệu với các bộ lọc
+const getFuelRequests = async (req, res) => {
+  try {
+    const requests = await FuelRequest.find().populate("supplier_id"); // Populate để lấy thông tin nhà cung cấp
+=======
 /// API lấy danh sách đã duyệt từ bảng FuelRequest
 const getAllApprovedFuelRequests = async (req, res) => {
   try {
@@ -53,6 +57,7 @@ const getFuelRequests = async (req, res) => {
   try {
 
     const requests = await FuelRequest.find().populate('supplier_id'); // Populate để lấy thông tin nhà cung cấp
+>>>>>>> 8f71d7c96b1562d0f238fd4009889506b68cd497
     if (!requests) {
       res.status(500).json({ success: false, error: "Lỗi khi lấy dữ liệu Fuel Requests" });
     }
@@ -65,9 +70,15 @@ const getFuelRequests = async (req, res) => {
 // Lấy tất cả đơn cung cấp nhiên liệu với các bộ lọc
 const getFuelSupplyOrders = async (req, res) => {
   try {
+<<<<<<< HEAD
+    const orders = await FuelSupplyOrder.find().populate("supplier_id");
+    if (!orders) {
+      res.status(500).json({ success: false, error: "Lỗi khi lấy dữ liệu Fuel Supply Orders" });
+=======
     const orders = await FuelSupplyOrder.find().populate('supplier_id'); // Populate để lấy thông tin nhà cung cấp
     if (!orders) {
       res.status(500).json({ success: false, error: "Lỗi khi lấy dữ liệu Fuel Requests" });
+>>>>>>> 8f71d7c96b1562d0f238fd4009889506b68cd497
     }
     res.json({ success: true, data: orders });
   } catch (error) {
@@ -75,12 +86,25 @@ const getFuelSupplyOrders = async (req, res) => {
   }
 };
 
+const getAllProvideOrders = async (req, res) => {
+  try {
+    const filters = req.query;
+    const response = await OrderServices.getAllProvideOrders(filters);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.log("Error:", error);
+    return res.status(500).json({
+      status: "ERROR",
+      message: error.message,
+    });
+  }
+};
 
 // Lấy yêu cầu nhiên liệu theo ID
 const getFuelRequestById = async (req, res) => {
   try {
     const { id } = req.params;
-    const request = await FuelRequest.findById(id).populate('supplier_id');
+    const request = await FuelRequest.findById(id).populate("supplier_id");
     if (!request) return res.status(404).json({ success: false, error: "Yêu cầu không tồn tại" });
     res.json({ success: true, data: request });
   } catch (error) {
@@ -92,7 +116,7 @@ const getFuelRequestById = async (req, res) => {
 const acceptFuelRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const request = await FuelRequest.findByIdAndUpdate(id, { status: 'Đã duyệt' }, { new: true });
+    const request = await FuelRequest.findByIdAndUpdate(id, { status: "Đã duyệt" }, { new: true });
     if (!request) return res.status(404).json({ success: false, error: "Yêu cầu không tồn tại" });
     res.json({ success: true, data: request });
   } catch (error) {
@@ -104,11 +128,23 @@ const acceptFuelRequest = async (req, res) => {
 const rejectFuelRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const request = await FuelRequest.findByIdAndUpdate(id, { status: 'Đã Hủy' }, { new: true });
+    const request = await FuelRequest.findByIdAndUpdate(id, { status: "Đã Hủy" }, { new: true });
     if (!request) return res.status(404).json({ success: false, error: "Yêu cầu không tồn tại" });
     res.json({ success: true, data: request });
   } catch (error) {
     res.status(500).json({ success: false, error: "Lỗi khi từ chối yêu cầu nhiên liệu" });
+  }
+};
+
+// Hoàn thành yêu cầu nhiên liệu
+const completeFuelRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const request = await FuelRequest.findByIdAndUpdate(id, { status: "Hoàn thành" }, { new: true });
+    if (!request) return res.status(404).json({ success: false, error: "Yêu cầu không tồn tại" });
+    res.json({ success: true, data: request });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "Lỗi khi hoàn thành yêu cầu nhiên liệu" });
   }
 };
 
@@ -117,7 +153,7 @@ const rejectFuelRequest = async (req, res) => {
 const getFuelSupplyOrderById = async (req, res) => {
   try {
     const { id } = req.params;
-    const order = await FuelSupplyOrder.findById(id).populate('supplier_id');
+    const order = await FuelSupplyOrder.findById(id).populate("supplier_id");
     if (!order) return res.status(404).json({ success: false, error: "Đơn hàng không tồn tại" });
     res.json({ success: true, data: order });
   } catch (error) {
@@ -129,6 +165,10 @@ const getFuelSupplyOrderById = async (req, res) => {
 const acceptFuelSupplyOrder = async (req, res) => {
   try {
     const { id } = req.params;
+<<<<<<< HEAD
+    const order = await FuelSupplyOrder.findByIdAndUpdate(id, { status: "Đã duyệt" }, { new: true });
+    if (!order) return res.status(404).json({ success: false, error: "Đơn hàng không tồn tại" });
+=======
 
     const order = await FuelSupplyOrder.findByIdAndUpdate(
       id,
@@ -161,6 +201,7 @@ const acceptFuelSupplyOrder = async (req, res) => {
       );
     }
 
+>>>>>>> 8f71d7c96b1562d0f238fd4009889506b68cd497
     res.json({ success: true, data: order });
   } catch (error) {
     console.error("Lỗi khi chấp nhận đơn cung cấp nhiên liệu:", error);
@@ -173,7 +214,7 @@ const acceptFuelSupplyOrder = async (req, res) => {
 const rejectFuelSupplyOrder = async (req, res) => {
   try {
     const { id } = req.params;
-    const order = await FuelSupplyOrder.findByIdAndUpdate(id, { status: 'Đã hủy' }, { new: true });
+    const order = await FuelSupplyOrder.findByIdAndUpdate(id, { status: "Đã hủy" }, { new: true });
     if (!order) return res.status(404).json({ success: false, error: "Đơn hàng không tồn tại" });
     res.json({ success: true, data: order });
   } catch (error) {
@@ -181,17 +222,35 @@ const rejectFuelSupplyOrder = async (req, res) => {
   }
 };
 
+// Hoàn thành đơn cung cấp nhiên liệu
+const completeFuelSupplyOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const order = await FuelSupplyOrder.findByIdAndUpdate(id, { status: "Hoàn thành" }, { new: true });
+    if (!order) return res.status(404).json({ success: false, error: "Đơn hàng không tồn tại" });
+    res.json({ success: true, data: order });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "Lỗi khi hoàn thành đơn cung cấp nhiên liệu" });
+  }
+};
 
 module.exports = {
   getAllApprovedRequests,
   getFuelRequests,
+  getAllProvideOrders,
   getFuelSupplyOrders,
   getFuelRequestById,
   acceptFuelRequest,
   rejectFuelRequest,
+  completeFuelRequest,
   getFuelSupplyOrderById,
   acceptFuelSupplyOrder,
   rejectFuelSupplyOrder,
+<<<<<<< HEAD
+  completeFuelSupplyOrder,
+};
+=======
   getAllApprovedFuelSupplyOrders,
   getAllApprovedFuelRequests
 };
+>>>>>>> 8f71d7c96b1562d0f238fd4009889506b68cd497
