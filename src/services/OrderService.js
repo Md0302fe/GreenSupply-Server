@@ -19,7 +19,7 @@ const getAllApprovedRequests = async () => {
     })
       .populate("supplier_id request_id")
       .lean();
-
+    
     // 🟢 Thêm `receipt_type` vào từng đơn hàng
     const formattedFuelRequests = approvedFuelRequests.map((order) => ({
       ...order,
