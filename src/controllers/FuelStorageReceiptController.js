@@ -20,13 +20,14 @@ const createFuelStorageReceipt = async (req, res) => {
 
 
 const getAllFuelStorageReceipts = async (req, res) => {
-  try {
-      const receipts = await FuelStorageReceiptService.getAllFuelStorageReceipts();
-      return res.status(200).json({ success: true, data: receipts });
-  } catch (error) {
-      return res.status(500).json({ success: false, message: error.message });
-  }
+    try {
+        const receipts = await FuelStorageReceiptService.getAllFuelStorageReceipts(req.query);
+        return res.status(200).json({ success: true, data: receipts });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
 };
+
 
 
 const updateFuelStorageReceiptStatus = async (req, res) => {
