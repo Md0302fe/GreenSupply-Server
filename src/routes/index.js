@@ -5,22 +5,26 @@ const HarvestRequestRouter = require("./HarvestRequestRouter");
 const FuelSupplyOrderRouter = require("./FuelSupplyOrderRouter");
 const FuelEntryRoutes = require("./FuelEntryRoutes");
 const FuelStorageReceipt = require("./FuelStorageReceipt");
+const FuelRoute = require("./FuelRoutes");
 // const FuelStorageReceipt  = require("./FuelStorageReceipt");
 
 const OrderRoutes = require("./OrderRoutes");
+const ProvideOrderRoutes = require("./ProvideOrderRoutes");
 //  Định nghĩa hàm routes
 //  Đây là một hàm nhận vào đối tượng app (chính là instance của ứng dụng Express).
 const routes = (app) => {
   // Tất cả các endpoint được định nghĩa trong UserRouter sẽ có tiền tố /api/user.
   app.use("/api/user", UserRouter);
 
-  // Tất cả endpoint liên quan đến lịch sử sẽ có tiền tố /history
+ 
   app.use("/api/orders", OrderRoutes);
+  app.use("/api/provide-order", ProvideOrderRoutes);
   app.use("/api/fuel", FuelEntryRoutes);
   app.use("/api/product", ProductRouter);
   app.use("/api/harvest-request", HarvestRequestRouter);
   app.use("/api/fuel-supply-request", FuelSupplyOrderRouter);
   app.use("/api/fuel-storage", FuelStorageReceipt);
+  app.use("/api/fuel", FuelRoute);
   // app.use("/api/fuel-storage", FuelStorageReceipt);
 };
 module.exports = routes;
