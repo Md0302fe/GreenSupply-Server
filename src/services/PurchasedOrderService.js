@@ -1,13 +1,13 @@
 const PurchaseOrder = require("../models/Admin_Fuel_Entry");
 // const CategoryModel = require("../models/CategoryModel");
 
-// Tạo sản phẩm mới
+// Tạo sản phẩm mới   
 const createPurchaseOrder = async (PurchaseOrderData) => {
   try {
     const priorityMapping = {
-      Cao: 1,
+      "Cao": 1,
       "Trung bình": 2,
-      Thấp: 3,
+      "Thấp": 3,
     };
     PurchaseOrderData.priority =
       priorityMapping[PurchaseOrderData.priority] || 2;
