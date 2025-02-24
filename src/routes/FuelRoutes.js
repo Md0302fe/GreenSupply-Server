@@ -1,13 +1,11 @@
 const express = require("express");
 const router = express.Router();
+const FuelController = require("../controllers/FuelController");
 
-const FuelController = require('../controllers/FuelController');
+const { authUserMidleware } = require("../middleware/AuthMidleware");
 
-const {
-  // authMidleware,
-  authUserMidleware,
-} = require("../middleware/AuthMidleware");
+router.get("/getAll", authUserMidleware, FuelController.getAll);
+router.put("/update/:id", authUserMidleware, FuelController.updateFuel);
+router.put("/cancel/:id",  FuelController.cancelFuel); 
 
-router.get('/getAll', authUserMidleware, FuelController.getAll);
-
-module.exports = router; 
+module.exports = router;
