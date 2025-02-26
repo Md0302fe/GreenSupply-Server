@@ -3,19 +3,43 @@ const FuelStorage = require("../models/Fuel_Storage");
 const FuelRequest = require("../models/Fuel_Request");
 const FuelSupplyOrder = require("../models/Fuel_Supply_Order");
 // 🟢 Tạo đơn nhập kho
+// const createFuelStorageReceipt = async (manager_id, receipt_supply_id, receipt_request_id) => {
+//     try {
+//         if (!receipt_supply_id && !receipt_request_id) {
+//             throw new Error("Phải có ít nhất một đơn hàng.");
+//         }
+
+//         // 🟢 Lấy quantity từ `FuelRequest` hoặc `FuelSupplyOrder`
+//         const quantity = await getQuantityByReceiptId(receipt_supply_id, receipt_request_id);
+
+//         // 🟢 Set cứng `storage_id` vì chỉ có 1 kho
+//         const storage_id = "67958adf4223924d599a7a41";
+
+//         // 🟢 Tạo đơn nhập kho
+//         const newReceipt = new FuelStorageReceipt({
+//             manager_id,
+//             storage_id,
+//             storage_date: new Date(),
+//             receipt_supply_id: receipt_supply_id || null,
+//             receipt_request_id: receipt_request_id || null,
+//             quantity,
+//         });
+
+//         return await newReceipt.save();
+//     } catch (error) {
+//         throw new Error("Lỗi khi tạo đơn nhập kho: " + error.message);
+//     }
+// };
+
 const createFuelStorageReceipt = async (manager_id, receipt_supply_id, receipt_request_id) => {
     try {
         if (!receipt_supply_id && !receipt_request_id) {
             throw new Error("Phải có ít nhất một đơn hàng.");
         }
 
-        // 🟢 Lấy quantity từ `FuelRequest` hoặc `FuelSupplyOrder`
         const quantity = await getQuantityByReceiptId(receipt_supply_id, receipt_request_id);
-
-        // 🟢 Set cứng `storage_id` vì chỉ có 1 kho
         const storage_id = "67958adf4223924d599a7a41";
 
-        // 🟢 Tạo đơn nhập kho
         const newReceipt = new FuelStorageReceipt({
             manager_id,
             storage_id,
@@ -25,11 +49,21 @@ const createFuelStorageReceipt = async (manager_id, receipt_supply_id, receipt_r
             quantity,
         });
 
-        return await newReceipt.save();
+        await newReceipt.save();
+
+        // ✅ Cập nhật trạng thái đơn hàng thành "Đang xử lý"
+        if (receipt_request_id) {
+            await FuelRequest.findByIdAndUpdate(receipt_request_id, { status: "Đang xử lý" });
+        } else if (receipt_supply_id) {
+            await FuelSupplyOrder.findByIdAndUpdate(receipt_supply_id, { status: "Đang xử lý" });
+        }
+
+        return newReceipt;
     } catch (error) {
         throw new Error("Lỗi khi tạo đơn nhập kho: " + error.message);
     }
 };
+
 
 
 const getAllFuelStorageReceipts = async (query) => {
@@ -81,51 +115,71 @@ if (search) {
 
 
 
-
-
-
 const updateFuelStorageReceiptStatus = async (id, status) => {
     try {
         const validStatuses = ["Chờ duyệt", "Đã duyệt", "Đã huỷ"];
         if (!validStatuses.includes(status)) {
             throw new Error("Trạng thái không hợp lệ!");
         }
-  
+
         // 🟢 Lấy thông tin đơn nhập kho
         const receipt = await FuelStorageReceipt.findById(id);
         if (!receipt) {
             throw new Error("Không tìm thấy đơn nhập kho!");
         }
-  
-        // 🟢 Nếu duyệt đơn, cần cập nhật sức chứa kho
+
+        // 🟢 Nếu duyệt đơn, cập nhật sức chứa kho & trạng thái đơn hàng chờ nhập kho
         if (status === "Đã duyệt") {
             const storage = await FuelStorage.findById(receipt.storage_id);
             if (!storage) {
                 throw new Error("Không tìm thấy kho!");
             }
-  
-            // 🟢 Lấy `quantity` từ đơn nhập kho
-            const quantity = receipt.quantity;
-  
+
             // 🟢 Kiểm tra sức chứa kho
-            if (quantity > storage.remaining_capacity) {
+            if (receipt.quantity > storage.remaining_capacity) {
                 throw new Error("Kho không đủ sức chứa!");
             }
-  
-            // 🟢 Trừ `quantity` vào `remaining_capacity`
-            storage.remaining_capacity -= quantity;
+
+            // 🟢 Cập nhật số lượng trong kho
+            storage.remaining_capacity -= receipt.quantity;
             await storage.save();
+
+            // 🟢 Cập nhật trạng thái đơn hàng chờ nhập kho thành "Nhập kho thành công"
+            await updateOrderStatus(receipt.receipt_supply_id || receipt.receipt_request_id, "Nhập kho thành công");
         }
-  
+
+        // 🟢 Nếu hủy đơn nhập kho, cập nhật trạng thái đơn hàng chờ nhập kho thành "Nhập kho thất bại"
+        if (status === "Đã huỷ") {
+            await updateOrderStatus(receipt.receipt_supply_id || receipt.receipt_request_id, "Nhập kho thất bại");
+        }
+
         // 🟢 Cập nhật trạng thái đơn nhập kho
         receipt.status = status;
         await receipt.save();
-  
+
         return receipt;
     } catch (error) {
+        console.error("❌ Lỗi khi cập nhật trạng thái đơn nhập kho:", error.message);
         throw new Error("Lỗi khi cập nhật trạng thái: " + error.message);
     }
-  };
+};
+
+// 🟢 Hàm cập nhật trạng thái trong `FuelRequest` hoặc `FuelSupplyOrder`
+const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+        const order = await FuelRequest.findById(orderId) || await FuelSupplyOrder.findById(orderId);
+        if (!order) throw new Error("Không tìm thấy đơn hàng chờ nhập kho!");
+
+        order.status = newStatus;
+        await order.save();
+    } catch (error) {
+        console.error("❌ Lỗi khi cập nhật trạng thái đơn hàng chờ nhập kho:", error.message);
+        throw new Error("Lỗi khi cập nhật trạng thái đơn hàng: " + error.message);
+    }
+};
+
+
+
   
 
   const getQuantityByReceiptId = async (receipt_supply_id, receipt_request_id) => {
@@ -148,4 +202,21 @@ const updateFuelStorageReceiptStatus = async (id, status) => {
     }
 };
 
-module.exports = { createFuelStorageReceipt, getAllFuelStorageReceipts, updateFuelStorageReceiptStatus, getQuantityByReceiptId };
+
+const getFuelStorageById = async (storage_id) => {
+    try {
+        const storage = await FuelStorage.findById(storage_id);
+        if (!storage) {
+            throw new Error("Không tìm thấy kho!");
+        }
+        return storage;
+    } catch (error) {
+        throw new Error("Lỗi khi lấy thông tin kho: " + error.message);
+    }
+};
+
+
+
+
+
+module.exports = { createFuelStorageReceipt, getAllFuelStorageReceipts, updateFuelStorageReceiptStatus, getQuantityByReceiptId, getFuelStorageById  };
