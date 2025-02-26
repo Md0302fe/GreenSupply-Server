@@ -5,7 +5,7 @@ const { Schema, Types } = mongoose;
 const fuelRequestSchema = new Schema(
   {
     supplier_id: { type: Types.ObjectId, ref: "users", required: true }, // id _ nhà cung cấp
-    fuel_type: { type: Types.ObjectId, ref: "fuel_types", required: false }, // Loại nhiên liệu
+    fuel_type: { type: Types.ObjectId, ref: "fuel_types", required: true }, // Loại nhiên liệu
     fuel_name: { type: String, required: true }, // Tên nhiên liệu
     quantity: { type: Number, required: true }, // Số lượng
     price: { type: Number, required: true }, // Giá mỗi đơn vị

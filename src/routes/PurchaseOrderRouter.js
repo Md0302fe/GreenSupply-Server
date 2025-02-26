@@ -20,8 +20,8 @@ router.put(
   "/updatePurchaseOrder/:id",
   PurchaseOrderController.updatePurchaseOrder
 );
-router.delete(
-  "/deletePurchaseOrder/:id",
+router.put(
+  "/softDelete/:id",
   authMidleware,
   PurchaseOrderController.deletePurchaseOrder
 );
