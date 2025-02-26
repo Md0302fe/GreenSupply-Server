@@ -16,7 +16,7 @@ const adminFuelEntrySchema = new Schema(
     total_price : { type: Number, required: true, min: 1 },
     status: {
       type: String,
-      enum: ["Chờ duyệt", "Đã duyệt", "Từ chối", "Đã huỷ"],
+      enum: ["Chờ duyệt", "Đã duyệt", "Từ chối", "Đã huỷ", "Đã Hoàn Thành"],
       default: "Chờ duyệt",
     }, // Trạng thái yêu cầu
     note: { type: String, default: "" }, // Ghi chú
