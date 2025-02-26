@@ -29,19 +29,32 @@ const getAllFuelStorageReceipts = async (req, res) => {
 };
 
 
-
 const updateFuelStorageReceiptStatus = async (req, res) => {
-  try {
-      const { id } = req.params; // ID đơn nhập kho từ URL
-      const { status } = req.body; // Trạng thái mới từ body request
+    try {
+        const { id } = req.params; // ID đơn nhập kho từ URL
+        const { status } = req.body; // Trạng thái mới từ body request
+  
+        const updatedReceipt = await FuelStorageReceiptService.updateFuelStorageReceiptStatus(id, status);
+        
+        return res.status(200).json({ success: true, data: updatedReceipt });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+  };
+  
 
-      const updatedReceipt = await FuelStorageReceiptService.updateFuelStorageReceiptStatus(id, status);
-      return res.status(200).json({ success: true, data: updatedReceipt });
-  } catch (error) {
-      return res.status(500).json({ success: false, message: error.message });
-  }
+const getFuelStorageById = async (req, res) => {
+    try {
+        const { id } = req.params; // storage_id từ URL
+
+        const storage = await FuelStorageReceiptService.getFuelStorageById(id);
+
+        return res.status(200).json({ success: true, data: storage });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
 };
 
 
 
-module.exports = { createFuelStorageReceipt, getAllFuelStorageReceipts, updateFuelStorageReceiptStatus };
+module.exports = { createFuelStorageReceipt, getAllFuelStorageReceipts, updateFuelStorageReceiptStatus, getFuelStorageById};
