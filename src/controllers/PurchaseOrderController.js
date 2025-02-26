@@ -68,6 +68,31 @@ const updatePurchaseOrder = async (req, res) => {
   }
 };
 
+// Phương Thức Update Thông Tin Của PurchaseOrder
+const acceptPurchaseOrder = async (req, res) => {
+  try {
+    // Lấy được id PurchaseOrder thông qua URL (/PurchaseOrder-user/:id) / get = params
+    const PurchaseOrderId = req.params.id;
+    const data = req.body;
+    if (!PurchaseOrderId) {
+      res.status(200).json({
+        status: "ERROR",
+        message: "The PurchaseOrder Id is required !",
+      });
+    }
+    const respone = await PurchaseOrderService.acceptPurchaseOrder(
+      PurchaseOrderId,
+      data
+    );
+    // Log API Check
+    return res.status(200).json(respone);
+  } catch (error) {
+    return res.status(404).json({
+      eMsg: error,
+    });
+  }
+};
+
 const getPurchaseOrderDetail = async (req, res) => {
   try {
     const PurchaseOrderId = req.params.id;
@@ -271,6 +296,7 @@ module.exports = {
   getAllPurchaseOrder,
   deleteManyPurchaseOrder,
   searchPurchaseOrder,
+  acceptPurchaseOrder,
 };
 
 // File này nằm trong Controller / Folder điều khiển

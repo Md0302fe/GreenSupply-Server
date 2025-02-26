@@ -14,14 +14,20 @@ const createPurchaseOrder = async (PurchaseOrderData) => {
 
     const newPurchaseOrder = new PurchaseOrder(PurchaseOrderData);
 
-    console.log("newPurchaseOrder => ", newPurchaseOrder);
-
-    await newPurchaseOrder.save();
-    return {
-      status: "Create New PurchaseOrder Is Successfully!",
-      PurchaseOrder: newPurchaseOrder,
-    };
+    if(newPurchaseOrder){
+      await newPurchaseOrder.save();
+      return {
+        status: "Create New PurchaseOrder Is Successfully!",
+        PurchaseOrder: newPurchaseOrder,
+      };
+    }else{
+      return {
+        status: "Create New PurchaseOrder Is Fail!",
+        PurchaseOrder: newPurchaseOrder,
+      };
+    }
   } catch (error) {
+    console.log("Đã có lỗi xảy ra trong quá trình tạo purchased order => ", error)
     throw new Error(error.message);
   }
 };
@@ -48,20 +54,6 @@ const createPurchaseOrder = async (PurchaseOrderData) => {
 
 const updatePurchaseOrder = async (id, data) => {
   try {
-    console.log("Dữ liệu trước khi cập nhật:", data); // Log kiểm tra đầu vào
-
-    // Nếu có priority, chuyển đổi nó sang số
-    const priorityMapping = {
-      "Cao": 1,
-      "Trung bình": 2,
-      "Thấp": 3,
-    };
-    if (data.priority) {
-      data.priority = priorityMapping[data.priority] || 2;
-    }
-
-    console.log("Priority sau khi chuyển đổi:", data.priority);
-
     const updatedPurchaseOrder = await PurchaseOrder.findByIdAndUpdate(
       id,
       data,
@@ -77,6 +69,33 @@ const updatePurchaseOrder = async (id, data) => {
     return {
       status: "Cập nhật PurchaseOrder thành công!",
       PurchaseOrder: updatedPurchaseOrder,
+    };
+  } catch (error) {
+    console.error("Lỗi khi cập nhật PurchaseOrder:", error);
+    throw new Error(error.message);
+  }
+};
+
+// Accept
+const acceptPurchaseOrder = async (id, data) => {
+  try {
+    const newData = {...data, status : "Đang xử lý"};
+    console.log("newData => ", newData);
+    const acceptedPurchaseOrder = await PurchaseOrder.findByIdAndUpdate(
+      id,
+      newData,
+      { new: true } // Đảm bảo lấy lại dữ liệu sau khi cập nhật
+    );
+
+    if (!acceptedPurchaseOrder) {
+      throw new Error("PurchaseOrder không tìm thấy");
+    }
+
+    console.log("Dữ liệu sau khi cập nhật:", acceptedPurchaseOrder);
+
+    return {
+      status: "Cập nhật PurchaseOrder thành công!",
+      PurchaseOrder: acceptedPurchaseOrder,
     };
   } catch (error) {
     console.error("Lỗi khi cập nhật PurchaseOrder:", error);
@@ -106,7 +125,7 @@ const getPurchaseOrderDetail = async (id) => {
 const getAllPurchaseOrder = async () => {
   try {
     const PurchaseOrders = await PurchaseOrder.find({is_deleted: false})
-    .sort({priority: -1, start_received: -1})
+    .sort({priority: 1})
     
 
     return {
@@ -195,4 +214,5 @@ module.exports = {
   deleteAllPurchaseOrders,
   deleteManyPurchaseOrder,
   searchPurchaseOrderByName,
+  acceptPurchaseOrder,
 };

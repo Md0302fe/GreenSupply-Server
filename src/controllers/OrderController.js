@@ -77,7 +77,7 @@ const updateOrderStatus = async (req, res) => {
 const getFuelRequests = async (req, res) => {
   try {
 
-    const requests = await FuelRequest.find().populate('supplier_id'); // Populate để lấy thông tin nhà cung cấp
+    const requests = await FuelRequest.find().populate('supplier_id').sort({ createdAt: -1 }); // Populate để lấy thông tin nhà cung cấp
     if (!requests) {
       res.status(500).json({ success: false, error: "Lỗi khi lấy dữ liệu Fuel Requests" });
     }
