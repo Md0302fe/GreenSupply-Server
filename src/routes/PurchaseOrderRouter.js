@@ -17,8 +17,13 @@ router.post(
   PurchaseOrderController.createPurchaseOrder
 );
 router.put(
-  "/updatePurchaseOrder/:id",
+  "/updatePurchaseOrder/:id", authMidleware,
   PurchaseOrderController.updatePurchaseOrder
+);
+
+router.put(
+  "/acceptPurchaseOrder/:id", authMidleware,
+  PurchaseOrderController.acceptPurchaseOrder
 );
 router.put(
   "/softDelete/:id",

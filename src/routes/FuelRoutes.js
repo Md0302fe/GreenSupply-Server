@@ -4,7 +4,7 @@ const FuelController = require("../controllers/FuelController");
 
 const { authUserMidleware } = require("../middleware/AuthMidleware");
 
-router.get("/getAll", authUserMidleware, FuelController.getAll);
+router.get("/getAll", FuelController.getAll);
 router.put("/update/:id", authUserMidleware, FuelController.updateFuel);
 router.put("/cancel/:id",  FuelController.cancelFuel); 
 
