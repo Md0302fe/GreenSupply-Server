@@ -12,6 +12,7 @@ const createHarvestRequest = async (req, res) => {
       address,
       note,
       status,
+      fuel_type,
       priority,
     } = req.body;
 
@@ -31,6 +32,7 @@ const createHarvestRequest = async (req, res) => {
       address,
       note,
       status,
+      fuel_type,
       priority,
     });
 
