@@ -13,9 +13,9 @@ const fuelRequestSchema = new Schema(
     address: { type: String, required: true },// Địa chỉ nhận hàng mới thêm 
     status: {
       type: String,
-      enum: ["Chờ duyệt", "Đã duyệt", "Từ chối", "Đã huỷ"],
+      enum: ["Chờ duyệt", "Đã duyệt", "Từ chối", "Đã huỷ", "Nhập kho thành công", "Nhập kho thất bại"], // ✅ Thêm trạng thái mới
       default: "Chờ duyệt",
-    }, // Trạng thái yêu cầu
+    },
     is_deleted: { type: Boolean, default: false }, // Trạng thái xóa
     priority: { type: Number, default: 1 }, // Mức độ ưu tiên (1-5)
     note: { type: String, default: "" }, // Ghi chú

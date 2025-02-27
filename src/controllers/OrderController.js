@@ -40,11 +40,44 @@ const getAllApprovedFuelSupplyOrders = async (req, res) => {
   }
 };
 
+
+const updateOrderStatus = async (req, res) => {
+  try {
+      const { id } = req.params; // Lấy ID đơn hàng từ URL
+      const { status } = req.body; // Lấy trạng thái mới từ request body
+
+      const response = await OrderServices.updateOrderStatus(id, status);
+
+      return res.status(200).json(response);
+  } catch (error) {
+      return res.status(500).json({ success: false, message: "Lỗi khi cập nhật trạng thái!", error: error.message });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Lấy tất cả yêu cầu nhiên liệu với các bộ lọc
 const getFuelRequests = async (req, res) => {
   try {
 
-    const requests = await FuelRequest.find().populate('supplier_id'); // Populate để lấy thông tin nhà cung cấp
+    const requests = await FuelRequest.find().populate('supplier_id').sort({ createdAt: -1 }); // Populate để lấy thông tin nhà cung cấp
     if (!requests) {
       res.status(500).json({ success: false, error: "Lỗi khi lấy dữ liệu Fuel Requests" });
     }
@@ -226,6 +259,7 @@ module.exports = {
   rejectFuelSupplyOrder,
   completeFuelSupplyOrder,
   getAllApprovedFuelSupplyOrders,
-  getAllApprovedFuelRequests
+  getAllApprovedFuelRequests,
+  updateOrderStatus
 };
   

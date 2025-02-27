@@ -55,7 +55,32 @@ const updatePurchaseOrder = async (req, res) => {
         message: "The PurchaseOrder Id is required !",
       });
     }
-    const respone = await PurchaseOrderService.updatePurchaseOrdder(
+    const respone = await PurchaseOrderService.updatePurchaseOrder(
+      PurchaseOrderId,
+      data
+    );
+    // Log API Check
+    return res.status(200).json(respone);
+  } catch (error) {
+    return res.status(404).json({
+      eMsg: error,
+    });
+  }
+};
+
+// Phương Thức Update Thông Tin Của PurchaseOrder
+const acceptPurchaseOrder = async (req, res) => {
+  try {
+    // Lấy được id PurchaseOrder thông qua URL (/PurchaseOrder-user/:id) / get = params
+    const PurchaseOrderId = req.params.id;
+    const data = req.body;
+    if (!PurchaseOrderId) {
+      res.status(200).json({
+        status: "ERROR",
+        message: "The PurchaseOrder Id is required !",
+      });
+    }
+    const respone = await PurchaseOrderService.acceptPurchaseOrder(
       PurchaseOrderId,
       data
     );
@@ -85,28 +110,36 @@ module.exports = {
   getPurchaseOrderDetail,
 };
 
+
+
 // Phương Thức Delele User
 const deletePurchaseOrder = async (req, res) => {
   try {
-    // Lấy được id người dùng thông qua URL (/update-user/:id) / get = params
+    // Lấy ID từ request params
     const PurchaseOrderId = req.params.id;
+
+    // Kiểm tra ID hợp lệ
     if (!PurchaseOrderId) {
-      res.status(200).json({
+      return res.status(400).json({
         status: "ERROR",
-        message: "The PurchaseOrder id is required !",
+        message: "Thiếu ID đơn hàng!",
       });
     }
 
-    const respone = await PurchaseOrderService.deletePurchaseOrder(
-      PurchaseOrderId
-    );
-    return res.status(200).json(respone);
+    // Gọi Service để cập nhật is_deleted = true
+    const response = await PurchaseOrderService.deletePurchaseOrder(PurchaseOrderId);
+
+    return res.status(200).json(response);
   } catch (error) {
-    return res.status(404).json({
-      eMsg: error,
+    console.error("Lỗi khi xóa đơn hàng:", error);
+    return res.status(500).json({
+      status: "ERROR",
+      message: "Lỗi trong quá trình xóa đơn hàng!",
+      eMsg: error.message,
     });
   }
 };
+
 
 // Phương thức xóa tất cả sản phẩm
 const deleteAllPurchaseOrders = async (req, res) => {
@@ -263,6 +296,7 @@ module.exports = {
   getAllPurchaseOrder,
   deleteManyPurchaseOrder,
   searchPurchaseOrder,
+  acceptPurchaseOrder,
 };
 
 // File này nằm trong Controller / Folder điều khiển

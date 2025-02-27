@@ -2,46 +2,85 @@ const FuelRequest = require("../models/Fuel_Request");
 const FuelSupplyOrder = require("../models/Fuel_Supply_Order");
 
 ///GetAll cả 2 bảng 
+// const getAllApprovedRequests = async () => {
+//   try {
+//     // Lấy danh sách từ bảng FuelRequest (Yêu cầu thu hàng)
+//     const approvedFuelRequests = await FuelRequest.find({
+//       status: "Đã duyệt",
+//       is_deleted: false,
+//     })
+//       .populate("supplier_id")
+//       .lean(); // Chuyển dữ liệu từ mongoose document sang object thuần
+
+//     // Lấy danh sách từ bảng FuelSupplyOrder (Đơn cung cấp nhiên liệu)
+//     const approvedFuelSupplyOrders = await FuelSupplyOrder.find({
+//       status: "Đã duyệt",
+//       is_deleted: false,
+//     })
+//       .populate("supplier_id request_id")
+//       .lean();
+    
+//     // 🟢 Thêm `receipt_type` vào từng đơn hàng và đổi trạng thái thành "Chờ Nhập Kho"
+//     const formattedFuelRequests = approvedFuelRequests.map((order) => ({
+//       ...order,
+//       receipt_type: "request", // Đánh dấu đây là đơn thu hàng
+//       status: "Chờ Nhập Kho",  // ✅ Đổi trạng thái ngay tại đây
+//     }));
+
+//     const formattedFuelSupplyOrders = approvedFuelSupplyOrders.map((order) => ({
+//       ...order,
+//       receipt_type: "supply", // Đánh dấu đây là đơn cung cấp nhiên liệu
+//       status: "Chờ Nhập Kho",  // ✅ Đổi trạng thái ngay tại đây
+//     }));
+
+//     // Gộp kết quả từ cả hai bảng
+//     const allApprovedOrders = [...formattedFuelRequests, ...formattedFuelSupplyOrders];
+
+//     return {
+//       success: true,
+//       data: allApprovedOrders,
+//     };
+//   } catch (error) {
+//     throw error;
+//   }
+// };
+
+
 const getAllApprovedRequests = async () => {
   try {
-    // Lấy danh sách từ bảng FuelRequest (Yêu cầu thu hàng)
-    const approvedFuelRequests = await FuelRequest.find({
-      status: "Đã duyệt",
-      is_deleted: false,
-    })
-      .populate("supplier_id")
-      .lean(); // Chuyển dữ liệu từ mongoose document sang object thuần
+      const approvedFuelRequests = await FuelRequest.find({
+          status: { $in: ["Đã duyệt", "Đang xử lý"] }, // ✅ Lấy cả "Đã duyệt" (Chờ Nhập Kho) và "Đang xử lý"
+          is_deleted: false,
+      }).populate("supplier_id").lean();
 
-    // Lấy danh sách từ bảng FuelSupplyOrder (Đơn cung cấp nhiên liệu)
-    const approvedFuelSupplyOrders = await FuelSupplyOrder.find({
-      status: "Đã duyệt",
-      is_deleted: false,
-    })
-      .populate("supplier_id request_id")
-      .lean();
-    
-    // 🟢 Thêm `receipt_type` vào từng đơn hàng
-    const formattedFuelRequests = approvedFuelRequests.map((order) => ({
-      ...order,
-      receipt_type: "request", // Đánh dấu đây là đơn thu hàng
-    }));
+      const approvedFuelSupplyOrders = await FuelSupplyOrder.find({
+          status: { $in: ["Đã duyệt", "Đang xử lý"] }, // ✅ Lấy cả "Đã duyệt" (Chờ Nhập Kho) và "Đang xử lý"
+          is_deleted: false,
+      }).populate("supplier_id request_id").lean();
 
-    const formattedFuelSupplyOrders = approvedFuelSupplyOrders.map((order) => ({
-      ...order,
-      receipt_type: "supply", // Đánh dấu đây là đơn cung cấp nhiên liệu
-    }));
+      const formattedFuelRequests = approvedFuelRequests.map(order => ({
+          ...order,
+          status: order.status === "Đã duyệt" ? "Chờ Nhập Kho" : "Đang xử lý", // ✅ Đổi "Đã duyệt" thành "Chờ Nhập Kho"
+          receipt_type: "request",
+      }));
 
-    // Gộp kết quả từ cả hai bảng
-    const allApprovedOrders = [...formattedFuelRequests, ...formattedFuelSupplyOrders];
+      const formattedFuelSupplyOrders = approvedFuelSupplyOrders.map(order => ({
+          ...order,
+          status: order.status === "Đã duyệt" ? "Chờ Nhập Kho" : "Đang xử lý", // ✅ Đổi "Đã duyệt" thành "Chờ Nhập Kho"
+          receipt_type: "supply",
+      }));
 
-    return {
-      success: true,
-      data: allApprovedOrders,
-    };
+      const allApprovedOrders = [...formattedFuelRequests, ...formattedFuelSupplyOrders];
+
+      return { success: true, data: allApprovedOrders };
   } catch (error) {
-    throw error;
+      throw error;
   }
 };
+
+
+
+
 
 const getAllProvideOrders = async (filters) => {
   try {
@@ -138,11 +177,47 @@ const getAllApprovedFuelSupplyOrders = async () => {
   }
 };
 
+const updateOrderStatus = async (req, res) => {
+  try {
+      const { id } = req.params; // ID đơn hàng từ URL
+      const { status } = req.body; // Trạng thái mới từ request body
+
+      // Kiểm tra trạng thái hợp lệ
+      const validStatuses = ["Chờ Nhập Kho", "Đang xử lý", "Đã hoàn thành"];
+      if (!validStatuses.includes(status)) {
+          return res.status(400).json({ success: false, message: "Trạng thái không hợp lệ!" });
+      }
+
+      // Kiểm tra xem đơn hàng tồn tại không
+      let order = await FuelRequest.findById(id);
+      if (!order) {
+          order = await FuelSupplyOrder.findById(id);
+      }
+
+      if (!order) {
+          return res.status(404).json({ success: false, message: "Không tìm thấy đơn hàng!" });
+      }
+
+      // Cập nhật trạng thái đơn hàng
+      order.status = status;
+      await order.save();
+
+      return res.status(200).json({ success: true, message: "Cập nhật trạng thái thành công!", data: order });
+  } catch (error) {
+      return res.status(500).json({ success: false, message: "Lỗi khi cập nhật trạng thái!", error: error.message });
+  }
+};
+
+
+
+
+
 
 module.exports = { 
   getAllApprovedFuelRequests, 
   getAllApprovedRequests,
   getAllApprovedFuelSupplyOrders,
   getAllProvideOrders,
+  updateOrderStatus
   // getAllorderbySucess
 };

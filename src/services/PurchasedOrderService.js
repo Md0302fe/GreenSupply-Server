@@ -14,37 +14,96 @@ const createPurchaseOrder = async (PurchaseOrderData) => {
 
     const newPurchaseOrder = new PurchaseOrder(PurchaseOrderData);
 
-    console.log("newPurchaseOrder => ", newPurchaseOrder);
-
-    await newPurchaseOrder.save();
-    return {
-      status: "Create New PurchaseOrder Is Successfully!",
-      PurchaseOrder: newPurchaseOrder,
-    };
+    if(newPurchaseOrder){
+      await newPurchaseOrder.save();
+      return {
+        status: "Create New PurchaseOrder Is Successfully!",
+        PurchaseOrder: newPurchaseOrder,
+      };
+    }else{
+      return {
+        status: "Create New PurchaseOrder Is Fail!",
+        PurchaseOrder: newPurchaseOrder,
+      };
+    }
   } catch (error) {
+    console.log("Đã có lỗi xảy ra trong quá trình tạo purchased order => ", error)
     throw new Error(error.message);
   }
 };
 
 // Cập nhật sản phẩm
+// const updatePurchaseOrder = async (id, data) => {
+//   try {
+//     const updatedPurchaseOrder = await PurchaseOrder.findByIdAndUpdate(
+//       id,
+//       data,
+//       { new: true } // Đảm bảo trả về giá trị sau khi cập nhật
+//     );
+//     if (!updatedPurchaseOrder) {
+//       throw new Error("PurchaseOrder not found");
+//     }
+//     return {
+//       status: "Update PurchaseOrder Is Successfully!",
+//       PurchaseOrder: updatedPurchaseOrder, // Kiểm tra xem priority có tồn tại trong object này không
+//     };
+//   } catch (error) {
+//     throw new Error(error.message);
+//   }
+// };
+
 const updatePurchaseOrder = async (id, data) => {
   try {
     const updatedPurchaseOrder = await PurchaseOrder.findByIdAndUpdate(
       id,
       data,
-      { new: true }
+      { new: true } // Đảm bảo lấy lại dữ liệu sau khi cập nhật
     );
+
     if (!updatedPurchaseOrder) {
-      throw new Error("PurchaseOrder not found");
+      throw new Error("PurchaseOrder không tìm thấy");
     }
+
+    console.log("Dữ liệu sau khi cập nhật:", updatedPurchaseOrder);
+
     return {
-      status: "Update PurchaseOrder Is Successfully!",
+      status: "Cập nhật PurchaseOrder thành công!",
       PurchaseOrder: updatedPurchaseOrder,
     };
   } catch (error) {
+    console.error("Lỗi khi cập nhật PurchaseOrder:", error);
     throw new Error(error.message);
   }
 };
+
+// Accept
+const acceptPurchaseOrder = async (id, data) => {
+  try {
+    const newData = {...data, status : "Đang xử lý"};
+    console.log("newData => ", newData);
+    const acceptedPurchaseOrder = await PurchaseOrder.findByIdAndUpdate(
+      id,
+      newData,
+      { new: true } // Đảm bảo lấy lại dữ liệu sau khi cập nhật
+    );
+
+    if (!acceptedPurchaseOrder) {
+      throw new Error("PurchaseOrder không tìm thấy");
+    }
+
+    console.log("Dữ liệu sau khi cập nhật:", acceptedPurchaseOrder);
+
+    return {
+      status: "Cập nhật PurchaseOrder thành công!",
+      PurchaseOrder: acceptedPurchaseOrder,
+    };
+  } catch (error) {
+    console.error("Lỗi khi cập nhật PurchaseOrder:", error);
+    throw new Error(error.message);
+  }
+};
+
+
 
 // Lấy chi tiết sản phẩm
 const getPurchaseOrderDetail = async (id) => {
@@ -65,8 +124,9 @@ const getPurchaseOrderDetail = async (id) => {
 // Lấy tất cả sản phẩm
 const getAllPurchaseOrder = async () => {
   try {
-    const PurchaseOrders = await PurchaseOrder.find()
-    .sort({priority: -1, start_received: -1})
+    const PurchaseOrders = await PurchaseOrder.find({is_deleted: false})
+    .sort({priority: 1})
+    
 
     return {
       status: "OK",
@@ -78,21 +138,34 @@ const getAllPurchaseOrder = async () => {
   }
 };
 
+
+
 // Xóa sản phẩm
 const deletePurchaseOrder = async (id) => {
   try {
-    const deletedPurchaseOrder = await PurchaseOrder.findByIdAndDelete(id);
-    if (!deletedPurchaseOrder) {
-      throw new Error("PurchaseOrder not found");
+    const purchaseOrder = await PurchaseOrder.findById(id);
+
+    if (!purchaseOrder) {
+      return { status: "ERROR", message: "Đơn hàng không tồn tại!" };
     }
-    return {
-      status: "Delete PurchaseOrder Is Successfully!",
-      PurchaseOrder: deletedPurchaseOrder,
-    };
+
+    if (purchaseOrder.is_deleted) {
+      return { status: "ERROR", message: "Đơn hàng này đã bị hủy trước đó!" };
+    }
+
+    // Chỉ cập nhật is_deleted, không thay đổi status
+    purchaseOrder.is_deleted = true;
+    await purchaseOrder.save();
+
+    return { status: "SUCCESS", message: "Đơn hàng đã được hủy thành công!", PurchaseOrder: purchaseOrder };
   } catch (error) {
+    console.error("Lỗi khi xóa đơn hàng:", error);
     throw new Error(error.message);
   }
 };
+
+
+
 
 // Xóa tất cả sản phẩm
 const deleteAllPurchaseOrders = async () => {
@@ -141,4 +214,5 @@ module.exports = {
   deleteAllPurchaseOrders,
   deleteManyPurchaseOrder,
   searchPurchaseOrderByName,
+  acceptPurchaseOrder,
 };
