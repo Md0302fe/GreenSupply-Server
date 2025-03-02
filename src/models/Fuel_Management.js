@@ -4,7 +4,7 @@ const { Schema, Types } = mongoose;
 const FuelManagementSchema = new Schema(
   {
     fuel_type_id: { type: Types.ObjectId, ref: "fuel_types", required: true },
-    quantity: { type: Number, min: 0, max: 2000 }, // Giới hạn số lượng nếu cần thiết
+    quantity: { type: Number, default: 0 }, // Giới hạn số lượng nếu cần thiết
     storage_id: { type: Types.ObjectId, ref: "fuel_storages", required: true },
   },
   {
