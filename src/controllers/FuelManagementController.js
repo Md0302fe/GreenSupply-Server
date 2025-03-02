@@ -1,9 +1,9 @@
-const FuelManagementService = require("../services/FuelManagementService");
+const FuelService = require("../services/FuelService");
 
 const getAll = async (req, res) => {
   try {
     const filters = req.query;
-    const response = await FuelManagementService.getAllFuel();
+    const response = await FuelService.getAllFuel(filters);
     return res.status(200).json(response);
   } catch (error) {
     console.error("Lỗi trong getAll controller:", error.message);
@@ -17,7 +17,7 @@ const getAll = async (req, res) => {
 
 const updateFuel = async (req, res) => {
   try {
-    const updatedFuel = await FuelManagementService.updateFuel(req.params.id, req.body);
+    const updatedFuel = await FuelService.updateFuel(req.params.id, req.body);
     if (!updatedFuel) {
       return res.status(404).json({ success: false, message: "Không tìm thấy nhiên liệu!" });
     }
@@ -30,7 +30,7 @@ const updateFuel = async (req, res) => {
 
 const cancelFuel = async (req, res) => {
   try {
-    const canceledFuel = await FuelManagementService.cancelFuel(req.params.id);
+    const canceledFuel = await FuelService.cancelFuel(req.params.id);
     if (!canceledFuel) {
       return res.status(404).json({ success: false, message: "Không tìm thấy nhiên liệu!" });
     }
