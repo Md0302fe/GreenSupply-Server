@@ -12,5 +12,5 @@ const FuelManagementSchema = new Schema(
   }
 );
 
-const FuelManagement = mongoose.model("Fuel_Management", FuelManagementSchema);
+const FuelManagement = mongoose.model("fuel_managements", FuelManagementSchema);
 module.exports = FuelManagement;
