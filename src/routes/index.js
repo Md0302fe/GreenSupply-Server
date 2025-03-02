@@ -5,6 +5,8 @@ const PurchaseOrderRouter = require("./PurchaseOrderRouter");
 const HarvestRequestRouter = require("./HarvestRequestRouter");
 const FuelSupplyOrderRouter = require("./FuelSupplyOrderRouter");
 const FuelEntryRoutes = require("./FuelEntryRoutes");
+const FuelManagementRoutes = require("./FuelManagementRoutes");
+const ProductRequestRouter = require("./ProductRequestRouter");
 const FuelStorageReceipt = require("./FuelStorageReceipt");
 const FuelRoute = require("./FuelRoutes");
 // const FuelStorageReceipt  = require("./FuelStorageReceipt");
@@ -20,6 +22,8 @@ const routes = (app) => {
   app.use("/api/orders", OrderRoutes);
   app.use("/api/provide-order", ProvideOrderRoutes);
   app.use("/api/fuel", FuelEntryRoutes);
+  app.use("/api/fuel-management", FuelManagementRoutes);
+  app.use("/api/product-request", ProductRequestRouter);
   app.use("/api/product", ProductRouter);
   app.use("/api/harvest-request", HarvestRequestRouter);
   app.use("/api/fuel-supply-request", FuelSupplyOrderRouter);
