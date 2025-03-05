@@ -53,6 +53,6 @@ const OrderSchema = new mongoose.Schema(
 );
 
 // Tạo model Order từ schema
-const Order = mongoose.model("orders", OrderSchema);
+const Order = mongoose.model("orders", OrderSchema);  
 
 module.exports = Order;

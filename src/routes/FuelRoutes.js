@@ -6,6 +6,6 @@ const { authUserMidleware } = require("../middleware/AuthMidleware");
 
 router.get("/getAll", FuelController.getAll);
 router.put("/update/:id", authUserMidleware, FuelController.updateFuel);
-router.put("/cancel/:id",  FuelController.cancelFuel); 
+router.put("/cancel/:id", FuelController.cancelFuel); 
 
 module.exports = router;
