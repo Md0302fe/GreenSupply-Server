@@ -50,7 +50,6 @@ const createProductRequest = async (productData) => {
   }
 };
 
-
 const getAll = async (filters) => {
   try {
     // Kết quả
@@ -65,6 +64,31 @@ const getAll = async (filters) => {
     throw new Error(error.message);
   }
 };
+
+const getAllProcessing = async (filters) => {
+  try {
+    const requests = await ProductionRequest.find({ status: "Đã duyệt" })
+      .populate({
+        path: "material",
+        populate: [
+          {
+            path: "fuel_type_id",
+            select: "type_name description image",
+          }
+        ],
+      })
+      .sort({ createdAt: -1 });
+
+    return {
+      success: true,
+      status: "Lấy danh sách loại nhiên liệu thành công!",
+      requests,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 
 const update = async (id, data) => {
   try {
@@ -119,7 +143,8 @@ const changeStatus = async (id) => {
     // 2. Tạo 1 RawMaterialBatch mới, batch_id lấy từ ProductionRequest
     const newBatch = await RawMaterialBatch.create({
       batch_id: generateBatchId(),
-      name: productionRequest.request_name,
+      batch_name: productionRequest.request_name,
+      status: "Đang chuẩn bị",
       fuel_type_id: productionRequest.material,
       quantity: productionRequest.product_quantity, // hoặc material_quantity
       storage_id: productionRequest.material.storage_id, // Truyền storage_id từ fuelDoc
@@ -141,11 +166,10 @@ const changeStatus = async (id) => {
   }
 };
 
-
-
 module.exports = {
   createProductRequest,
   getAll,
+  getAllProcessing,
   update,
   deleteById,
   changeStatus,
