@@ -83,6 +83,62 @@ const create = async (storageExport) => {
   }
 };
 
+const getAll = async (search = "", type_export = "", sortOrder = "desc") => {
+  try {
+    let query = { is_deleted: false };
+    if (search) {
+      query.export_name = { $regex: search, $options: "i" }; // Không phân biệt hoa thường
+    }
+    if (type_export) {
+      query.type_export = type_export;
+    }
+
+    const sort = sortOrder === "asc" ? { createdAt: 1 } : { createdAt: -1 };
+    const exports = await MaterialStorageExport.find(query)
+      .populate({
+        path: "production_request_id",
+        populate: { path: "material" },
+      })
+      .populate("batch_id")
+      .populate("user_id") 
+      .sort(sort); 
+
+    return { success: true, exports };
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách đơn xuất kho:", error);
+    return { success: false, message: "Lỗi khi lấy danh sách đơn xuất kho" };
+  }
+};
+
+
+const getDetails = async (id) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new Error("ID không hợp lệ.");
+    }
+
+    const storageExport = await MaterialStorageExport.findById(id)
+      .populate({
+        path: "production_request_id",
+        populate: { path: "material" }, // Lấy thông tin nguyên liệu từ đơn sản xuất
+      })
+      .populate("batch_id") // Lấy thông tin lô nguyên liệu
+      .populate("user_id"); // Lấy thông tin người thực hiện
+
+    if (!storageExport) {
+      return { success: false, message: "Không tìm thấy đơn xuất kho." };
+    }
+
+    return { success: true, export: storageExport };
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết đơn xuất kho:", error);
+    return { success: false, message: "Lỗi khi lấy chi tiết đơn xuất kho" };
+  }
+};
+
+
 module.exports = {
   create,
+  getAll,
+  getDetails,
 };

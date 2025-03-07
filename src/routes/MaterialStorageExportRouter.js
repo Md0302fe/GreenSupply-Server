@@ -12,4 +12,8 @@ const {
 
   router.post("/createRawMaterialBatch", MaterialStorageExportController.create);
 
+  router.get("/getAllRawMaterialBatch", MaterialStorageExportController.getAll);
+  
+  router.get("/getRawMaterialBatchById/:id", MaterialStorageExportController.getDetails);
+
   module.exports = router;
