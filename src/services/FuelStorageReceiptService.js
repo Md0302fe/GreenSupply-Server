@@ -90,8 +90,6 @@ const getAllFuelStorageReceipts = async (query) => {
 
         console.log("🔍 Dữ liệu trước khi lọc:", receipts);
 
-        // 🟢 4. Lọc dữ liệu theo `search`
-        // 🟢 4. Lọc dữ liệu theo `search`
 if (search) {
     const regexSearch = new RegExp(search, "i"); // Không phân biệt hoa thường
     receipts = receipts.filter(receipt =>
@@ -103,8 +101,6 @@ if (search) {
         regexSearch.test(receipt.receipt_supply_id ? "Cung cấp" : "Thu hàng") // 🔍 Tìm theo loại đơn hàng
     );
 }
-
-
         console.log("🔍 Dữ liệu sau khi lọc:", receipts);
 
         return receipts;
