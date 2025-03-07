@@ -15,11 +15,7 @@ const getAllStorages = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    console.log("1: ", req.body); // In dữ liệu nhận được từ frontend
-
     const { formData } = req.body;
-
-    // Kiểm tra dữ liệu đầu vào
     if (
       !formData.batch_name ||
       !formData.batch_id ||
@@ -33,7 +29,6 @@ const create = async (req, res) => {
       });
     }
 
-    // Gọi Service để tạo lô nguyên liệu
     const response = await RawMaterialBatchService.create(formData);
 
     return res.status(201).json(response);

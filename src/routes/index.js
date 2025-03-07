@@ -10,6 +10,7 @@ const ProductRequestRouter = require("./ProductRequestRouter");
 const FuelStorageReceipt = require("./FuelStorageReceipt");
 const FuelRoute = require("./FuelRoutes");
 const RawMaterialBatchRouter = require("./RawMaterialBatchRouter")
+const MarterialStorageExportRouter = require("./MaterialStorageExportRouter");
 // const FuelStorageReceipt  = require("./FuelStorageReceipt");
 
 const OrderRoutes = require("./OrderRoutes");
@@ -32,6 +33,7 @@ const routes = (app) => {
   app.use("/api/fuel", FuelRoute);
   app.use("/api/purchase-order", PurchaseOrderRouter);
   app.use("/api/raw-material-batch", RawMaterialBatchRouter);
+  app.use("/api/material-storage-export", MarterialStorageExportRouter);
   // app.use("/api/fuel-storage", FuelStorageReceipt);
 };
 module.exports = routes;
