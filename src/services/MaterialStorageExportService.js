@@ -1,8 +1,10 @@
 const MaterialStorageExport = require("../models/Material_Storage_Export");
 const ProductionRequest = require("../models/Production_Request");
 const RawMaterialBatch = require("../models/Raw_Material_Batch");
+const batchHistory = require("../models/Batch_Export_History")
 const User = require("../models/UserModel");
 const mongoose = require("mongoose");
+
 
 const create = async (storageExport) => {
   try {
@@ -136,9 +138,75 @@ const getDetails = async (id) => {
   }
 };
 
+// Accept Storage Export
+const AcceptStorageExport = async (storage_export_id) => {
+  try {
+    const storageExportUpdate = await MaterialStorageExport.findByIdAndUpdate(
+      storage_export_id,
+      { status: "Hoàn thành" },
+      { new: true }
+    );
+    
+    if (!storageExportUpdate) {
+      return { success: false, message: "Cập nhật đơn thất bại" };
+    }
+    
+    // Tạo Lịch Sử Xuất Lô Khi Cập Nhật Đơn Thành Công
+    const batchHistory = await createNewBatchStorageExport(storage_export_id);
+    console.log("batchHistory => ", batchHistory)
+    if(batchHistory){
+      return { success: true, message: "Cập nhật đơn thành công" };
+    }else{
+      return { success: false, message: "Cập nhật đơn thất bại" };
+    }
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Đã có lỗi xảy ra trong quá trình cập nhật đơn xuất kho",
+      error: error.message,
+    });
+  }
+};
+
+const createNewBatchStorageExport = async (material_export_id) => {
+  try {
+    const objectId = new mongoose.Types.ObjectId(material_export_id); // ép về ObjectId
+    const record = await batchHistory.create({
+      material_export_id: objectId,
+    });
+
+    return !!record; // trả về true nếu tạo thành công
+  } catch (error) {
+    console.error("Lỗi tạo batch export history:", error);
+    return false;
+  }
+};
+
+// Reject Storage Export
+const RejectStorageExport = async (storage_export_id) => {
+  try {
+    const deleted = await MaterialStorageExport.findByIdAndDelete(
+      storage_export_id
+    );
+
+    if (!deleted) {
+      return { success: false, message: "Xóa đơn thất bại"};
+    }
+
+    return { success: true, message: "Xóa đơn thành công" };
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Xóa đơn xuất lô thất bại",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   create,
   getAll,
   getDetails,
+  AcceptStorageExport,
+  RejectStorageExport
 };

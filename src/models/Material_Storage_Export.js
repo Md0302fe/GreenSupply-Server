@@ -8,7 +8,7 @@ const MaterialStorageExportSchema = new mongoose.Schema(
     export_name: {type: String, required: true, trim: true},
     type_export: {type: String, enum: ["Đơn sản xuất"], default: "Đơn sản xuất", required: true},
     note: {type: String, default: "", trim: true},
-    status: {type: String, enum: ["Chờ duyệt", "Đã duyệt", "Đã huỷ"], default: "Chờ duyệt"},
+    status: {type: String, enum: ["Chờ duyệt", "Hoàn thành"], default: "Chờ duyệt"},
     is_deleted: {type: Boolean, default: false},
   },
   { timestamps: true }

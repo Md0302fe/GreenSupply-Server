@@ -68,10 +68,80 @@ const getDetails = async (req, res) => {
   }
 };
 
+const AcceptStorageExport = async (req, res) => {
+  try {
+    const {storage_export_id} = req.body 
 
+    if (!storage_export_id){
+      return res.status(500).json({
+        success: false,
+        message: "Mã đơn xuất kho không hợp lệ",
+        error: error.message,
+      });
+    }
+
+    const response = await MaterialStorageExportService.AcceptStorageExport(storage_export_id);
+    if (response.success){
+      return res.status(200).json({
+        success: true,
+        message: "Cập nhật đơn xuất kho thành công",
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: "Cập nhật đơn xuất kho thất bại",
+      });
+    }
+    
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết đơn xuất kho:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy chi tiết đơn xuất kho",
+      error: error.message,
+    });
+  }
+};
+
+const RejectStorageExport = async (req, res) => {
+  try {
+    const {storage_export_id} = req.body 
+
+    if (!storage_export_id){
+      return res.status(500).json({
+        success: false,
+        message: "Lỗi khi xóa đơn xuất kho",
+        error: error.message,
+      });
+    }
+
+    const response = await MaterialStorageExportService.RejectStorageExport(storage_export_id);
+    if (response.success){
+      return res.status(200).json({
+        success: true,
+        message: "Xóa đơn thành công",
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: "Xóa đơn thất bại",
+      });
+    }
+    
+  } catch (error) {
+    console.error("Lỗi khi xóa đơn xuất kho:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy chi tiết đơn xuất kho",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   create,
   getAll,
   getDetails,
+  AcceptStorageExport,
+  RejectStorageExport
 };

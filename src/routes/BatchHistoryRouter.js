@@ -11,10 +11,9 @@ const {
   } = require("../middleware/AuthMidleware");
 
   // Routes cho Address
-  router.get("/storages", BatchHistoryController.getAllStorages);
-  router.post("/createRawMaterialBatch", BatchHistoryController.create);
+
   router.get("/getAllRawMaterialBatch", BatchHistoryController.getAllHistory);
   router.get("/getRawMaterialBatchById/:id", BatchHistoryController.getById);
-  router.put("/updateRawMaterialBatch/:id", BatchHistoryController.update);
+
 
   module.exports = router;
