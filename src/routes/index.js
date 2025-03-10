@@ -11,6 +11,7 @@ const FuelStorageReceipt = require("./FuelStorageReceipt");
 const FuelRoute = require("./FuelRoutes");
 const RawMaterialBatchRouter = require("./RawMaterialBatchRouter")
 const MarterialStorageExportRouter = require("./MaterialStorageExportRouter");
+const BatchHistoryRouter = require("./BatchHistoryRouter")
 // const FuelStorageReceipt  = require("./FuelStorageReceipt");
 
 const OrderRoutes = require("./OrderRoutes");
@@ -20,7 +21,7 @@ const ProvideOrderRoutes = require("./ProvideOrderRoutes");
 const routes = (app) => {
   // Tất cả các endpoint được định nghĩa trong UserRouter sẽ có tiền tố /api/user.
   app.use("/api/user", UserRouter);
-  
+
   app.use("/api/orders", OrderRoutes);
   app.use("/api/provide-order", ProvideOrderRoutes);
   app.use("/api/fuel", FuelEntryRoutes);
@@ -34,6 +35,8 @@ const routes = (app) => {
   app.use("/api/purchase-order", PurchaseOrderRouter);
   app.use("/api/raw-material-batch", RawMaterialBatchRouter);
   app.use("/api/material-storage-export", MarterialStorageExportRouter);
+  app.use("/api/batch-history", BatchHistoryRouter);
+
   // app.use("/api/fuel-storage", FuelStorageReceipt);
 };
 module.exports = routes;

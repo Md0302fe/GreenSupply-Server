@@ -2,19 +2,17 @@ const ProductionRequest = require("../models/Production_Request");
 const FuelManagement = require("../models/Fuel_Management");
 const RawMaterialBatch = require("../models/Raw_Material_Batch");
 
-const generateBatchId = () => {
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-  const digits = "0123456789";
-  let batchId = "";
-  // Thêm 6 ký tự chữ
-  for (let i = 0; i < 6; i++) {
-    batchId += letters.charAt(Math.floor(Math.random() * letters.length));
-  }
-  // Thêm 10 chữ số
-  for (let i = 0; i < 6; i++) {
-    batchId += digits.charAt(Math.floor(Math.random() * digits.length));
-  }
-  return batchId;
+const generateBatchId = (prefix = "XMTH") => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0"); // Định dạng 2 số
+  const day = String(today.getDate()).padStart(2, "0"); // Định dạng 2 số
+
+  const batchNumber = Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, "0");
+
+  return `${prefix}${year}${month}${day}-${batchNumber}`;
 };
 
 const createProductRequest = async (productData) => {
