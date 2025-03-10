@@ -1,8 +1,8 @@
-const RawMaterialBatchService = require("../services/RawMaterialBatchService");
+const BatchHistoryService = require("../services/BatchHistoryService");
 
 const getAllStorages = async (req, res) => {
   try {
-    const response = await RawMaterialBatchService.getAllStorages();
+    const response = await BatchHistoryService.getAllStorages();
     return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({
@@ -16,21 +16,14 @@ const getAllStorages = async (req, res) => {
 const create = async (req, res) => {
   try {
     const { formData } = req.body;
-    console.log("formData => ", formData)
-    if (
-      !formData.batch_name ||
-      !formData.batch_id ||
-      !formData.fuel_type_id ||
-      !formData.production_request_id ||
-      !formData.storage_id
-    ) {
+    if (!formData.material_export_id) {
       return res.status(400).json({
         status: "ERROR",
-        message: "Vui lòng điền đầy đủ thông tin bắt buộc!",
+        message: "Id của đơn xuất kho không hợp lệ!",
       });
     }
-    console.log("formData => ", formData)
-    const response = await RawMaterialBatchService.create(formData);
+
+    const response = await BatchHistoryService.create(formData);
 
     return res.status(201).json(response);
   } catch (error) {
@@ -43,9 +36,9 @@ const create = async (req, res) => {
   }
 };
 
-const getAll = async (req, res) => {
+const getAllHistory = async (req, res) => {
   try {
-    const response = await RawMaterialBatchService.getAll(req.query);
+    const response = await BatchHistoryService.getAllHistory(req.query);
     return res.status(200).json(response);
   } catch (error) {
     console.error("Lỗi trong getAll controller:", error.message);
@@ -60,7 +53,7 @@ const getAll = async (req, res) => {
 const getById = async (req, res) => {
   try {
     const { id } = req.params;
-    const batch = await RawMaterialBatchService.getById(id);
+    const batch = await BatchHistoryService.getById(id);
 
     if (!batch) {
       return res
@@ -124,7 +117,7 @@ const cancel = async (req, res) => {
 module.exports = {
   getAllStorages,
   create,
-  getAll,
+  getAllHistory,
   getById,
   update,
   cancel,
