@@ -34,7 +34,7 @@ const getAllFuelSupplyRequest = async (req, res) => {
     return res.status(500).json({
       status: "ERROR",
       message: error.message,
-    });
+    }); 
   }
 };
 
