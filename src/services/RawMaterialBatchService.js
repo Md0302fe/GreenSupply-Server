@@ -1,12 +1,50 @@
 const RawMaterialBatch = require("../models/Raw_Material_Batch");
+const FuelStorage = require("../models/Fuel_Storage");
+const { default: mongoose } = require("mongoose");
 
-const create = async (productData) => {
+const getAllStorages = async () => {
   try {
-    productData.batch_id = generateBatchId();
-    productData.status = "Chờ duyệt";
-    const newProduct = new RawMaterialBatch(productData);
-    await newProduct.save();
-    return { status: "Create New Product Is Successfully!", product: newProduct, statusCode: 200 };
+    const storages = await FuelStorage.find({}, "_id name_storage");
+    return {
+      success: true,
+      message: "Lấy danh sách kho lưu trữ thành công!",
+      data: storages,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+const generateBatchId = (prefix = "XMTH") => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0"); // Định dạng 2 số
+  const day = String(today.getDate()).padStart(2, "0"); // Định dạng 2 số
+
+  const batchNumber = Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, "0");
+
+  return `${prefix}${year}${month}${day}-${batchNumber}`;
+};
+
+const create = async (batchData) => {
+  try {
+    const newBatch = await RawMaterialBatch.create(batchData);
+    console.log(" newBatch => ", newBatch)
+
+    if(!newBatch){
+      return {
+        success: false,
+        message: "Tạo lô nguyên liệu thất bại!",
+        batch: newBatch, 
+      };
+    }
+    return {
+      success: true,
+      message: "Tạo lô nguyên liệu thành công!",
+      batch: newBatch, 
+    };
   } catch (error) {
     throw new Error(error.message);
   }
@@ -14,13 +52,46 @@ const create = async (productData) => {
 
 const getAll = async (filters) => {
   try {
-    // Kết quả
-    const requests = await RawMaterialBatch.find().sort({ createdAt: -1 });
+    const requests = await RawMaterialBatch.find()
+      .populate({
+        path: "fuel_type_id",
+        populate: {
+          path: "storage_id",
+        },
+      })
+      .populate({
+        path: "fuel_type_id",
+        populate: {
+          path: "fuel_type_id",
+        },
+      })
+      .sort({ createdAt: -1 });
 
     return {
       success: true,
-      status: "Lấy danh sách loại nhiên liệu thành công!",
+      status: "Lấy danh sách lô nguyên liệu thành công!",
       requests,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+const getById = async (id) => {
+  try {
+    const batch = await RawMaterialBatch.findById(id).populate({
+      path: "fuel_type_id",
+      populate: [{ path: "storage_id" }, { path: "fuel_type_id" }],
+    });
+
+    if (!batch) {
+      throw new Error("Không tìm thấy lô nguyên liệu!");
+    }
+
+    return {
+      success: true,
+      status: "Lấy chi tiết lô nguyên liệu thành công!",
+      batch,
     };
   } catch (error) {
     throw new Error(error.message);
@@ -72,8 +143,11 @@ const cancel = async (id) => {
 };
 
 module.exports = {
+  getAllStorages,
+  generateBatchId,
   create,
   getAll,
+  getById,
   update,
   cancel,
 };

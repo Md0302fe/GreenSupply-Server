@@ -13,6 +13,7 @@ const {
   // Routes cho Address
   router.post("/createProductionRequest", ProductRequestController.createProductRequest);
   router.get("/getAll", ProductRequestController.getAll);
+  router.get("/getAllProcessing", ProductRequestController.getAllProcessing);
   router.put("/:id", ProductRequestController.update);
   router.delete("/:id", ProductRequestController.deleteById);
   router.put("/change-status/:id", ProductRequestController.changeStatus);

@@ -46,6 +46,21 @@ const getAll = async (req, res) => {
   }
 };
 
+const getAllProcessing = async (req, res) => {
+  try {
+    const filters = req.query;
+    const response = await ProductRequestService.getAllProcessing(filters);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Lỗi trong getAll controller:", error.message);
+    return res.status(500).json({
+      status: "ERROR",
+      message: "Lỗi server khi lấy danh sách nhiên liệu",
+      error: error.message,
+    });
+  }
+};
+
 const update = async (req, res) => {
   try {
     const updatedProductionRequest = await ProductRequestService.update(req.params.id, req.body);
@@ -85,6 +100,7 @@ const changeStatus = async (req, res) => {
 module.exports = {
   createProductRequest,
   getAll,
+  getAllProcessing,
   update,
   deleteById,
   changeStatus,
