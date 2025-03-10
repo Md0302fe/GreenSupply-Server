@@ -86,29 +86,54 @@ const create = async (storageExport) => {
 const getAll = async (search = "", type_export = "", sortOrder = "desc") => {
   try {
     let query = { is_deleted: false };
-    if (search) {
-      query.export_name = { $regex: search, $options: "i" }; // Không phân biệt hoa thường
-    }
+
+    // if (search) {
+    //   query.export_name = { $regex: search, $options: "i" };
+    // }
+
     if (type_export) {
       query.type_export = type_export;
     }
 
     const sort = sortOrder === "asc" ? { createdAt: 1 } : { createdAt: -1 };
-    const exports = await MaterialStorageExport.find(query)
+
+    let exports = await MaterialStorageExport.find(query)
       .populate({
         path: "production_request_id",
         populate: { path: "material" },
       })
       .populate("batch_id")
-      .populate("user_id") 
-      .sort(sort); 
+      .populate("user_id")
+      .sort(sort);
+      
+    if (search) {
+      const searchLower = search.toLowerCase();
+      exports = exports.filter((exp) => {
+        const exportName = exp.export_name?.toLowerCase() || "";
+        const requestName = exp.production_request_id?.request_name?.toLowerCase() || "";
+        const batchName = exp.batch_id?.batch_name?.toLowerCase() || "";
+        const creatorName = exp.user_id?.full_name?.toLowerCase() || "";
+
+        return (
+          exportName.includes(searchLower) ||
+          requestName.includes(searchLower) ||
+          batchName.includes(searchLower) ||
+          creatorName.includes(searchLower)
+        );
+      });
+    }
 
     return { success: true, exports };
   } catch (error) {
     console.error("Lỗi khi lấy danh sách đơn xuất kho:", error);
-    return { success: false, message: "Lỗi khi lấy danh sách đơn xuất kho" };
+    return {
+      success: false,
+      message: "Lỗi khi lấy danh sách đơn xuất kho",
+    };
   }
 };
+
+
 
 
 const getDetails = async (id) => {
@@ -120,10 +145,10 @@ const getDetails = async (id) => {
     const storageExport = await MaterialStorageExport.findById(id)
       .populate({
         path: "production_request_id",
-        populate: { path: "material" }, // Lấy thông tin nguyên liệu từ đơn sản xuất
+        populate: { path: "material" }, 
       })
-      .populate("batch_id") // Lấy thông tin lô nguyên liệu
-      .populate("user_id"); // Lấy thông tin người thực hiện
+      .populate("batch_id") 
+      .populate("user_id"); 
 
     if (!storageExport) {
       return { success: false, message: "Không tìm thấy đơn xuất kho." };
