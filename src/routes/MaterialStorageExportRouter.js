@@ -16,4 +16,6 @@ const {
   
   router.get("/getRawMaterialBatchById/:id", MaterialStorageExportController.getDetails);
 
+  router.post("/accept_storage_export", MaterialStorageExportController.AcceptStorageExport);
+  router.post("/reject_storage_export", MaterialStorageExportController.RejectStorageExport);
   module.exports = router;

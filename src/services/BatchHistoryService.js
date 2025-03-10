@@ -1,4 +1,4 @@
-const BatchHistory = require("../models/Batch_Export_History");
+const BatchHistory = require("../models/Batch_Export_History.js");
 const FuelStorage = require("../models/Fuel_Storage");
 const { default: mongoose } = require("mongoose");
 
@@ -32,7 +32,14 @@ const create = async (formData) => {
 const getAllHistory = async (filters) => {
   try {
     const requests = await BatchHistory.find()
-      .populate('material_export_id')
+      .populate({
+        path: "material_export_id",
+        populate: [
+          { path: "production_request_id" },
+          { path: "batch_id" },
+          { path: "user_id" },
+        ],
+      })
       .sort({ createdAt: -1 });
 
     return {
