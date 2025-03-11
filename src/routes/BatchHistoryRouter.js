@@ -12,8 +12,8 @@ const {
 
   // Routes cho Address
 
-  router.get("/getAllRawMaterialBatch", BatchHistoryController.getAllHistory);
-  router.get("/getRawMaterialBatchById/:id", BatchHistoryController.getById);
+  router.get("/getAllBatchStorageExportHistory", BatchHistoryController.getAllHistory);
+  router.post("/getBatchStorageExportDetails", BatchHistoryController.getById);
 
 
   module.exports = router;

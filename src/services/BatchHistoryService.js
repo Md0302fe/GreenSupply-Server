@@ -52,12 +52,18 @@ const getAllHistory = async (filters) => {
   }
 };
 
-const getById = async (id) => {
+const getById = async (storage_export_id) => {
   try {
-    const batch = await BatchHistory.findById(id).populate({
-      path: "fuel_type_id",
-      populate: [{ path: "storage_id" }, { path: "fuel_type_id" }],
-    });
+    const batch = await BatchHistory.findById(storage_export_id).populate(
+      {
+        path: 'material_export_id',
+        populate: [
+          { path: "production_request_id" },
+          { path: "batch_id" },
+          { path: "user_id" },
+        ],
+      }
+    );
 
     if (!batch) {
       throw new Error("Không tìm thấy lô nguyên liệu!");
