@@ -52,8 +52,9 @@ const getAllHistory = async (req, res) => {
 
 const getById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const batch = await BatchHistoryService.getById(id);
+    const { storage_export_id } = req.body.dataRequest;
+
+    const batch = await BatchHistoryService.getById(storage_export_id);
 
     if (!batch) {
       return res
