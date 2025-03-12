@@ -112,21 +112,33 @@ const update = async (id, data) => {
 
 const deleteById = async (id) => {
   try {
+    // 1. Tìm đơn sản xuất theo id
     const deleted = await ProductionRequest.findByIdAndDelete(id);
-
+    console.log(deleted);
     if (!deleted) {
       throw new Error("Không tìm thấy đơn sản xuất!");
     }
 
+    // 2. Tìm FuelManagement liên quan đến sản phẩm đã xóa
+    const fuelDoc = await FuelManagement.findById(deleted.material);
+    if (!fuelDoc) {
+      throw new Error("Không tìm thấy nhiên liệu tương ứng trong kho!");
+    }
+
+    // 3. Cộng lại số lượng nhiên liệu vào kho
+    fuelDoc.quantity += deleted.material_quantity; 
+    await fuelDoc.save();
+
     return {
       success: true,
-      message: "Đã xóa đơn sản xuất thành công!",
+      message: "Đã xóa đơn sản xuất và cộng lại số lượng nhiên liệu thành công!",
       data: deleted,
     };
   } catch (error) {
     throw new Error(error.message);
   }
 };
+
 const changeStatus = async (id) => {
   try {
     // 1. Tìm đơn sản xuất theo id
