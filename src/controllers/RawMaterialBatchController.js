@@ -78,21 +78,25 @@ const getById = async (req, res) => {
 
 const update = async (req, res) => {
   try {
-    const updatedProductionRequest = await ProductRequestService.update(
-      req.params.id,
-      req.body
-    );
-    if (!updatedProductionRequest) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Không tìm thấy nhiên liệu!" });
+    // Gọi service để cập nhật lô nguyên liệu
+    const updatedBatch = await RawMaterialBatchService.update(req.params.id, req.body);
+    
+    // Kiểm tra nếu không có kết quả trả về
+    if (!updatedBatch) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy lô nguyên liệu!",
+      });
     }
+    
+    // Trả về kết quả thành công
     res.json({
       success: true,
       message: "Cập nhật thành công!",
-      data: updatedProductionRequest,
+      data: updatedBatch,
     });
   } catch (error) {
+    // Nếu có lỗi xảy ra trong quá trình cập nhật
     res.status(500).json({
       success: false,
       message: "Lỗi khi cập nhật!",

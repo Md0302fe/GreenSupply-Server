@@ -107,7 +107,7 @@ const update = async (id, data) => {
     );
 
     if (!updated) {
-      throw new Error("Không tìm thấy nhiên liệu!");
+      throw new Error("Không tìm thấy lô nguyên liệu!");
     }
 
     return {
