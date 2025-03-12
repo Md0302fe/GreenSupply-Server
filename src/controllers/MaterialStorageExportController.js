@@ -36,9 +36,9 @@ const create = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const { search = "", type_export = "", sortOrder = "desc" } = req.query; 
+    const { search = "", status = "", sortOrder = "desc" } = req.query; 
 
-    const response = await MaterialStorageExportService.getAll(search, type_export, sortOrder);
+    const response = await MaterialStorageExportService.getAll(search, status, sortOrder);
     return res.status(response.success ? 200 : 400).json(response);
   } catch (error) {
     console.error("Lỗi khi lấy danh sách đơn xuất kho:", error);

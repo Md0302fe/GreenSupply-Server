@@ -85,16 +85,12 @@ const create = async (storageExport) => {
   }
 };
 
-const getAll = async (search = "", type_export = "", sortOrder = "desc") => {
+const getAll = async (search = "", status = "", sortOrder = "desc") => {
   try {
     let query = { is_deleted: false };
 
-    // if (search) {
-    //   query.export_name = { $regex: search, $options: "i" };
-    // }
-
-    if (type_export) {
-      query.type_export = type_export;
+    if (status) {
+      query.status = status;  
     }
 
     const sort = sortOrder === "asc" ? { createdAt: 1 } : { createdAt: -1 };
@@ -107,7 +103,7 @@ const getAll = async (search = "", type_export = "", sortOrder = "desc") => {
       .populate("batch_id")
       .populate("user_id")
       .sort(sort);
-      
+
     if (search) {
       const searchLower = search.toLowerCase();
       exports = exports.filter((exp) => {
@@ -134,6 +130,7 @@ const getAll = async (search = "", type_export = "", sortOrder = "desc") => {
     };
   }
 };
+
 
 
 
