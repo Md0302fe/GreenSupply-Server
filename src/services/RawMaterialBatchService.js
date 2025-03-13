@@ -1,6 +1,7 @@
 const RawMaterialBatch = require("../models/Raw_Material_Batch");
 const FuelStorage = require("../models/Fuel_Storage");
-const { default: mongoose } = require("mongoose");
+const FuelType = require("../models/Fuel_Types");
+const mongoose = require("mongoose");
 
 const getAllStorages = async () => {
   try {
@@ -31,19 +32,19 @@ const generateBatchId = (prefix = "XMTH") => {
 const create = async (batchData) => {
   try {
     const newBatch = await RawMaterialBatch.create(batchData);
-    console.log(" newBatch => ", newBatch)
+    console.log(" newBatch => ", newBatch);
 
-    if(!newBatch){
+    if (!newBatch) {
       return {
         success: false,
         message: "Tạo lô nguyên liệu thất bại!",
-        batch: newBatch, 
+        batch: newBatch,
       };
     }
     return {
       success: true,
       message: "Tạo lô nguyên liệu thành công!",
-      batch: newBatch, 
+      batch: newBatch,
     };
   } catch (error) {
     throw new Error(error.message);
@@ -100,11 +101,32 @@ const getById = async (id) => {
 
 const update = async (id, data) => {
   try {
+    // Kiểm tra xem fuel_type_id có hợp lệ không (nếu là ObjectId thì không cần kiểm tra)
+    if (!mongoose.Types.ObjectId.isValid(data._id)) {
+      throw new Error("Fuel type ID không hợp lệ!");
+    }
+    // Kiểm tra xem storage_id có hợp lệ không
+    if (data.storage_id && !mongoose.Types.ObjectId.isValid(data.storage_id)) {
+      throw new Error("Storage ID không hợp lệ!");
+    }
+
+    // Cập nhật lô nguyên liệu
     const updated = await RawMaterialBatch.findByIdAndUpdate(
       id,
       { ...data, updatedAt: new Date() },
       { new: true }
-    );
+    ).populate({
+      path: "fuel_type_id",
+      populate: {
+        path: "storage_id",
+      },
+    })
+    .populate({
+      path: "fuel_type_id",
+      populate: {
+        path: "fuel_type_id",
+      },
+    });
 
     if (!updated) {
       throw new Error("Không tìm thấy lô nguyên liệu!");

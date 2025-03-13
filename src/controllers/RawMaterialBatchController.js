@@ -16,7 +16,7 @@ const getAllStorages = async (req, res) => {
 const create = async (req, res) => {
   try {
     const { formData } = req.body;
-    console.log("formData => ", formData)
+    console.log("formData => ", formData);
     if (
       !formData.batch_name ||
       !formData.batch_id ||
@@ -29,7 +29,7 @@ const create = async (req, res) => {
         message: "Vui lòng điền đầy đủ thông tin bắt buộc!",
       });
     }
-    console.log("formData => ", formData)
+    console.log("formData => ", formData);
     const response = await RawMaterialBatchService.create(formData);
 
     return res.status(201).json(response);
@@ -78,17 +78,21 @@ const getById = async (req, res) => {
 
 const update = async (req, res) => {
   try {
+    const { formData } = req.body;
+
     // Gọi service để cập nhật lô nguyên liệu
-    const updatedBatch = await RawMaterialBatchService.update(req.params.id, req.body);
-    
-    // Kiểm tra nếu không có kết quả trả về
+    const updatedBatch = await RawMaterialBatchService.update(
+      req.params.id,
+      formData
+    );
+
     if (!updatedBatch) {
       return res.status(404).json({
         success: false,
         message: "Không tìm thấy lô nguyên liệu!",
       });
     }
-    
+
     // Trả về kết quả thành công
     res.json({
       success: true,
@@ -96,7 +100,6 @@ const update = async (req, res) => {
       data: updatedBatch,
     });
   } catch (error) {
-    // Nếu có lỗi xảy ra trong quá trình cập nhật
     res.status(500).json({
       success: false,
       message: "Lỗi khi cập nhật!",
