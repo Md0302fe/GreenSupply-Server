@@ -12,7 +12,7 @@ const generateBatchId = (prefix = "XMTH") => {
     .toString()
     .padStart(3, "0");
 
-  return `${prefix}${year}${month}${day}-${batchNumber}`;
+  return `${prefix}${day}${month}${year}-${batchNumber}`;
 };
 
 const createProductRequest = async (productData) => {
