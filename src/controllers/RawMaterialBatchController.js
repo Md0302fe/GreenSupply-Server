@@ -126,25 +126,43 @@ const update = async (req, res) => {
   }
 };
 
-const cancel = async (req, res) => {
+const updateStatus = async (req, res) => {
   try {
-    const canceledFuel = await ProductRequestService.cancel(req.params.id);
-    if (!canceledFuel) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Không tìm thấy nhiên liệu!" });
-    }
-    res.json({
-      success: true,
-      message: "Đã đánh dấu 'Đã xóa'!",
-      data: canceledFuel,
-    });
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const response = await RawMaterialBatchService.updateStatus(id, status);
+
+    return res.status(200).json(response);
   } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Lỗi khi hủy!", error: error.message });
+    return res.status(500).json({
+      status: "ERROR",
+      message: "Lỗi server khi cập nhật trạng thái!",
+      error: error.message,
+    });
   }
 };
+
+
+// const cancel = async (req, res) => {
+//   try {
+//     const canceledFuel = await ProductRequestService.cancel(req.params.id);
+//     if (!canceledFuel) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Không tìm thấy nhiên liệu!" });
+//     }
+//     res.json({
+//       success: true,
+//       message: "Đã đánh dấu 'Đã xóa'!",
+//       data: canceledFuel,
+//     });
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ success: false, message: "Lỗi khi hủy!", error: error.message });
+//   }
+// };
 
 module.exports = {
   getAllStorages,
@@ -153,5 +171,6 @@ module.exports = {
   getById,
   update,
   cancel,
-  getBatchByRequestId
+  getBatchByRequestId,
+  updateStatus,
 };
