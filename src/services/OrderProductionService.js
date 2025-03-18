@@ -1,5 +1,6 @@
 const Order = require("../models/OrderProduction");
 const Product = require("../models/Products");
+const OrderProduction = require("../models/OrderProduction");
 
 const createOrderProductions = async (data) => {
   try {
@@ -119,7 +120,49 @@ const getAllOrders = async (filters) => {
   }
 };
 
-module.exports = { getAllOrders,createOrderProductions, };
+const getAllOrdersDetail = async (id) => {
+  try {
+    const res = await OrderProduction.findById(id);
+    if (!res) {
+      throw new Error("Order not found");
+    }
+    return { status: "Get Order Details Successfully!", res };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+const updateOrderOrderProduction = async (id, data) => {
+  try {
+    const existingOrder = await OrderProduction.findById(id);
+
+    if (!existingOrder) {
+      throw new Error("Đơn hàng sản xuất không tồn tại!");
+    }
+
+    if (existingOrder.status !== "Chờ xác nhận") {
+      throw new Error("Không thể cập nhật đơn hàng đã được xử lý!");
+    }
+   
+    if (typeof data.price === "number" && typeof data.quantity === "number") {
+      data.total_price = data.price * data.quantity;
+    }
+
+    const updatedOrder = await OrderProduction.findByIdAndUpdate(id, data, {
+      new: true,
+    });
+
+    return {
+      status: "Cập nhật đơn hàng sản xuất thành công!",
+      orderProduction: updatedOrder,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+
+module.exports = { getAllOrders,createOrderProductions,getAllOrdersDetail,updateOrderOrderProduction };
 
 
 
