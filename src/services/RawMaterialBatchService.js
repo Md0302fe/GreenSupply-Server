@@ -142,22 +142,49 @@ const update = async (id, data) => {
   }
 };
 
-const cancel = async (id) => {
+// const cancel = async (id) => {
+//   try {
+//     const canceled = await RawMaterialBatch.findByIdAndUpdate(
+//       id,
+//       { is_deleted: true, updatedAt: new Date() },
+//       { new: true }
+//     );
+
+//     if (!canceled) {
+//       throw new Error("Không tìm thấy nhiên liệu!");
+//     }
+
+//     return {
+//       success: true,
+//       message: "Đã đánh dấu nhiên liệu là 'Đã xóa'!",
+//       data: canceled,
+//     };
+//   } catch (error) {
+//     throw new Error(error.message);
+//   }
+// };
+
+const updateStatus = async (id, status) => {
   try {
-    const canceled = await RawMaterialBatch.findByIdAndUpdate(
+    const validStatuses = ["Đang chuẩn bị", "Chờ xuất kho", "Đã xuất kho", "Hủy bỏ"];
+    if (!validStatuses.includes(status)) {
+      throw new Error("Trạng thái không hợp lệ!");
+    }
+
+    const updated = await RawMaterialBatch.findByIdAndUpdate(
       id,
-      { is_deleted: true, updatedAt: new Date() },
+      { status, updatedAt: new Date() },
       { new: true }
     );
 
-    if (!canceled) {
-      throw new Error("Không tìm thấy nhiên liệu!");
+    if (!updated) {
+      throw new Error("Không tìm thấy lô nguyên liệu!");
     }
 
     return {
       success: true,
-      message: "Đã đánh dấu nhiên liệu là 'Đã xóa'!",
-      data: canceled,
+      message: "Cập nhật trạng thái thành công!",
+      data: updated,
     };
   } catch (error) {
     throw new Error(error.message);
@@ -171,5 +198,6 @@ module.exports = {
   getAll,
   getById,
   update,
-  cancel,
+  // cancel,
+  updateStatus,
 };
