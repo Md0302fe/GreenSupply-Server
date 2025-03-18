@@ -16,6 +16,7 @@ const {
   router.get("/getAllRawMaterialBatch", RawMaterialBatchController.getAll);
   router.get("/getRawMaterialBatchById/:id", RawMaterialBatchController.getById);
   router.put("/updateRawMaterialBatch/:id", RawMaterialBatchController.update);
+  router.get("/getBatchByRequestId/:id", RawMaterialBatchController.getBatchByRequestId);
   router.put("/updateRawMaterialBatchStatus/:id", RawMaterialBatchController.updateStatus);
 
   module.exports = router;
