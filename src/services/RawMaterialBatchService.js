@@ -98,6 +98,30 @@ const getById = async (id) => {
     throw new Error(error.message);
   }
 };
+const getBatchByRequestId = async (id) => {
+  try {
+    const batches = await RawMaterialBatch.find({ production_request_id: id }).populate({
+      path: "fuel_type_id",
+      populate: [
+        { path: "storage_id" },
+        { path: "fuel_type_id" }, // <-- đặt tên này hơi trùng với chính field đang populate?
+      ],
+    });
+    if (!batches || batches.length === 0) {
+      throw new Error("Không tìm thấy lô nguyên liệu!");
+    }
+
+    return {
+      success: true,
+      status: "Lấy lô nguyên liệu thành công!",
+      batches,
+    };
+  } catch (error) {
+    console.error("🔥 Lỗi trong RawMaterialBatchService.getBatchByRequestId:", error);
+    throw new Error(error.message);
+  }
+};
+
 
 const update = async (id, data) => {
   try {
@@ -172,4 +196,5 @@ module.exports = {
   getById,
   update,
   cancel,
+  getBatchByRequestId
 };

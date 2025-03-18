@@ -75,6 +75,24 @@ const getById = async (req, res) => {
       .json({ success: false, message: "Lỗi server!", error: error.message });
   }
 };
+const getBatchByRequestId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const batch = await RawMaterialBatchService.getBatchByRequestId(id);
+
+    if (!batch) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Không tìm thấy lô nguyên liệu!" });
+    }
+
+    return res.status(200).json({ success: true, data: batch });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Lỗi server!", error: error.message });
+  }
+};
 
 const update = async (req, res) => {
   try {
@@ -135,4 +153,5 @@ module.exports = {
   getById,
   update,
   cancel,
+  getBatchByRequestId
 };
