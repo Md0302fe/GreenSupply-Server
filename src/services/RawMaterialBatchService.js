@@ -98,6 +98,30 @@ const getById = async (id) => {
     throw new Error(error.message);
   }
 };
+const getBatchByRequestId = async (id) => {
+  try {
+    const batches = await RawMaterialBatch.find({ production_request_id: id }).populate({
+      path: "fuel_type_id",
+      populate: [
+        { path: "storage_id" },
+        { path: "fuel_type_id" }, // <-- đặt tên này hơi trùng với chính field đang populate?
+      ],
+    });
+    if (!batches || batches.length === 0) {
+      throw new Error("Không tìm thấy lô nguyên liệu!");
+    }
+
+    return {
+      success: true,
+      status: "Lấy lô nguyên liệu thành công!",
+      batches,
+    };
+  } catch (error) {
+    console.error("🔥 Lỗi trong RawMaterialBatchService.getBatchByRequestId:", error);
+    throw new Error(error.message);
+  }
+};
+
 
 const update = async (id, data) => {
   try {
@@ -142,22 +166,49 @@ const update = async (id, data) => {
   }
 };
 
-const cancel = async (id) => {
+// const cancel = async (id) => {
+//   try {
+//     const canceled = await RawMaterialBatch.findByIdAndUpdate(
+//       id,
+//       { is_deleted: true, updatedAt: new Date() },
+//       { new: true }
+//     );
+
+//     if (!canceled) {
+//       throw new Error("Không tìm thấy nhiên liệu!");
+//     }
+
+//     return {
+//       success: true,
+//       message: "Đã đánh dấu nhiên liệu là 'Đã xóa'!",
+//       data: canceled,
+//     };
+//   } catch (error) {
+//     throw new Error(error.message);
+//   }
+// };
+
+const updateStatus = async (id, status) => {
   try {
-    const canceled = await RawMaterialBatch.findByIdAndUpdate(
+    const validStatuses = ["Đang chuẩn bị", "Chờ xuất kho", "Đã xuất kho", "Hủy bỏ"];
+    if (!validStatuses.includes(status)) {
+      throw new Error("Trạng thái không hợp lệ!");
+    }
+
+    const updated = await RawMaterialBatch.findByIdAndUpdate(
       id,
-      { is_deleted: true, updatedAt: new Date() },
+      { status, updatedAt: new Date() },
       { new: true }
     );
 
-    if (!canceled) {
-      throw new Error("Không tìm thấy nhiên liệu!");
+    if (!updated) {
+      throw new Error("Không tìm thấy lô nguyên liệu!");
     }
 
     return {
       success: true,
-      message: "Đã đánh dấu nhiên liệu là 'Đã xóa'!",
-      data: canceled,
+      message: "Cập nhật trạng thái thành công!",
+      data: updated,
     };
   } catch (error) {
     throw new Error(error.message);
@@ -172,4 +223,6 @@ module.exports = {
   getById,
   update,
   cancel,
+  getBatchByRequestId,
+  updateStatus,
 };
