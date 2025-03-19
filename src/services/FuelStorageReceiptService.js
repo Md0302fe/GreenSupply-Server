@@ -52,11 +52,11 @@ const createFuelStorageReceipt = async (manager_id, receipt_supply_id, receipt_r
         await newReceipt.save();
 
         // ✅ Cập nhật trạng thái đơn hàng thành "Đang xử lý"
-        if (receipt_request_id) {
-            await FuelRequest.findByIdAndUpdate(receipt_request_id, { status: "Đang xử lý" });
-        } else if (receipt_supply_id) {
-            await FuelSupplyOrder.findByIdAndUpdate(receipt_supply_id, { status: "Đang xử lý" });
-        }
+        // if (receipt_request_id) {
+        //     await FuelRequest.findByIdAndUpdate(receipt_request_id, { status: "Đang xử lý" });
+        // } else if (receipt_supply_id) {
+        //     await FuelSupplyOrder.findByIdAndUpdate(receipt_supply_id, { status: "Đang xử lý" });
+        // }
 
         return newReceipt;
     } catch (error) {
@@ -125,29 +125,29 @@ const updateFuelStorageReceiptStatus = async (id, status) => {
         }
 
         // 🟢 Nếu duyệt đơn, cập nhật sức chứa kho & trạng thái đơn hàng chờ nhập kho
-        if (status === "Đã duyệt") {
-            const storage = await FuelStorage.findById(receipt.storage_id);
-            if (!storage) {
-                throw new Error("Không tìm thấy kho!");
-            }
+        // if (status === "Đã duyệt") {
+        //     const storage = await FuelStorage.findById(receipt.storage_id);
+        //     if (!storage) {
+        //         throw new Error("Không tìm thấy kho!");
+        //     }
 
-            // 🟢 Kiểm tra sức chứa kho
-            if (receipt.quantity > storage.remaining_capacity) {
-                throw new Error("Kho không đủ sức chứa!");
-            }
+        //     // 🟢 Kiểm tra sức chứa kho
+        //     if (receipt.quantity > storage.remaining_capacity) {
+        //         throw new Error("Kho không đủ sức chứa!");
+        //     }
 
-            // 🟢 Cập nhật số lượng trong kho
-            storage.remaining_capacity -= receipt.quantity;
-            await storage.save();
+        //     // 🟢 Cập nhật số lượng trong kho
+        //     storage.remaining_capacity -= receipt.quantity;
+        //     await storage.save();
 
-            // 🟢 Cập nhật trạng thái đơn hàng chờ nhập kho thành "Nhập kho thành công"
-            await updateOrderStatus(receipt.receipt_supply_id || receipt.receipt_request_id, "Nhập kho thành công");
-        }
+        //     // 🟢 Cập nhật trạng thái đơn hàng chờ nhập kho thành "Nhập kho thành công"
+        //     await updateOrderStatus(receipt.receipt_supply_id || receipt.receipt_request_id, "Hoàn Thành");
+        // }
 
-        // 🟢 Nếu hủy đơn nhập kho, cập nhật trạng thái đơn hàng chờ nhập kho thành "Nhập kho thất bại"
-        if (status === "Đã huỷ") {
-            await updateOrderStatus(receipt.receipt_supply_id || receipt.receipt_request_id, "Nhập kho thất bại");
-        }
+        // // 🟢 Nếu hủy đơn nhập kho, cập nhật trạng thái đơn hàng chờ nhập kho thành "Nhập kho thất bại"
+        // if (status === "Đã huỷ") {
+        //     await updateOrderStatus(receipt.receipt_supply_id || receipt.receipt_request_id, "thất bại");
+        // }
 
         // 🟢 Cập nhật trạng thái đơn nhập kho
         receipt.status = status;
