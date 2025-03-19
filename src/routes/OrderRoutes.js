@@ -30,5 +30,6 @@ router.get("/approved-fuel-supply-orders", OrderController.getAllApprovedFuelSup
 //  API cập nhật trạng thái đơn hàng
 router.put("/orders/:id/update-status", OrderController.updateOrderStatus);
 
+router.get("/dashboard/supplier-order", OrderController.SupplierOrderDashboard);
 
 module.exports = router;

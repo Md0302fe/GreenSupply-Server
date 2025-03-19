@@ -14,6 +14,4 @@ router.put('/update/:id', authUserMidleware, FuelStorageReceiptController.update
 
 router.get('/storage/:id', authUserMidleware, FuelStorageReceiptController.getFuelStorageById);
 
-
-
 module.exports = router; 

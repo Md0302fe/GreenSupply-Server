@@ -2,6 +2,7 @@ const FuelRequest = require("../models/Fuel_Request");
 const FuelSupplyOrder = require("../models/Fuel_Supply_Order");
 const AdminFuelEntry = require("../models/Admin_Fuel_Entry");
 
+
 const OrderServices = require("../services/OrderService");
 
 /// GetAll order by status đã duyệt
@@ -53,6 +54,21 @@ const updateOrderStatus = async (req, res) => {
       return res.status(500).json({ success: false, message: "Lỗi khi cập nhật trạng thái!", error: error.message });
   }
 };
+
+
+const SupplierOrderDashboard = async (req, res) => {
+  try {
+    const data = await OrderServices.SupplierOrderDashboard();
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy thông tin Dashboard",
+      error: error.message
+    });
+  }
+};
+
 
 
 
@@ -260,6 +276,7 @@ module.exports = {
   completeFuelSupplyOrder,
   getAllApprovedFuelSupplyOrders,
   getAllApprovedFuelRequests,
-  updateOrderStatus
+  updateOrderStatus,
+  SupplierOrderDashboard,
 };
   

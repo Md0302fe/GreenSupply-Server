@@ -49,24 +49,24 @@ const FuelSupplyOrder = require("../models/Fuel_Supply_Order");
 const getAllApprovedRequests = async () => {
   try {
       const approvedFuelRequests = await FuelRequest.find({
-          status: { $in: ["Đã duyệt", "Đang xử lý"] }, // ✅ Lấy cả "Đã duyệt" (Chờ Nhập Kho) và "Đang xử lý"
+          status: { $in: ["Đã duyệt", "Đang xử lý"] }, 
           is_deleted: false,
       }).populate("supplier_id").lean();
 
       const approvedFuelSupplyOrders = await FuelSupplyOrder.find({
-          status: { $in: ["Đã duyệt", "Đang xử lý"] }, // ✅ Lấy cả "Đã duyệt" (Chờ Nhập Kho) và "Đang xử lý"
+          status: { $in: ["Đã duyệt", "Đang xử lý"] }, 
           is_deleted: false,
       }).populate("supplier_id request_id").lean();
 
       const formattedFuelRequests = approvedFuelRequests.map(order => ({
           ...order,
-          status: order.status === "Đã duyệt" ? "Chờ Nhập Kho" : "Đang xử lý", // ✅ Đổi "Đã duyệt" thành "Chờ Nhập Kho"
+          status: order.status === "Đã duyệt" ? "Chờ Nhập Kho" : "Đang xử lý", 
           receipt_type: "request",
       }));
 
       const formattedFuelSupplyOrders = approvedFuelSupplyOrders.map(order => ({
           ...order,
-          status: order.status === "Đã duyệt" ? "Chờ Nhập Kho" : "Đang xử lý", // ✅ Đổi "Đã duyệt" thành "Chờ Nhập Kho"
+          status: order.status === "Đã duyệt" ? "Chờ Nhập Kho" : "Đang xử lý", 
           receipt_type: "supply",
       }));
 
@@ -77,8 +77,6 @@ const getAllApprovedRequests = async () => {
       throw error;
   }
 };
-
-
 
 
 
@@ -208,8 +206,44 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+const SupplierOrderDashboard = async () => {
+
+  const totalFuelRequests = await FuelRequest.countDocuments({ is_deleted: false });
+  const totalFuelSupplyOrders = await FuelSupplyOrder.countDocuments({ is_deleted: false });
+
+  const pendingFuelRequests = await FuelRequest.countDocuments({ status: "Chờ duyệt", is_deleted: false });
+  const pendingFuelSupplyOrders = await FuelSupplyOrder.countDocuments({ status: "Chờ duyệt", is_deleted: false });
+
+  const approvedFuelRequests = await FuelRequest.countDocuments({ status: "Đã duyệt", is_deleted: false });
+  const approvedFuelSupplyOrders = await FuelSupplyOrder.countDocuments({ status: "Đã duyệt", is_deleted: false });
+
+  const completedFuelRequests = await FuelRequest.countDocuments({ status: "Hoàn thành", is_deleted: false });
+  const completedFuelSupplyOrders = await FuelSupplyOrder.countDocuments({ status: "Hoàn thành", is_deleted: false });
 
 
+  return {
+      // Tổng hợp tất cả dữ liệu của 2 bảng
+    totalFuelRequests,
+    totalFuelSupplyOrders,
+    pendingRequests: pendingFuelRequests + pendingFuelSupplyOrders,
+    approvedRequests: approvedFuelRequests + approvedFuelSupplyOrders,
+    totalCompleted: completedFuelRequests + completedFuelSupplyOrders,
+
+    // Chi tiết từng bảng
+    fuelRequests: {
+      total: totalFuelRequests,
+      pending: pendingFuelRequests,
+      approved: approvedFuelRequests,
+      completed: completedFuelRequests
+    },
+    fuelSupplyOrders: {
+      total: totalFuelSupplyOrders,
+      pending: pendingFuelSupplyOrders,
+      approved: approvedFuelSupplyOrders,
+      completed: completedFuelSupplyOrders
+    }
+  };
+};
 
 
 
@@ -218,6 +252,7 @@ module.exports = {
   getAllApprovedRequests,
   getAllApprovedFuelSupplyOrders,
   getAllProvideOrders,
-  updateOrderStatus
+  updateOrderStatus,
+  SupplierOrderDashboard,
   // getAllorderbySucess
 };
