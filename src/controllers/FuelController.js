@@ -40,8 +40,53 @@ const cancelFuel = async (req, res) => {
   }
 };
 
+
+
+
+const getDashboardSummary = async (req, res) => {
+  try {
+    const summary = await FuelManagementService.getDashboardSummary();
+    return res.status(200).json(summary);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Lỗi khi lấy dữ liệu!", error: error.message });
+  }
+};
+
+const getFuelTypesOverview = async (req, res) => {
+  try {
+    const fuelTypes = await FuelManagementService.getFuelTypesOverview();
+    return res.status(200).json(fuelTypes);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Lỗi khi lấy dữ liệu!", error: error.message });
+  }
+};
+
+const getFuelHistory = async (req, res) => {
+  try {
+    const history = await FuelManagementService.getFuelHistory();
+    return res.status(200).json(history);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Lỗi khi lấy dữ liệu!", error: error.message });
+  }
+};
+
+const getLowStockAlerts = async (req, res) => {
+  try {
+    const alerts = await FuelManagementService.getLowStockAlerts();
+    return res.status(200).json(alerts);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Lỗi khi lấy dữ liệu!", error: error.message });
+  }
+};
+
+
+
 module.exports = {
   getAll,
   updateFuel,
   cancelFuel, 
+  getDashboardSummary,
+  getFuelTypesOverview,
+  getFuelHistory,
+  getLowStockAlerts,
 };
