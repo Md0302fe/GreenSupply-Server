@@ -222,7 +222,7 @@ module.exports = {
   getAll,
   getById,
   update,
-  cancel,
+  // cancel,
   getBatchByRequestId,
   updateStatus,
 };
