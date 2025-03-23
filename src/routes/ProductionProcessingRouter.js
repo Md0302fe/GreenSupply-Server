@@ -18,4 +18,8 @@ const {
   router.delete("/:id", ProductionProcessingController.deleteById);
   router.put("/change-status/:id", ProductionProcessingController.changeStatus);
 
+
+  // Router cho dashboard
+  router.get("/dashboard", ProductionProcessingController.getDashboardprocess);
+
   module.exports = router;

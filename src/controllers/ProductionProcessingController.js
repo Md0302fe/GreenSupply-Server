@@ -117,6 +117,29 @@ const changeStatus = async (req, res) => {
   }
 };
 
+
+
+///////////////////Dashboard processing
+
+const getDashboardprocess = async (req, res) => {
+  try {
+    const stats = await ProductionProcessingService.getDashboardprocess();
+    res.status(200).json({
+      success: true,
+      message: "Lấy dữ liệu dashboard thành công",
+      data: stats,
+    });
+  } catch (error) {
+    console.error("Lỗi dashboard:", error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy dữ liệu dashboard",
+      error: error.message,
+    });
+  }
+};
+
+
 module.exports = {
   create,
   getAll,
@@ -124,4 +147,5 @@ module.exports = {
   update,
   deleteById,
   changeStatus,
+  getDashboardprocess,
 };
