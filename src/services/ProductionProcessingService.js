@@ -174,10 +174,33 @@ const changeStatus = async (id) => {
 };
 
 
+//////Dashboard processing
+
+const getDashboardprocess = async () => {
+  try {
+    // Đếm số lượng theo trạng thái
+    const waitingCount = await ProductionProcessing.countDocuments({ status: "Chờ duyệt" });
+    const processingCount = await ProductionProcessing.countDocuments({ status: "Đang sản xuất" });
+    const doneCount = await ProductionProcessing.countDocuments({ status: "Hoàn thành" });
+
+    // Có thể thêm biểu đồ ở đây sau
+    return {
+      waiting: waitingCount,
+      processing: processingCount,
+      done: doneCount,
+    };
+  } catch (error) {
+    throw new Error("Lỗi khi thống kê dashboard: " + error.message);
+  }
+};
+
+
+
 module.exports = {
   create,
   getAll,
   update,
   deleteById,
   changeStatus,
+  getDashboardprocess,
 };
