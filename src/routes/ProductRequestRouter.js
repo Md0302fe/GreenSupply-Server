@@ -17,5 +17,6 @@ const {
   router.put("/:id", ProductRequestController.update);
   router.delete("/:id", ProductRequestController.deleteById);
   router.put("/change-status/:id", ProductRequestController.changeStatus);
+  router.get("/getProductionChartData", ProductRequestController.getProductionChartData)
 
   module.exports = router;

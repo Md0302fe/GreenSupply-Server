@@ -97,6 +97,20 @@ const changeStatus = async (req, res) => {
   }
 };
 
+const getProductionChartData = async (req, res) => {
+  try {
+    const response = await ProductRequestService.getProductionChartData();
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Lỗi trong getProductionChartData:", error.message);
+    return res.status(500).json({
+      status: "ERROR",
+      message: "Lỗi khi lấy dữ liệu biểu đồ!",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createProductRequest,
   getAll,
@@ -104,4 +118,5 @@ module.exports = {
   update,
   deleteById,
   changeStatus,
+  getProductionChartData,
 };
