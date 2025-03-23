@@ -100,7 +100,9 @@ const getById = async (id) => {
 };
 const getBatchByRequestId = async (id) => {
   try {
-    const batches = await RawMaterialBatch.find({ production_request_id: id }).populate({
+    const batches = await RawMaterialBatch.find({
+      production_request_id: id,
+    }).populate({
       path: "fuel_type_id",
       populate: [
         { path: "storage_id" },
@@ -117,11 +119,13 @@ const getBatchByRequestId = async (id) => {
       batches,
     };
   } catch (error) {
-    console.error("🔥 Lỗi trong RawMaterialBatchService.getBatchByRequestId:", error);
+    console.error(
+      "🔥 Lỗi trong RawMaterialBatchService.getBatchByRequestId:",
+      error
+    );
     throw new Error(error.message);
   }
 };
-
 
 const update = async (id, data) => {
   try {
@@ -139,18 +143,19 @@ const update = async (id, data) => {
       id,
       { ...data, updatedAt: new Date() },
       { new: true }
-    ).populate({
-      path: "fuel_type_id",
-      populate: {
-        path: "storage_id",
-      },
-    })
-    .populate({
-      path: "fuel_type_id",
-      populate: {
+    )
+      .populate({
         path: "fuel_type_id",
-      },
-    });
+        populate: {
+          path: "storage_id",
+        },
+      })
+      .populate({
+        path: "fuel_type_id",
+        populate: {
+          path: "fuel_type_id",
+        },
+      });
 
     if (!updated) {
       throw new Error("Không tìm thấy lô nguyên liệu!");
@@ -190,7 +195,12 @@ const update = async (id, data) => {
 
 const updateStatus = async (id, status) => {
   try {
-    const validStatuses = ["Đang chuẩn bị", "Chờ xuất kho", "Đã xuất kho", "Hủy bỏ"];
+    const validStatuses = [
+      "Đang chuẩn bị",
+      "Chờ xuất kho",
+      "Đã xuất kho",
+      "Hủy bỏ",
+    ];
     if (!validStatuses.includes(status)) {
       throw new Error("Trạng thái không hợp lệ!");
     }
@@ -215,6 +225,49 @@ const updateStatus = async (id, status) => {
   }
 };
 
+const getTotalRawMaterialBatches = async () => {
+  try {
+    // Lấy tổng số lô nguyên liệu
+    const totalBatches = await RawMaterialBatch.countDocuments({
+      is_deleted: false,
+    });
+
+    // Lấy ngày sớm nhất và muộn nhất từ database
+    const startDateRecord = await RawMaterialBatch.findOne({
+      is_deleted: false,
+    })
+      .sort({ createdAt: 1 })
+      .select("createdAt");
+    const endDateRecord = await RawMaterialBatch.findOne({ is_deleted: false })
+      .sort({ createdAt: -1 })
+      .select("createdAt");
+
+    if (!startDateRecord || !endDateRecord) {
+      throw new Error("Không có dữ liệu lô nguyên liệu");
+    }
+
+    const startDate = startDateRecord.createdAt;
+    const endDate = endDateRecord.createdAt;
+
+    // Định dạng lại ngày theo chuỗi
+    const startFormatted = `${new Date(startDate).getDate()} tháng ${
+      new Date(startDate).getMonth() + 1
+    }`;
+    const endFormatted = `${new Date(endDate).getDate()} tháng ${
+      new Date(endDate).getMonth() + 1
+    }`;
+
+    const dateRange = `Từ ${startFormatted} - ${endFormatted}`;
+
+    // Trả về cả tổng số lô và khoảng thời gian
+    return { totalBatches, dateRange };
+  } catch (error) {
+    throw new Error(
+      "Lỗi khi lấy tổng số lô nguyên liệu và khoảng thời gian: " + error.message
+    );
+  }
+};
+
 module.exports = {
   getAllStorages,
   generateBatchId,
@@ -222,7 +275,8 @@ module.exports = {
   getAll,
   getById,
   update,
-  cancel,
+  // cancel,
   getBatchByRequestId,
   updateStatus,
+  getTotalRawMaterialBatches,
 };

@@ -164,13 +164,35 @@ const updateStatus = async (req, res) => {
 //   }
 // };
 
+const getTotalRawMaterialBatches = async (req, res) => {
+  try {
+    // Lấy tổng số lô nguyên liệu và khoảng thời gian từ service
+    const { totalBatches, dateRange } = await RawMaterialBatchService.getTotalRawMaterialBatches();
+
+    // Trả về kết quả cho client
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalBatches,  // Tổng số lô nguyên liệu
+        dateRange,     // Khoảng thời gian
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllStorages,
   create,
   getAll,
   getById,
   update,
-  cancel,
+  // cancel,
   getBatchByRequestId,
   updateStatus,
+  getTotalRawMaterialBatches,
 };
