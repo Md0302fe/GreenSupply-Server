@@ -21,4 +21,9 @@ const {
   router.get("/details/:id",ProductionProcessingController.getDetailsProcess);
   router.get("/detailsStage/:id",ProductionProcessingController.getProcessStage);
   router.post("/finishStage/", ProductionProcessingController.finishStage);
+
+
+  // Router cho dashboard
+  router.get("/dashboard", ProductionProcessingController.getDashboardprocess);
+
   module.exports = router;

@@ -8,4 +8,11 @@ router.get("/getAll", FuelController.getAll);
 router.put("/update/:id", authUserMidleware, FuelController.updateFuel);
 router.put("/cancel/:id", FuelController.cancelFuel); 
 
+//router dashboard
+router.get("/dashboard/summary", FuelController.getDashboardSummary);
+router.get("/dashboard/fuel-types", FuelController.getFuelTypesOverview);
+router.get("/dashboard/history", FuelController.getFuelHistory);
+router.get("/dashboard/alerts", FuelController.getLowStockAlerts);
+
+
 module.exports = router;
