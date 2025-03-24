@@ -1,15 +1,30 @@
 const mongoose = require("mongoose");
 
-const ProductionProcessSchema = new mongoose.Schema({
-    production_request_id: { type: mongoose.Schema.Types.ObjectId, ref: 'production_requests', required: true }, // Yc sản xuất
+const ProductionProcessSchema = new mongoose.Schema(
+  {
+    production_request_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "production_requests",
+      required: true,
+    }, // Yc sản xuất
     production_name: { type: String, required: true }, // Tên quy trình sản xuất
     start_time: { type: Date }, // Thời gian bắt đầu
     end_time: { type: Date }, // Thời gian kết thúc
     current_stage: { type: Number, default: 0 },
     processed_quantity: { type: Number, default: 0 },
     waste_quantity: { type: Number, default: 0 },
-    status: { type: String, default: "Chờ duyệt" },
-    user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'users' },
+    status: {
+      type: String,
+      enum: [
+        "Chờ duyệt",
+        "Đang sản xuất",
+        "Hoàn thành",
+        "Tạm hoãng",
+        "Đã hủy",
+      ],
+      default: "Chờ duyệt",
+    },
+    user_id: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
     note: { type: String, default: null },
     process_stage1_start: { type: Date, default: null },
     process_stage1_end: { type: Date, default: null },
@@ -23,9 +38,15 @@ const ProductionProcessSchema = new mongoose.Schema({
     process_stage5_end: { type: Date, default: null },
     process_stage6_start: { type: Date, default: null },
     process_stage6_end: { type: Date, default: null },
-}, { timestamps: true });
+    final_time_finish :  { type: Date, default: null },
+  },
+  { timestamps: true }
+);
 
 // Tạo model từ schema
-const Production = mongoose.model("production_processing", ProductionProcessSchema);
+const Production = mongoose.model(
+  "production_processing",
+  ProductionProcessSchema
+);
 
 module.exports = Production;

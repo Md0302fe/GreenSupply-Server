@@ -66,6 +66,21 @@ const getAll = async (req, res) => {
   }
 };
 
+const getAllExecuteProcess = async (req, res) => {
+  try {
+    const response = await ProductionProcessingService.getAllExecuteProcess();
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Lỗi trong getAllExecuteProcess controller:", error.message);
+    return res.status(500).json({
+      status: "ERROR",
+      message: "Hệ thống gặp lỗi trong quá trình lấy danh sách quy trình sản xuất đang thực hiện",
+      error: error.message,
+    });
+  }
+};
+
+// GET ALL
 const getAllProcessing = async (req, res) => {
   try {
     const filters = req.query;
@@ -75,15 +90,60 @@ const getAllProcessing = async (req, res) => {
     console.error("Lỗi trong getAll controller:", error.message);
     return res.status(500).json({
       status: "ERROR",
+      message: "Hệ thống gặp lỗi trong quá trình lấy danh sách quy trình sản xuất đang thực hiện",
+      error: error.message,
+    });
+  }
+};
+
+// GET DETAIL
+const getDetailsProcess = async (req, res) => {
+  try {
+    const {id} = req.params;
+    const response = await ProductionProcessingService.getProcessingDetails(id);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Lỗi trong getDetailsProcess controller:", error.message);
+    return res.status(500).json({
+      status: "ERROR",
       message: "Lỗi server khi lấy danh sách nhiên liệu",
       error: error.message,
     });
   }
 };
 
+// GET Process Stage
+const getProcessStage = async (req, res) => {
+  try {
+    const {id} = req.params;
+    const response = await ProductionProcessingService.getProcessStage(id);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Lỗi trong getDetailsProcess controller:", error.message);
+    return res.status(500).json({
+      status: "ERROR",
+      message: "Lỗi server khi lấy danh sách nhiên liệu",
+      error: error.message,
+    });
+  }
+};
 const update = async (req, res) => {
   try {
     const updatedProductionRequest = await ProductionProcessingService.update(req.params.id, req.body);
+    if (!updatedProductionRequest) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy nhiên liệu!" });
+    }
+    res.json({ success: true, message: "Cập nhật thành công!", data: updatedProductionRequest });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Lỗi khi cập nhật!", error: error.message });
+  }
+};
+
+// finish Stage
+const finishStage = async (req, res) => {
+  try {
+    const {process_id, noStage , stage_id} = req.body.dataRequest;
+    const updatedProductionRequest = await ProductionProcessingService.finishStage(process_id, noStage, stage_id);
     if (!updatedProductionRequest) {
       return res.status(404).json({ success: false, message: "Không tìm thấy nhiên liệu!" });
     }
@@ -147,5 +207,9 @@ module.exports = {
   update,
   deleteById,
   changeStatus,
+  getDetailsProcess,
+  getProcessStage,
+  getAllExecuteProcess,
+  finishStage,
   getDashboardprocess,
 };
