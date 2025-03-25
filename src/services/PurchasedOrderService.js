@@ -205,6 +205,69 @@ const searchPurchaseOrderByName = async (name) => {
   }
 };
 
+
+
+/////////////////////////////
+
+const getDashboardSupplyrequest = async () => {
+  try {
+    const total = await PurchaseOrder.countDocuments({ is_deleted: false });
+
+    const pending = await PurchaseOrder.countDocuments({
+      status: "Chờ duyệt",
+      is_deleted: false,
+    });
+
+    const approved = await PurchaseOrder.countDocuments({
+      status: "Đã duyệt",
+      is_deleted: false,
+    });
+
+    const rawProcessingList = await PurchaseOrder.find({
+      status: "Đang xử lý",
+      is_deleted: false,
+    }).select("request_name quantity quantity_remain fuel_image priority");
+
+    const completed = await PurchaseOrder.countDocuments({
+      status: { $in: ["Hoàn thành", "Đã Hoàn Thành"] },
+      is_deleted: false,
+    });
+    
+
+    const processingList = rawProcessingList.map((item) => {
+      const collected = item.quantity - item.quantity_remain;
+      const progress = item.quantity
+        ? Math.round((collected / item.quantity) * 100)
+        : 0;
+
+      return {
+        _id: item._id,
+        name: item.request_name, // 🔄 Gán đúng tên đơn hàng
+        progress,
+        priority: item.priority,
+        image: item.fuel_image || "https://via.placeholder.com/50",
+      };
+    });
+
+    return {
+      status: "SUCCESS",
+      data: {
+        total,
+        pending,
+        approved,
+        processingList,
+        completed,
+      },
+    };
+  } catch (error) {
+    throw new Error(
+      "Lỗi khi truy vấn dashboard supply request: " + error.message
+    );
+  }
+};
+
+
+
 module.exports = {
   createPurchaseOrder,
   updatePurchaseOrder,
@@ -215,4 +278,5 @@ module.exports = {
   deleteManyPurchaseOrder,
   searchPurchaseOrderByName,
   acceptPurchaseOrder,
+  getDashboardSupplyrequest,
 };

@@ -287,6 +287,36 @@ const searchPurchaseOrder = async (req, res) => {
 //   }
 // };
 
+
+
+
+
+
+
+//////////////////////
+
+const getDashboardSupplyrequest = async (req, res) => {
+  try {
+    const result = await PurchaseOrderService.getDashboardSupplyrequest();
+
+    if (!result || !result.status) {
+      return res.status(500).json({
+        status: "ERROR",
+        message: "Dữ liệu phản hồi không hợp lệ!",
+      });
+    }
+
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      status: "ERROR",
+      message: error.message,
+    });
+  }
+};
+
+
+
 module.exports = {
   createPurchaseOrder,
   updatePurchaseOrder,
@@ -297,6 +327,7 @@ module.exports = {
   deleteManyPurchaseOrder,
   searchPurchaseOrder,
   acceptPurchaseOrder,
+  getDashboardSupplyrequest,
 };
 
 // File này nằm trong Controller / Folder điều khiển
