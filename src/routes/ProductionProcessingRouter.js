@@ -20,8 +20,10 @@ const {
   router.put("/change-status/:id", ProductionProcessingController.changeStatus);
   router.get("/details/:id",ProductionProcessingController.getDetailsProcess);
   router.get("/detailsStage/:id",ProductionProcessingController.getProcessStage);
-  router.post("/finishStage/", ProductionProcessingController.finishStage);
+  router.post("/finishStage", ProductionProcessingController.finishStage);
 
+  // Get All Production Process History
+  router.get("/history_process/", ProductionProcessingController.getAllHistoriesProcess);
 
   // Router cho dashboard
   router.get("/dashboard", ProductionProcessingController.getDashboardprocess);

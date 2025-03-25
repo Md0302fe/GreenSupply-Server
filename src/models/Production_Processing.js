@@ -38,6 +38,8 @@ const ProductionProcessSchema = new mongoose.Schema(
     process_stage5_end: { type: Date, default: null },
     process_stage6_start: { type: Date, default: null },
     process_stage6_end: { type: Date, default: null },
+    process_stage7_start: { type: Date, default: null },
+    process_stage7_end: { type: Date, default: null },
     final_time_finish :  { type: Date, default: null },
   },
   { timestamps: true }

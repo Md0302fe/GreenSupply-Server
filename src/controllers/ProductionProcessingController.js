@@ -66,12 +66,28 @@ const getAll = async (req, res) => {
   }
 };
 
+// Get ALl Execute Process
 const getAllExecuteProcess = async (req, res) => {
   try {
     const response = await ProductionProcessingService.getAllExecuteProcess();
     return res.status(200).json(response);
   } catch (error) {
     console.error("Lỗi trong getAllExecuteProcess controller:", error.message);
+    return res.status(500).json({
+      status: "ERROR",
+      message: "Hệ thống gặp lỗi trong quá trình lấy danh sách quy trình sản xuất đang thực hiện",
+      error: error.message,
+    });
+  }
+};
+
+// Get All Histories Proccess
+const getAllHistoriesProcess = async (req, res) => {
+  try {
+    const response = await ProductionProcessingService.getAllHistoriesProcess();
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Lỗi trong getAllHistoriesProcess controller:", error.message);
     return res.status(500).json({
       status: "ERROR",
       message: "Hệ thống gặp lỗi trong quá trình lấy danh sách quy trình sản xuất đang thực hiện",
@@ -212,4 +228,5 @@ module.exports = {
   getAllExecuteProcess,
   finishStage,
   getDashboardprocess,
+  getAllHistoriesProcess,
 };

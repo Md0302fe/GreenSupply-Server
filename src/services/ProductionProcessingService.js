@@ -2,6 +2,7 @@ const ProductionRequest = require("../models/Production_Request");
 const ProductionProcessing = require("../models/Production_Processing");
 const ProcessStatus = require("../models/Process_Status ");
 const { default: mongoose } = require("mongoose");
+const ProductionProcessHistory = require("../models/Production_Process_History");
 
 // stage Name
 const stageMap = {
@@ -141,7 +142,24 @@ const getAllExecuteProcess = async () => {
 
     return {
       success: true,
-      message: "Lấy danh sách quy trình sản xuất thành công!",
+      message: "Get All Execute Process Success!",
+      requests,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Get All Histories Process
+const getAllHistoriesProcess = async () => {
+  try {
+    const requests = await ProductionProcessHistory.find().populate(
+      "production_process"
+    );
+
+    return {
+      success: true,
+      message: "Get All Histories Process Success!",
       requests,
     };
   } catch (error) {
@@ -173,25 +191,49 @@ const update = async (id, data) => {
 };
 
 // Cập nhật quy trình sản xuất khi hoàng thành 7 giai đoạn
-// Hàm cập nhật quy trình lớn khi hoàn tất
 const completeProductionProcess = async (process_id) => {
-  const productionProcessing = await ProductionProcessing.findById(process_id);
+  try {
+    // 1 : update Production Process Status and final_time_finish
+    const productionProcessing = await ProductionProcessing.findById(
+      process_id
+    );
 
-  if (!productionProcessing) {
+    if (!productionProcessing) {
+      return {
+        success: false,
+        message: "Không tìm thấy đơn sản xuất!",
+      };
+    }
+    const date = new Date();
+    productionProcessing.status = "Hoàn thành";
+    productionProcessing.final_time_finish = date;
+    await productionProcessing.save();
+
+    const objectProcessId = new mongoose.Types.ObjectId(process_id);
+
+    // 2 : create record history for this production process
+    const createdHistory = await ProductionProcessHistory.create({
+      production_process: objectProcessId,
+    });
+
+    if (!createdHistory) {
+      return {
+        success: false,
+        message: "Không thể tạo lịch sử cho quy trình này",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Đã hoàn thành toàn bộ quy trình!",
+    };
+  } catch (error) {
+    console.log("Error At Services -> completeProductionProcess : ", error);
     return {
       success: false,
-      message: "Không tìm thấy đơn sản xuất!",
+      message: "Cập nhật quy trình bị gián đoạn do sự cố => " + error.message,
     };
   }
-  const date = new Date();
-  productionProcessing.status = "Hoàn thành";
-  productionProcessing.final_time_finish = date;
-  await productionProcessing.save();
-
-  return {
-    success: true,
-    message: "Đã hoàn thành toàn bộ quy trình!",
-  };
 };
 
 // Cập nhật trạng thái stage và tạo quy trình mới
@@ -216,7 +258,7 @@ const finishStage = async (process_id, noStage, stage_id, data = {}) => {
     if (noStage <= 6) {
       await createNextStage(process_id, parseInt(noStage) + 1);
     }
-    
+
     if (noStage == 7) {
       console.log("noStage => ", noStage);
       const result = await completeProductionProcess(process_id);
@@ -265,8 +307,6 @@ const createNextStage = async (process_id, noStage) => {
 
   await newStage.save();
 };
-
-
 
 const deleteById = async (id) => {
   try {
@@ -373,9 +413,15 @@ const getProcessStage = async (id) => {
 const getDashboardprocess = async () => {
   try {
     // Đếm số lượng theo trạng thái
-    const waitingCount = await ProductionProcessing.countDocuments({ status: "Chờ duyệt" });
-    const processingCount = await ProductionProcessing.countDocuments({ status: "Đang sản xuất" });
-    const doneCount = await ProductionProcessing.countDocuments({ status: "Hoàn thành" });
+    const waitingCount = await ProductionProcessing.countDocuments({
+      status: "Chờ duyệt",
+    });
+    const processingCount = await ProductionProcessing.countDocuments({
+      status: "Đang sản xuất",
+    });
+    const doneCount = await ProductionProcessing.countDocuments({
+      status: "Hoàn thành",
+    });
 
     // Có thể thêm biểu đồ ở đây sau
     return {
@@ -388,8 +434,6 @@ const getDashboardprocess = async () => {
   }
 };
 
-
-
 module.exports = {
   create,
   getAll,
@@ -401,4 +445,5 @@ module.exports = {
   getAllExecuteProcess,
   finishStage,
   getDashboardprocess,
+  getAllHistoriesProcess,
 };
