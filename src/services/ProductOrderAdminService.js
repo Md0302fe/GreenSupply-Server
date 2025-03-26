@@ -1,6 +1,6 @@
 const Order = require("../models/OrderProduction");
 const Product = require("../models/Products");
-
+const OrderProduction = require("../models/OrderProduction");
 
 const getAllOrders = async (filters) => {
   try {
@@ -66,7 +66,32 @@ const getAllOrdersDetail = async (id) => {
   }
 };
 
-module.exports = { getAllOrders,getAllOrdersDetail, };
+const updateOrderStatus = async (id, status) => {
+    try {
+      // Kiểm tra trạng thái hợp lệ
+      const validStatuses = ["Đang xử lý", "Đang vận chuyển", "Đã giao hàng"];
+      if (!validStatuses.includes(status)) {
+        throw new Error("Trạng thái không hợp lệ");
+      }
+  
+      // Tìm đơn hàng và cập nhật trạng thái
+      const order = await OrderProduction.findByIdAndUpdate(
+        id,
+        { status },
+        { new: true }
+      );
+  
+      if (!order) {
+        throw new Error("Không tìm thấy đơn hàng");
+      }
+  
+      return { status: "Cập nhật trạng thái thành công!", order };
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  };
+
+module.exports = { getAllOrders,getAllOrdersDetail, updateOrderStatus,};
 
 
 
