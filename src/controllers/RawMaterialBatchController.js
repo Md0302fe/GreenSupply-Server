@@ -16,7 +16,7 @@ const getAllStorages = async (req, res) => {
 const create = async (req, res) => {
   try {
     const { formData } = req.body;
-    console.log("formData => ", formData)
+    console.log("formData => ", formData);
     if (
       !formData.batch_name ||
       !formData.batch_id ||
@@ -29,7 +29,7 @@ const create = async (req, res) => {
         message: "Vui lòng điền đầy đủ thông tin bắt buộc!",
       });
     }
-    console.log("formData => ", formData)
+    console.log("formData => ", formData);
     const response = await RawMaterialBatchService.create(formData);
 
     return res.status(201).json(response);
@@ -75,22 +75,47 @@ const getById = async (req, res) => {
       .json({ success: false, message: "Lỗi server!", error: error.message });
   }
 };
+const getBatchByRequestId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const batch = await RawMaterialBatchService.getBatchByRequestId(id);
+
+    if (!batch) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Không tìm thấy lô nguyên liệu!" });
+    }
+
+    return res.status(200).json({ success: true, data: batch });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Lỗi server!", error: error.message });
+  }
+};
 
 const update = async (req, res) => {
   try {
-    const updatedProductionRequest = await ProductRequestService.update(
+    const { formData } = req.body;
+
+    // Gọi service để cập nhật lô nguyên liệu
+    const updatedBatch = await RawMaterialBatchService.update(
       req.params.id,
-      req.body
+      formData
     );
-    if (!updatedProductionRequest) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Không tìm thấy nhiên liệu!" });
+
+    if (!updatedBatch) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy lô nguyên liệu!",
+      });
     }
+
+    // Trả về kết quả thành công
     res.json({
       success: true,
       message: "Cập nhật thành công!",
-      data: updatedProductionRequest,
+      data: updatedBatch,
     });
   } catch (error) {
     res.status(500).json({
@@ -101,23 +126,62 @@ const update = async (req, res) => {
   }
 };
 
-const cancel = async (req, res) => {
+const updateStatus = async (req, res) => {
   try {
-    const canceledFuel = await ProductRequestService.cancel(req.params.id);
-    if (!canceledFuel) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Không tìm thấy nhiên liệu!" });
-    }
-    res.json({
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const response = await RawMaterialBatchService.updateStatus(id, status);
+
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({
+      status: "ERROR",
+      message: "Lỗi server khi cập nhật trạng thái!",
+      error: error.message,
+    });
+  }
+};
+
+
+// const cancel = async (req, res) => {
+//   try {
+//     const canceledFuel = await ProductRequestService.cancel(req.params.id);
+//     if (!canceledFuel) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Không tìm thấy nhiên liệu!" });
+//     }
+//     res.json({
+//       success: true,
+//       message: "Đã đánh dấu 'Đã xóa'!",
+//       data: canceledFuel,
+//     });
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ success: false, message: "Lỗi khi hủy!", error: error.message });
+//   }
+// };
+
+const getTotalRawMaterialBatches = async (req, res) => {
+  try {
+    // Lấy tổng số lô nguyên liệu và khoảng thời gian từ service
+    const { totalBatches, dateRange } = await RawMaterialBatchService.getTotalRawMaterialBatches();
+
+    // Trả về kết quả cho client
+    return res.status(200).json({
       success: true,
-      message: "Đã đánh dấu 'Đã xóa'!",
-      data: canceledFuel,
+      data: {
+        totalBatches,  // Tổng số lô nguyên liệu
+        dateRange,     // Khoảng thời gian
+      },
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Lỗi khi hủy!", error: error.message });
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
@@ -127,5 +191,8 @@ module.exports = {
   getAll,
   getById,
   update,
-  cancel,
+  // cancel,
+  getBatchByRequestId,
+  updateStatus,
+  getTotalRawMaterialBatches,
 };

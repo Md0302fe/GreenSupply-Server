@@ -14,6 +14,7 @@ const RawMaterialBatchSchema = new Schema(
     },
     quantity: { type: Number, required: true, default: 0 },
     storage_id: { type: Types.ObjectId, ref: "fuel_storages", required: false },
+    note: {type: String, default: "", trim: true},
     is_automatic: { type: Boolean, default: false },
     is_deleted: { type: Boolean, default: false },
   },

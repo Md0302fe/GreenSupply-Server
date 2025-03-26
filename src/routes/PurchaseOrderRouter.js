@@ -42,4 +42,9 @@ router.get(
   PurchaseOrderController.getPurchaseOrderDetail
 );
 
+router.get(
+  "/dashboard-supplyrequest",
+  PurchaseOrderController.getDashboardSupplyrequest
+);
+
 module.exports = router;

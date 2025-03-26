@@ -36,9 +36,9 @@ const create = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const { search = "", type_export = "", sortOrder = "desc" } = req.query; 
+    const { search = "", status = "", sortOrder = "desc" } = req.query; 
 
-    const response = await MaterialStorageExportService.getAll(search, type_export, sortOrder);
+    const response = await MaterialStorageExportService.getAll(search, status, sortOrder);
     return res.status(response.success ? 200 : 400).json(response);
   } catch (error) {
     console.error("Lỗi khi lấy danh sách đơn xuất kho:", error);
@@ -138,10 +138,61 @@ const RejectStorageExport = async (req, res) => {
   }
 };
 
+const getTotalMaterialStorageExports = async (req, res) => {
+  try {
+    // Lấy tổng số đơn xuất kho và khoảng thời gian từ service
+    const { totalExports, dateRange } = await MaterialStorageExportService.getTotalMaterialStorageExports();
+
+    // Trả về kết quả cho client
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalExports,  // Tổng số đơn xuất kho
+        dateRange,     // Khoảng thời gian
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getStockExportByDate = async (req, res) => {
+  try {
+    const data = await MaterialStorageExportService.getStockExportByDate();
+    return res.status(200).json({
+      success: true,
+      data: data,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getStockExportCompletedByDate = async (req, res) => {
+  try {
+    const data = await MaterialStorageExportService.getStockExportCompletedByDate();
+    return res.status(200).json({
+      success: true,
+      data: data,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   create,
   getAll,
   getDetails,
   AcceptStorageExport,
-  RejectStorageExport
+  RejectStorageExport,
+  getTotalMaterialStorageExports,
+  getStockExportByDate,
+  getStockExportCompletedByDate,
 };

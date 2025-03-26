@@ -85,16 +85,12 @@ const create = async (storageExport) => {
   }
 };
 
-const getAll = async (search = "", type_export = "", sortOrder = "desc") => {
+const getAll = async (search = "", status = "", sortOrder = "desc") => {
   try {
     let query = { is_deleted: false };
 
-    // if (search) {
-    //   query.export_name = { $regex: search, $options: "i" };
-    // }
-
-    if (type_export) {
-      query.type_export = type_export;
+    if (status) {
+      query.status = status;  
     }
 
     const sort = sortOrder === "asc" ? { createdAt: 1 } : { createdAt: -1 };
@@ -107,7 +103,7 @@ const getAll = async (search = "", type_export = "", sortOrder = "desc") => {
       .populate("batch_id")
       .populate("user_id")
       .sort(sort);
-      
+
     if (search) {
       const searchLower = search.toLowerCase();
       exports = exports.filter((exp) => {
@@ -134,9 +130,6 @@ const getAll = async (search = "", type_export = "", sortOrder = "desc") => {
     };
   }
 };
-
-
-
 
 const getDetails = async (id) => {
   try {
@@ -228,10 +221,92 @@ const RejectStorageExport = async (storage_export_id) => {
   }
 };
 
+// Dashboard
+const getTotalMaterialStorageExports = async () => {
+  try {
+    // Lấy tổng số đơn xuất kho
+    const totalExports = await MaterialStorageExport.countDocuments({ is_deleted: false });
+
+    // Lấy ngày sớm nhất và muộn nhất từ database
+    const startDateRecord = await MaterialStorageExport.findOne({ is_deleted: false }).sort({ createdAt: 1 }).select('createdAt');
+    const endDateRecord = await MaterialStorageExport.findOne({ is_deleted: false }).sort({ createdAt: -1 }).select('createdAt');
+    
+    if (!startDateRecord || !endDateRecord) {
+      throw new Error("Không có dữ liệu xuất kho");
+    }
+
+    const startDate = startDateRecord.createdAt;
+    const endDate = endDateRecord.createdAt;
+
+    // Định dạng lại ngày theo chuỗi
+    const startFormatted = `${new Date(startDate).getDate()} tháng ${new Date(startDate).getMonth() + 1}`;
+    const endFormatted = `${new Date(endDate).getDate()} tháng ${new Date(endDate).getMonth() + 1}`;
+
+    const dateRange = `Từ ${startFormatted} - ${endFormatted}`;
+
+    // Trả về cả tổng số đơn và khoảng thời gian
+    return { totalExports, dateRange };
+  } catch (error) {
+    throw new Error("Lỗi khi lấy tổng số đơn xuất kho và khoảng thời gian: " + error.message);
+  }
+};
+
+const getStockExportByDate = async () => {
+  try {
+    const result = await MaterialStorageExport.aggregate([
+      {
+        $match: { is_deleted: false } // Lọc các đơn xuất kho hợp lệ
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%d-%m-%Y", date: "$createdAt" } },
+          totalExports: { $sum: 1 }, 
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]);
+
+    return result;
+  } catch (error) {
+    throw new Error("Lỗi khi lấy dữ liệu xuất kho theo ngày: " + error.message);
+  }
+};
+
+const getStockExportCompletedByDate = async () => {
+  try {
+    const result = await MaterialStorageExport.aggregate([
+      {
+        $match: {
+          is_deleted: false,
+          status: "Hoàn thành",
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%d-%m-%Y", date: "$createdAt" } },
+          totalExports: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    return result;
+  } catch (error) {
+    throw new Error("Lỗi khi lấy dữ liệu đơn xuất kho đã hoàn thành theo ngày: " + error.message);
+  }
+};
+
 module.exports = {
   create,
   getAll,
   getDetails,
   AcceptStorageExport,
-  RejectStorageExport
+  RejectStorageExport,
+  getTotalMaterialStorageExports,
+  getStockExportByDate,
+  getStockExportCompletedByDate,
 };

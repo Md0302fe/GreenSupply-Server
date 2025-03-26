@@ -4,9 +4,11 @@ dotenv.config(); // process.env
 
 const authMidleware = async (req, res, next) => {
   // verify a token symmetric
+  console.log("req.headers.token => ", req.headers.token)
+  
   const stringToken = req.headers.token.split(" ");
   const token = stringToken[1];
-
+  console.log("token => ", token)
   jwt.verify(token, process.env.ACCESS_TOKEN, function (err, user) {
     // err: như token không hợp lệ, hết hạn, hoặc không thể giải mã
     if (err) {

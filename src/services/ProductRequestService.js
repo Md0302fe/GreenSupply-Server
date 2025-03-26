@@ -12,7 +12,7 @@ const generateBatchId = (prefix = "XMTH") => {
     .toString()
     .padStart(3, "0");
 
-  return `${prefix}${year}${month}${day}-${batchNumber}`;
+  return `${prefix}${day}${month}${year}-${batchNumber}`;
 };
 
 const createProductRequest = async (productData) => {
@@ -72,7 +72,7 @@ const getAllProcessing = async (filters) => {
           {
             path: "fuel_type_id",
             select: "type_name description image",
-          }
+          },
         ],
       })
       .sort({ createdAt: -1 });
@@ -86,7 +86,6 @@ const getAllProcessing = async (filters) => {
     throw new Error(error.message);
   }
 };
-
 
 const update = async (id, data) => {
   try {
@@ -112,21 +111,34 @@ const update = async (id, data) => {
 
 const deleteById = async (id) => {
   try {
+    // 1. Tìm đơn sản xuất theo id
     const deleted = await ProductionRequest.findByIdAndDelete(id);
-
+    console.log(deleted);
     if (!deleted) {
       throw new Error("Không tìm thấy đơn sản xuất!");
     }
 
+    // 2. Tìm FuelManagement liên quan đến sản phẩm đã xóa
+    const fuelDoc = await FuelManagement.findById(deleted.material);
+    if (!fuelDoc) {
+      throw new Error("Không tìm thấy nhiên liệu tương ứng trong kho!");
+    }
+
+    // 3. Cộng lại số lượng nhiên liệu vào kho
+    fuelDoc.quantity += deleted.material_quantity;
+    await fuelDoc.save();
+
     return {
       success: true,
-      message: "Đã xóa đơn sản xuất thành công!",
+      message:
+        "Đã xóa đơn sản xuất và cộng lại số lượng nhiên liệu thành công!",
       data: deleted,
     };
   } catch (error) {
     throw new Error(error.message);
   }
 };
+
 const changeStatus = async (id) => {
   try {
     // 1. Tìm đơn sản xuất theo id
@@ -164,6 +176,82 @@ const changeStatus = async (id) => {
   }
 };
 
+const getProductionChartData = async () => {
+  try {
+    const result = await ProductionRequest.aggregate([
+      {
+        $match: {
+          status: { $in: ["Đang sản xuất", "Đã duyệt"] },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            date: {
+              $dateToString: { format: "%m-%d-%Y", date: "$production_date" },
+            },
+            status: "$status",
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id.date",
+          counts: {
+            $push: {
+              status: "$_id.status",
+              count: "$count",
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          date: "$_id",
+          "Đang sản xuất": {
+            $let: {
+              vars: {
+                filtered: {
+                  $filter: {
+                    input: "$counts",
+                    as: "item",
+                    cond: { $eq: ["$$item.status", "Đang sản xuất"] },
+                  },
+                },
+              },
+              in: { $ifNull: [{ $arrayElemAt: ["$$filtered.count", 0] }, 0] },
+            },
+          },
+          "Đã duyệt": {
+            $let: {
+              vars: {
+                filtered: {
+                  $filter: {
+                    input: "$counts",
+                    as: "item",
+                    cond: { $eq: ["$$item.status", "Đã duyệt"] },
+                  },
+                },
+              },
+              in: { $ifNull: [{ $arrayElemAt: ["$$filtered.count", 0] }, 0] },
+            },
+          },
+        },
+      },
+      { $sort: { date: 1 } },
+    ]);
+
+    return {
+      success: true,
+      data: result,
+    };
+  } catch (error) {
+    throw new Error("Lỗi khi thống kê yêu cầu sản xuất: " + error.message);
+  }
+};
+
 module.exports = {
   createProductRequest,
   getAll,
@@ -171,4 +259,5 @@ module.exports = {
   update,
   deleteById,
   changeStatus,
+  getProductionChartData,
 };
