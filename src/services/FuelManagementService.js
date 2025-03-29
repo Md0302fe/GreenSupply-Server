@@ -2,7 +2,9 @@ const FuelManagement = require("../models/Fuel_Management");
 const FuelTypes = require("../models/Fuel_Types");
 const getAllFuel = async () => {
   try {
-    const requests = await FuelManagement.find().populate('fuel_type_id');
+    const requests = await FuelManagement.find()
+    .populate('fuel_type_id')
+    .sort({ createdAt: -1 }) // Sắp xếp theo ngày tạo mới nhất trước;
 
     return {
       success: true,
