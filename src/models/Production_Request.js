@@ -12,7 +12,9 @@
         request_type: { type: String, required: true },
         priority: { type: Number, required: true, min: 1, max: 3 }, // Mức độ ưu tiên (có thể sử dụng giá trị từ 1 đến 3)
         note: { type: String }
-    });
+    },
+    { timestamps: true }
+);
 
     const ProductionRequest = mongoose.model('production_requests', ProductionRequestSchema);
 
