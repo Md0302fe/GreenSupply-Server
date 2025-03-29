@@ -621,7 +621,9 @@ const deleteManyUser = (ids) => {
 const getAllUser = () => {
   return new Promise(async (resolve, reject) => {
     try {
-      const allUser = await User.find().populate("role_id");
+      const allUser = await User.find()
+        .sort({ createdAt: -1 }) 
+        .populate("role_id");
       return resolve({
         status: "OK",
         message: "Get All User Success",
