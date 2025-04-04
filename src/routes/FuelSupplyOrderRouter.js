@@ -12,5 +12,6 @@ router.post('/createFuelSupplyRequest', FuelSupplyOrderController.createFuelSupp
 router.get('/getAllFuelSupplyRequest', FuelSupplyOrderController.getAllFuelSupplyRequest);
 router.put('/deleteFuelSupplyRequest/:id', FuelSupplyOrderController.deleteFuelSupplyRequest);
 router.put('/updateFuelSupplyRequest/:id', FuelSupplyOrderController.updateFuelSupplyRequest);
+router.get('/getFuelSupplyRequestById/:id', FuelSupplyOrderController.getById);
 
 module.exports = router; 

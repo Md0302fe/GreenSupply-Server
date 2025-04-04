@@ -6,7 +6,9 @@ const createFuelSupplyRequest = async (data) => {
     // Lấy đơn yêu cầu từ Admin
     const adminRequest = await AdminFuelEntry.findById(data.request_id);
     if (!adminRequest) {
-      throw new Error("Không tìm thấy yêu cầu nhập hàng với ID: " + data.request_id);
+      throw new Error(
+        "Không tìm thấy yêu cầu nhập hàng với ID: " + data.request_id
+      );
     }
     // Tạo đơn cung cấp nhiên liệu
     const newSupplyRequest = new Fuel_Supply_Order({
@@ -39,7 +41,6 @@ const createFuelSupplyRequest = async (data) => {
       message: "Yêu cầu cung cấp hàng đã được tạo thành công!",
       supplyRequest: newSupplyRequest,
     };
-
   } catch (error) {
     return {
       success: false,
@@ -48,55 +49,25 @@ const createFuelSupplyRequest = async (data) => {
     };
   }
 };
-const getAllFuelSupplyRequest = async (filters) => {
+
+const getAllFuelSupplyRequest = async () => {
   try {
+    // Base query: Only include non-deleted records
     let query = { is_deleted: false };
 
-    // Lấy theo user
-    if (filters.user_id) {
-      query.supplier_id = filters.user_id;
-    }
-
-    // tìm kiếm
-    if (filters.search) {
-      query.$or = [
-        { fuel_name: { $regex: filters.search, $options: "i" } },
-        { address: { $regex: filters.search, $options: "i" } }
-      ];
-    }
-
-    // filter
-    if (filters.status) query.status = filters.status;
-    if (filters.priority) query.priority = Number(filters.priority);
-
-    // giá
-    if (filters.priceMin || filters.priceMax) {
-      query.price = {};
-      if (filters.priceMin) query.price.$gte = Number(filters.priceMin);
-      if (filters.priceMax) query.price.$lte = Number(filters.priceMax);
-    }
-
-    // số lượng
-    if (filters.quantityMin || filters.quantityMax) {
-      query.quantity = {};
-      if (filters.quantityMin) query.quantity.$gte = Number(filters.quantityMin);
-      if (filters.quantityMax) query.quantity.$lte = Number(filters.quantityMax);
-    }
-
-    // kết quả
+    // Fetch all fuel supply requests, populated with supplier data, and sorted by createdAt
     const requests = await Fuel_Supply_Order.find(query)
       .populate("supplier_id", "full_name email phone")
       .sort({ createdAt: -1 });
 
     return {
-      status: "Lấy danh sách yêu cầu cung hàng thành công!",
+      status: "Lấy danh sách yêu cầu cung cấp thành công!",
       requests,
     };
   } catch (error) {
     throw new Error(error.message);
   }
 };
-
 
 // Hủy yêu cầu thu hàng (Chỉ khi trạng thái là "Chờ duyệt")
 const deleteFuelSupplyRequest = async (id) => {
@@ -133,9 +104,17 @@ const updateFuelSupplyRequest = async (id, data) => {
       throw new Error("Địa chỉ nhận hàng không được để trống!");
     }
 
-    if (typeof data.price === "number" && typeof data.quantity === "number") {
-      data.total_price = data.price * data.quantity;
+    if (
+      !isNaN(data.quantity) &&
+      data.quantity > 0 &&
+      !isNaN(data.price) &&
+      data.price > 0
+    ) {
+      data.total_price = parseFloat(data.quantity) * parseFloat(data.price); 
+    } else {
+      throw new Error("Giá và số lượng phải là số hợp lệ để tính tổng giá!");
     }
+    console.log("Quantity:", data.quantity, "Price:", data.price);
 
     const updatedRequest = await Fuel_Supply_Order.findByIdAndUpdate(id, data, {
       new: true,
@@ -150,9 +129,35 @@ const updateFuelSupplyRequest = async (id, data) => {
   }
 };
 
+const getById = async (id) => {
+  try {
+    // Tìm kiếm đơn yêu cầu theo ID
+    const request = await Fuel_Supply_Order.findById(id).populate(
+      "supplier_id",
+      "full_name email phone"
+    );
+
+    if (!request) {
+      throw new Error("Không tìm thấy yêu cầu cung cấp với ID: " + id);
+    }
+
+    return {
+      success: true,
+      message: "Lấy chi tiết yêu cầu cung cấp thành công!",
+      request,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+};
+
 module.exports = {
   createFuelSupplyRequest,
   getAllFuelSupplyRequest,
   deleteFuelSupplyRequest,
-  updateFuelSupplyRequest
+  updateFuelSupplyRequest,
+  getById,
 };
