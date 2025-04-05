@@ -10,13 +10,13 @@ const createHarvestRequest = async (data) => {
       throw new Error("Không tìm thấy Supplier với ID: " + data.supplier_id);
     }
 
-    // Kiểm tra tên mặt hàng
+    // Kiểm tra Tên yêu cầu
     if (
       !data.fuel_name ||
       !/^[a-zA-Z0-9\s\u00C0-\u1EF9]+$/.test(data.fuel_name)
     ) {
       throw new Error(
-        "Tên mặt hàng không hợp lệ! Chỉ được chứa chữ cái, số và khoảng trắng."
+        "Tên yêu cầu không hợp lệ! Chỉ được chứa chữ cái, số và khoảng trắng."
       );
     }
 
@@ -159,49 +159,28 @@ const getHarvestRequestById = async (id) => {
   }
 };
 
-const getAllHarvestRequests = async (filters) => {
+const getAllHarvestRequests = async () => {
   try {
-    let query = { is_deleted: false };
-
-    if (filters.search) {
-      query.$or = [
-        { fuel_name: { $regex: filters.search, $options: "i" } },
-        { address: { $regex: filters.search, $options: "i" } }
-      ];
-    }
-
-    if (filters.status) {
-      query.status = filters.status;
-    }
-
-    if (filters.priority) {
-      query.priority = Number(filters.priority);
-    }
-
-    if (filters.priceMin || filters.priceMax) {
-      query.price = {};
-      if (filters.priceMin) query.price.$gte = Number(filters.priceMin);
-      if (filters.priceMax) query.price.$lte = Number(filters.priceMax);
-    }
-
-    if (filters.quantityMin || filters.quantityMax) {
-      query.quantity = {};
-      if (filters.quantityMin) query.quantity.$gte = Number(filters.quantityMin);
-      if (filters.quantityMax) query.quantity.$lte = Number(filters.quantityMax);
-    }
-
-    const requests = await FuelRequest.find(query)
+    // No filters, just fetch all the requests
+    const requests = await FuelRequest.find({ is_deleted: false })
       .populate("supplier_id", "full_name email phone")
       .sort({ createdAt: -1 });
 
+    // Manually calculate the total_price for each request
+    const updatedRequests = requests.map(request => {
+      request.total_price = request.quantity * request.price;
+      return request;
+    });
+
     return {
       status: "Lấy danh sách yêu cầu thu hàng thành công!",
-      requests,
+      requests: updatedRequests,
     };
   } catch (error) {
     throw new Error(error.message);
   }
 };
+
 
 
 module.exports = {

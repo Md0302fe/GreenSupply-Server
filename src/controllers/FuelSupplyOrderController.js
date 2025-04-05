@@ -26,15 +26,15 @@ const createFuelSupplyRequest = async (req, res) => {
 
 const getAllFuelSupplyRequest = async (req, res) => {
   try {
-    const filters = req.query;
-    const response = await FuelSupplyOrderService.getAllFuelSupplyRequest(filters);
+    const response = await FuelSupplyOrderService.getAllFuelSupplyRequest();
+
     return res.status(200).json(response);
   } catch (error) {
     console.log("Error:", error);
     return res.status(500).json({
       status: "ERROR",
       message: error.message,
-    }); 
+    });
   }
 };
 
@@ -99,9 +99,38 @@ const updateFuelSupplyRequest = async (req, res) => {
   }
 };
 
+const getById = async (req, res) => {
+  try {
+    const requestId = req.params.id;
+
+    if (!requestId) {
+      return res.status(400).json({
+        status: "ERROR",
+        message: "ID yêu cầu cung cấp là bắt buộc!",
+      });
+    }
+
+    const response = await FuelSupplyOrderService.getById(requestId);
+
+    if (response.success) {
+      return res.status(200).json(response);
+    } else {
+      return res.status(404).json(response);
+    }
+  } catch (error) {
+    console.error("Lỗi khi lấy yêu cầu cung cấp:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy yêu cầu cung cấp",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   createFuelSupplyRequest,
   getAllFuelSupplyRequest,
   deleteFuelSupplyRequest,
-  updateFuelSupplyRequest
+  updateFuelSupplyRequest,
+  getById,
 };
