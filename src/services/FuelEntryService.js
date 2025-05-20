@@ -1,8 +1,32 @@
 const Admin_Fuel_Entry = require("../models/Admin_Fuel_Entry");
 
-const getAll = () => {
+const getAll = (options = {}) => {
   return new Promise(async (resolve, reject) => {
     try {
+      const { page, limit, paginate = false } = options;
+
+      if (paginate) {
+        const skip = (page - 1) * limit;
+        const filter = { status: "Đang xử lý" }; // thêm điều kiện lọc
+        const [data, total] = await Promise.all([
+          Admin_Fuel_Entry.find(filter).skip(skip).limit(limit),
+          Admin_Fuel_Entry.countDocuments(filter),
+        ]);
+
+        return resolve({
+          status: "OK",
+          message: "Get Paginated Fuel Success",
+          data,
+          pagination: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+          },
+        });
+      }
+
+      // Mặc định: lấy toàn bộ như cũ
       const res = await Admin_Fuel_Entry.find();
       return resolve({
         status: "OK",
@@ -30,7 +54,7 @@ const getFuelEntryDetail = async (id) => {
 
 module.exports = {
   getAll,
-  getFuelEntryDetail
+  getFuelEntryDetail,
 };
 
 // File services này là file dịch vụ /
