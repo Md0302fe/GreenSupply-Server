@@ -104,17 +104,18 @@ const updateFuelSupplyRequest = async (id, data) => {
       throw new Error("Địa chỉ nhận hàng không được để trống!");
     }
 
-    if (
-      !isNaN(data.quantity) &&
-      data.quantity > 0 &&
-      !isNaN(data.price) &&
-      data.price > 0
-    ) {
-      data.total_price = parseFloat(data.quantity) * parseFloat(data.price); 
-    } else {
-      throw new Error("Giá và số lượng phải là số hợp lệ để tính tổng giá!");
+    const quantity = parseFloat(data.quantity);
+    const price = parseFloat(data.price);
+
+    if (Number.isNaN(quantity) || quantity <= 0) {
+      throw new Error("Số lượng phải là số hợp lệ và lớn hơn 0!");
     }
-    console.log("Quantity:", data.quantity, "Price:", data.price);
+
+    if (Number.isNaN(price) || price <= 0) {
+      throw new Error("Giá phải là số hợp lệ và lớn hơn 0!");
+    }
+
+    data.total_price = quantity * price;
 
     const updatedRequest = await Fuel_Supply_Order.findByIdAndUpdate(id, data, {
       new: true,
