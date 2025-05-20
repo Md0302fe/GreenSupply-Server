@@ -2,13 +2,23 @@ const FuelEntryService = require("../services/FuelEntryService");
 
 const getAll = async (req, res) => {
   try {
-    const response = await FuelEntryService.getAll();
+    const { page, limit } = req.query;
+
+    const options = {};
+
+    if (page && limit) {
+      options.paginate = true;
+      options.page = parseInt(page) || 1;
+      options.limit = parseInt(limit) || 10;
+    }
+
+    const response = await FuelEntryService.getAll(options);
     return res.status(200).json(response);
   } catch (error) {
-    console.error("Lỗi trong getAllAddresses controller:", error.message);
+    console.error("Lỗi trong getAllFuel controller:", error.message);
     return res.status(500).json({
       status: "ERROR",
-      message: "Lỗi server khi lấy danh sách địa chỉ",
+      message: "Lỗi server khi lấy danh sách nhiên liệu",
       error: error.message,
     });
   }
@@ -27,5 +37,5 @@ const getFuelEntryDetail = async (req, res) => {
 
 module.exports = {
   getAll,
-  getFuelEntryDetail
+  getFuelEntryDetail,
 };
