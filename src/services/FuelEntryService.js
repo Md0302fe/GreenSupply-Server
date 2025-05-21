@@ -5,14 +5,21 @@ const getAll = (options = {}) => {
     try {
       const { page, limit, paginate = false } = options;
 
+      // Tạo điều kiện lọc
+      const now = new Date();
+      const filter = {
+        status: "Đang xử lý",
+        end_received: { $gt: now }, 
+      };
+
       if (paginate) {
         const skip = (page - 1) * limit;
-        const filter = { status: "Đang xử lý" }; // thêm điều kiện lọc
+
         const [data, total] = await Promise.all([
           Admin_Fuel_Entry.find(filter).skip(skip).limit(limit),
           Admin_Fuel_Entry.countDocuments(filter),
         ]);
-
+        console.log(data)
         return resolve({
           status: "OK",
           message: "Get Paginated Fuel Success",
@@ -26,8 +33,8 @@ const getAll = (options = {}) => {
         });
       }
 
-      // Mặc định: lấy toàn bộ như cũ
-      const res = await Admin_Fuel_Entry.find();
+      // Trường hợp không phân trang
+      const res = await Admin_Fuel_Entry.find(filter);
       return resolve({
         status: "OK",
         message: "Get All Fuel Success",
