@@ -6,8 +6,8 @@ const router = express.Router();
 const HarvestrequestController = require('../controllers/HarvestRequestController');
 
 const {
-  // authMidleware,
-  // authUserMidleware,
+  authMidleware,
+  authUserMidleware,
 } = require("../middleware/AuthMidleware");
 
 router.post('/createHarvestRequest', HarvestrequestController.createHarvestRequest);
@@ -15,6 +15,9 @@ router.put('/updateHarvestRequest/:id', HarvestrequestController.updateHarvestRe
 router.put('/cancelHarvestRequest/:id', HarvestrequestController.cancelHarvestRequest);
 router.get('/getHarvestRequestById/:id', HarvestrequestController.getHarvestRequestById);
 router.get('/getAllHarvestRequests', HarvestrequestController.getAllHarvestRequests);
+
+// Get Harvest Request Histories
+router.get('/getHarvestRequestHistories', authUserMidleware, HarvestrequestController.getHarvestRequestHistories);
 
 module.exports = router;
 

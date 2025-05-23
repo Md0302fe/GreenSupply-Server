@@ -61,13 +61,9 @@ const authMidleware = async (req, res, next) => {
 
 const authUserMidleware = async (req, res, next) => {
   try {
-    console.log("Headers nhận từ FE:", req.headers); // Kiểm tra headers nhận được
     // console.log("Token từ FE gửi lên:", req.headers.authorization);
-
-    // console.log("Headers nhận được:", req.headers);
     // Lấy token từ headers (chấp nhận cả "Authorization" hoặc "token")
     const tokenHeader = req.headers.authorization || req.headers.token;
-    console.log("Token từ FE gửi lên:", tokenHeader);
 
     // Nếu không có token, trả về lỗi
     if (!tokenHeader) {
@@ -94,7 +90,9 @@ const authUserMidleware = async (req, res, next) => {
           status: "ERROR",
           message: token,
         });
-      } console.log("Token giải mã được:", user); // Kiểm tra user sau khi decode token
+      } 
+      // Kiểm tra user sau khi decode token
+      // console.log("Token giải mã được:", user); 
       req.user = user; // Gán thông tin user vào request
       next();
     });
