@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const AdminFuelEntry = require("../models/Admin_Fuel_Entry");
 const Fuel_Supply_Order = require("../models/Fuel_Supply_Order");
 
@@ -50,15 +51,23 @@ const createFuelSupplyRequest = async (data) => {
   }
 };
 
-const getAllFuelSupplyRequest = async () => {
+const getAllFuelSupplyRequest = async (user) => {
   try {
+    const objectUserId = new mongoose.Types.ObjectId(user);
     // Base query: Only include non-deleted records
-    let query = { is_deleted: false };
+    // let query = { is_deleted: false };
 
     // Fetch all fuel supply requests, populated with supplier data, and sorted by createdAt
-    const requests = await Fuel_Supply_Order.find(query)
-      .populate("supplier_id", "full_name email phone")
-      .sort({ createdAt: -1 });
+    // const requests = await Fuel_Supply_Order.find(query)
+    //   .populate("supplier_id", "full_name email phone")
+    //   .sort({ createdAt: -1 });
+
+    const requests = await Fuel_Supply_Order.find({
+          supplier_id: objectUserId,
+          is_deleted: false,
+        })
+          .populate("supplier_id", "full_name email phone")
+          .sort({ createdAt: -1 });
 
     return {
       status: "Lấy danh sách yêu cầu cung cấp thành công!",
