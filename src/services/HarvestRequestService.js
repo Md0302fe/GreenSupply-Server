@@ -156,14 +156,17 @@ const getHarvestRequestById = async (id) => {
   }
 };
 
-const getAllHarvestRequests = async () => {
+const getAllHarvestRequests = async (user) => {
   try {
-    // No filters, just fetch all the requests
-    const requests = await FuelRequest.find({ is_deleted: false })
+    const objectUserId = new mongoose.Types.ObjectId(user);
+
+    const requests = await FuelRequest.find({
+      supplier_id: objectUserId,
+      is_deleted: false,
+    })
       .populate("supplier_id", "full_name email phone")
       .sort({ createdAt: -1 });
 
-    // Manually calculate the total_price for each request
     const updatedRequests = requests.map((request) => {
       request.total_price = request.quantity * request.price;
       return request;
