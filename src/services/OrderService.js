@@ -1,5 +1,6 @@
 const FuelRequest = require("../models/Fuel_Request");
 const FuelSupplyOrder = require("../models/Fuel_Supply_Order");
+const mongoose = require("mongoose");
 
 ///GetAll cả 2 bảng 
 // const getAllApprovedRequests = async () => {
@@ -246,6 +247,29 @@ const SupplierOrderDashboard = async () => {
 };
 
 
+const getProvideOrderHistories = async (user_id) => {
+  try {
+
+    // cast id to objectId before compare with data in mgdb
+    const objectUserId = new mongoose.Types.ObjectId(user_id.user_id);
+
+    // const requests = await FuelSupplyOrder.find({status : "Hoàn Thành"})
+    const requests = await FuelSupplyOrder.find({
+      supplier_id : objectUserId,
+      is_deleted : false 
+    })
+      .populate("supplier_id", "full_name email phone")
+      .sort({ createdAt: -1 });
+
+    console.log("provide orders => ", requests)
+    return {
+      status: "Lấy danh sách yêu cầu thu hàng thành công!",
+      requests,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
 
 module.exports = { 
   getAllApprovedFuelRequests, 
@@ -254,5 +278,6 @@ module.exports = {
   getAllProvideOrders,
   updateOrderStatus,
   SupplierOrderDashboard,
+  getProvideOrderHistories
   // getAllorderbySucess
 };

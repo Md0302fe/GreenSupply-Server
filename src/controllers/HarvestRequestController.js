@@ -124,9 +124,25 @@ const getHarvestRequestById = async (req, res) => {
   }
 };
 
+// Get All Harvest Request 
 const getAllHarvestRequests = async (req, res) => {
   try {
     const response = await HarvestRequestService.getAllHarvestRequests();
+    return res.status(200).json(response);
+  } catch (error) {
+    console.log("Error:", error);
+    return res.status(500).json({
+      status: "ERROR",
+      message: error.message,
+    });
+  }
+};
+
+// Get Harvest Request Histories
+const getHarvestRequestHistories = async (req, res) => {
+  try {
+    const user = req.query.user_id;
+    const response = await HarvestRequestService.getHarvestRequestHistories(user);
     return res.status(200).json(response);
   } catch (error) {
     console.log("Error:", error);
@@ -143,4 +159,5 @@ module.exports = {
   cancelHarvestRequest,
   getHarvestRequestById,
   getAllHarvestRequests,
+  getHarvestRequestHistories,
 };

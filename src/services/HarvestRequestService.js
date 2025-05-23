@@ -61,9 +61,6 @@ const createHarvestRequest = async (data) => {
   }
 };
 
-
-
-
 // Cập nhật thông tin yêu cầu thu hàng (chỉ khi trạng thái là "Chờ duyệt")
 const updateHarvestRequest = async (id, data) => {
   try {
@@ -167,7 +164,7 @@ const getAllHarvestRequests = async () => {
       .sort({ createdAt: -1 });
 
     // Manually calculate the total_price for each request
-    const updatedRequests = requests.map(request => {
+    const updatedRequests = requests.map((request) => {
       request.total_price = request.quantity * request.price;
       return request;
     });
@@ -181,7 +178,37 @@ const getAllHarvestRequests = async () => {
   }
 };
 
+const getHarvestRequestHistories = async (user) => {
+  try {
+    // cast id to objectId before compare with data in mgdb
+    const objectUserId = new mongoose.Types.ObjectId(user.user_id);   
+    console.log("objectUserId => ", objectUserId) 
+    
+    const requests = await FuelRequest.find({
+      supplier_id: objectUserId,
+      is_deleted: false,
+    })
+      .populate("supplier_id", "full_name email phone")
+      .sort({ createdAt: -1 });
 
+    // Manually calculate the total_price for each request
+    const updatedRequests = requests.map((request) => {
+      request.total_price = request.quantity * request.price;
+      return request;
+    });
+
+    return {
+      status: "Get List Harvest Request Histories Success !",
+      requests: updatedRequests,
+    };
+  } catch (error) {
+    console.log("Get List Harvest Request Histories Failed ! ", error);
+    return {
+      status: "Get List Harvest Request Histories Failed !",
+      requests: updatedRequests,
+    };
+  }
+};
 
 module.exports = {
   createHarvestRequest,
@@ -189,4 +216,5 @@ module.exports = {
   cancelHarvestRequest,
   getHarvestRequestById,
   getAllHarvestRequests,
+  getHarvestRequestHistories,
 };

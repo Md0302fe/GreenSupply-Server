@@ -13,6 +13,23 @@ const getAllProvideOrders = async (req, res) => {
       });
     }
   };
+
+
+  const getProvideOrderHistories = async (req, res) => {
+    try {
+      const user_id = req.query.user_id;
+      const response = await OrderServices.getProvideOrderHistories(user_id);
+      return res.status(200).json(response);
+    } catch (error) {
+      console.log("Error:", error);
+      return res.status(500).json({
+        status: "ERROR",
+        message: error.message,
+      });
+    }
+  };
+
   module.exports = {
     getAllProvideOrders,
+    getProvideOrderHistories
   };
