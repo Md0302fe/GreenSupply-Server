@@ -14,7 +14,7 @@ router.post('/createHarvestRequest', HarvestrequestController.createHarvestReque
 router.put('/updateHarvestRequest/:id', HarvestrequestController.updateHarvestRequest);
 router.put('/cancelHarvestRequest/:id', HarvestrequestController.cancelHarvestRequest);
 router.get('/getHarvestRequestById/:id', HarvestrequestController.getHarvestRequestById);
-router.get('/getAllHarvestRequests', HarvestrequestController.getAllHarvestRequests);
+router.get('/getAllHarvestRequests', authUserMidleware, HarvestrequestController.getAllHarvestRequests);
 
 // Get Harvest Request Histories
 router.get('/getHarvestRequestHistories', authUserMidleware, HarvestrequestController.getHarvestRequestHistories);

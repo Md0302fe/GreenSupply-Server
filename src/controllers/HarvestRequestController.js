@@ -124,10 +124,10 @@ const getHarvestRequestById = async (req, res) => {
   }
 };
 
-// Get All Harvest Request 
 const getAllHarvestRequests = async (req, res) => {
   try {
-    const response = await HarvestRequestService.getAllHarvestRequests();
+    const user = req.query.user_id;
+    const response = await HarvestRequestService.getAllHarvestRequests(user);
     return res.status(200).json(response);
   } catch (error) {
     console.log("Error:", error);
@@ -137,6 +137,7 @@ const getAllHarvestRequests = async (req, res) => {
     });
   }
 };
+
 
 // Get Harvest Request Histories
 const getHarvestRequestHistories = async (req, res) => {

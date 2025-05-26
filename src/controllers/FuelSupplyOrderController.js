@@ -26,8 +26,8 @@ const createFuelSupplyRequest = async (req, res) => {
 
 const getAllFuelSupplyRequest = async (req, res) => {
   try {
-    const response = await FuelSupplyOrderService.getAllFuelSupplyRequest();
-
+    const user = req.query.user_id;
+    const response = await FuelSupplyOrderService.getAllFuelSupplyRequest(user);
     return res.status(200).json(response);
   } catch (error) {
     console.log("Error:", error);
