@@ -15,9 +15,11 @@ const createHarvestRequest = async (data) => {
       !data.fuel_name ||
       !/^[a-zA-Z0-9\s\u00C0-\u1EF9]+$/.test(data.fuel_name)
     ) {
-      throw new Error(
-        "Tên yêu cầu không hợp lệ! Chỉ được chứa chữ cái, số và khoảng trắng."
-      );
+      return Promise.reject({
+        status: 400,
+        message:
+          "Tên yêu cầu không hợp lệ! Chỉ được chứa chữ cái, số và khoảng trắng.",
+      });
     }
 
     // Kiểm tra số lượng
@@ -184,9 +186,9 @@ const getAllHarvestRequests = async (user) => {
 const getHarvestRequestHistories = async (user) => {
   try {
     // cast id to objectId before compare with data in mgdb
-    const objectUserId = new mongoose.Types.ObjectId(user.user_id);   
-    console.log("objectUserId => ", objectUserId) 
-    
+    const objectUserId = new mongoose.Types.ObjectId(user.user_id);
+    console.log("objectUserId => ", objectUserId);
+
     const requests = await FuelRequest.find({
       supplier_id: objectUserId,
       is_deleted: false,
