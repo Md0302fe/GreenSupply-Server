@@ -39,6 +39,12 @@ const createHarvestRequest = async (req, res) => {
     return res.status(201).json(response);
   } catch (error) {
     console.log("Error:", error);
+    if (error.status && error.status === 400) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
     return res.status(500).json({
       success: false,
       message: "Error Creating Harvest Request",
@@ -138,12 +144,13 @@ const getAllHarvestRequests = async (req, res) => {
   }
 };
 
-
 // Get Harvest Request Histories
 const getHarvestRequestHistories = async (req, res) => {
   try {
     const user = req.query.user_id;
-    const response = await HarvestRequestService.getHarvestRequestHistories(user);
+    const response = await HarvestRequestService.getHarvestRequestHistories(
+      user
+    );
     return res.status(200).json(response);
   } catch (error) {
     console.log("Error:", error);
