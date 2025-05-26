@@ -117,7 +117,7 @@ const getAllFuelStorageReceipts = async (query) => {
 
 const updateFuelStorageReceiptStatus = async (id, status) => {
   try {
-    const validStatuses = ["Chờ duyệt", "Đã duyệt", "Đã huỷ"];
+    const validStatuses = ["Nhập kho thành công", "Chờ duyệt", "Đã duyệt", "Đã huỷ"];
     if (!validStatuses.includes(status)) {
       throw new Error("Trạng thái không hợp lệ!");
     }
@@ -129,7 +129,7 @@ const updateFuelStorageReceiptStatus = async (id, status) => {
     }
 
     // 🟢 Nếu duyệt đơn, cập nhật sức chứa kho & trạng thái đơn hàng chờ nhập kho
-    if (status === "Đã duyệt") {
+    if (status === "Nhập kho thành công") {
         const storage = await FuelStorage.findById(receipt.storage_id);
         if (!storage) {
             throw new Error("Không tìm thấy kho!");

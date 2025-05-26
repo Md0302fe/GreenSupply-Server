@@ -5,7 +5,7 @@ const FuelStorageReceiptSchema = new Schema(
   {
     manager_id: { type: Types.ObjectId, ref: "users", required: true },
     storage_id: { type: Types.ObjectId, ref: "fuel_storages", required: true },
-    status: { type: String, enum: ["Chờ duyệt", "Đã duyệt", "Đã huỷ"], default: "Chờ duyệt" },
+    status: { type: String, enum: ["Nhập kho thành công", "Chờ duyệt", "Đã duyệt", "Đã huỷ"], default: "Chờ duyệt" },
     storage_date: { type: Date, default: "" },
     is_deleted: { type: Boolean, default: false },
     receipt_supply_id: { type: Types.ObjectId, ref: "fuel_supply_orders", default: null },
