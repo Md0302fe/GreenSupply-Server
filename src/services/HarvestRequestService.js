@@ -186,16 +186,17 @@ const getAllHarvestRequests = async (user) => {
 const getHarvestRequestHistories = async (user) => {
   try {
     // cast id to objectId before compare with data in mgdb
-    const objectUserId = new mongoose.Types.ObjectId(user.user_id);
-    console.log("objectUserId => ", objectUserId);
+    const objectUserId = new mongoose.Types.ObjectId(user);
 
     const requests = await FuelRequest.find({
       supplier_id: objectUserId,
       is_deleted: false,
+      status : "Hoàn Thành" 
     })
       .populate("supplier_id", "full_name email phone")
       .sort({ createdAt: -1 });
 
+    console.log("requests => ", requests)
     // Manually calculate the total_price for each request
     const updatedRequests = requests.map((request) => {
       request.total_price = request.quantity * request.price;

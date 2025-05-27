@@ -256,12 +256,13 @@ const getProvideOrderHistories = async (user_id) => {
     // const requests = await FuelSupplyOrder.find({status : "Hoàn Thành"})
     const requests = await FuelSupplyOrder.find({
       supplier_id : objectUserId,
-      is_deleted : false 
+      is_deleted : false ,
+      status : "Đang xử lý" || "Hoàn thành" 
     })
       .populate("supplier_id", "full_name email phone")
       .sort({ createdAt: -1 });
 
-    console.log("provide orders => ", requests)
+    console.log("provide orders histories=> ", requests)
     return {
       status: "Lấy danh sách yêu cầu thu hàng thành công!",
       requests,
