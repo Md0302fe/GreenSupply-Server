@@ -2,6 +2,9 @@ const FuelStorageReceipt = require("../models/Storage_Receipt");
 const FuelStorage = require("../models/Storage");
 const MaterialCollectionRequest = require("../models/Material_Collection_Request");
 const MaterialProvideRequest = require("../models/Material_Provide_Request");
+
+const storage_id = "665480f9bde459d62ca7d001";
+
 // 🟢 Tạo đơn nhập kho
 // const createFuelStorageReceipt = async (manager_id, receipt_supply_id, receipt_request_id) => {
 //     try {
@@ -45,7 +48,6 @@ const createFuelStorageReceipt = async (
       receipt_supply_id,
       receipt_request_id
     );
-    const storage_id = "67958adf4223924d599a7a41";
 
     const newReceipt = new FuelStorageReceipt({
       manager_id,
@@ -117,6 +119,7 @@ const getAllFuelStorageReceipts = async (query) => {
 
 const updateFuelStorageReceiptStatus = async (id, status) => {
   try {
+    console.log("storage id ==> ", id)
     const validStatuses = ["Nhập kho thành công", "Chờ duyệt", "Đã duyệt", "Đã huỷ"];
     if (!validStatuses.includes(status)) {
       throw new Error("Trạng thái không hợp lệ!");
