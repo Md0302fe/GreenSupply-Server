@@ -23,6 +23,11 @@ const fuelSupplyOrderSchema = new Schema(
         message: "Tổng giá phải bằng số lượng x đơn giá.",
       },
     }, // Tổng giá (kiểm tra tính đúng)
+    address: {
+      type: Types.ObjectId,
+      ref: "user_address",
+      required: true,
+    },
     status: { type: String, required: true }, // Trạng thái yêu cầu
     is_deleted: { type: Boolean, default: false }, // Trạng thái xóa
     note: { type: String, default: "" }, // Ghi chú

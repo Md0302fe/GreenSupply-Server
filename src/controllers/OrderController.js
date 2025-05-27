@@ -106,7 +106,7 @@ const getFuelRequests = async (req, res) => {
 // Lấy tất cả đơn cung cấp nhiên liệu với các bộ lọc
 const getFuelSupplyOrders = async (req, res) => {
   try {
-    const orders = await FuelSupplyOrder.find().populate('supplier_id'); // Populate để lấy thông tin nhà cung cấp
+    const orders = await FuelSupplyOrder.find().populate('supplier_id').populate('address'); // Populate để lấy thông tin nhà cung cấp
     if (!orders) {
       res.status(500).json({ success: false, error: "Lỗi khi lấy dữ liệu Fuel Requests" });
     }
@@ -183,7 +183,7 @@ const completeFuelRequest = async (req, res) => {
 const getFuelSupplyOrderById = async (req, res) => {
   try {
     const { id } = req.params;
-    const order = await FuelSupplyOrder.findById(id).populate("supplier_id");
+    const order = await FuelSupplyOrder.findById(id).populate("supplier_id").populate('address');
     if (!order) return res.status(404).json({ success: false, error: "Đơn hàng không tồn tại" });
     res.json({ success: true, data: order });
   } catch (error) {

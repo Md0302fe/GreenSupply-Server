@@ -20,6 +20,7 @@ const createFuelSupplyRequest = async (data) => {
       total_price: data.total_price,
       quantity: data.quantity,
       quality: data.quality,
+      address: data.user_address,
       status: "Chờ duyệt",
       note: data.note || "",
       fuel_type: data.fuel_type || "",
