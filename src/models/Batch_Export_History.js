@@ -3,7 +3,7 @@ const { Schema, Types } = mongoose;
 
 const BatchExportSchema = new Schema(
   {
-    material_export_id: { type: Types.ObjectId, ref: "material_storage_export", required: true },
+    material_export_id: { type: Types.ObjectId, ref: "storage_export", required: true },
   },
   {
     timestamps: true, // Tự động thêm createdAt và updatedAt

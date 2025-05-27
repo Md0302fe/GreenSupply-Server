@@ -1,4 +1,4 @@
-const FuelSupplyOrderService = require("../services/FuelSupplyOrderService");
+const FuelSupplyOrderService = require("../services/MaterialProvideRequestService");
 
 const createFuelSupplyRequest = async (req, res) => {
   try {

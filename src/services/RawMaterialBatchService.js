@@ -1,11 +1,11 @@
 const RawMaterialBatch = require("../models/Raw_Material_Batch");
-const FuelStorage = require("../models/Fuel_Storage");
-const FuelType = require("../models/Fuel_Types");
+const Storage = require("../models/Storage");
+
 const mongoose = require("mongoose");
 
 const getAllStorages = async () => {
   try {
-    const storages = await FuelStorage.find({}, "_id name_storage");
+    const storages = await Storage.find({}, "_id name_storage");
     return {
       success: true,
       message: "Lấy danh sách kho lưu trữ thành công!",

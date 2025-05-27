@@ -4,7 +4,7 @@
     const ProductionRequestSchema = new mongoose.Schema({
         request_name: { type: String, required: true },
         status: { type: String, required: true },
-        material: {type: Types.ObjectId, ref: "fuel_managements", required: true },
+        material: {type: Types.ObjectId, ref: "material_managements", required: true },
         material_quantity: { type: Number, required: true }, // số lượng Nl cần cho việc sx
         product_quantity: { type: Number, required: true }, // kl nhiên liệu đầu ra
         production_date: { type: Date, required: true }, // ngày bắt đầu sản xuất

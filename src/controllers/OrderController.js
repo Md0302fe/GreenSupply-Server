@@ -1,11 +1,11 @@
-const FuelRequest = require("../models/Fuel_Request");
-const FuelSupplyOrder = require("../models/Fuel_Supply_Order");
-const AdminFuelEntry = require("../models/Admin_Fuel_Entry");
+const FuelRequest = require("../models/Material_Collection_Request");
+const FuelSupplyOrder = require("../models/Material_Provide_Request");
+const AdminFuelEntry = require("../models/Purchase_Material_Plan");
 
 
 const OrderServices = require("../services/OrderService");
 
-/// GetAll order by status đã duyệt
+// GetAll order by status đã duyệt
 const getAllApprovedRequests = async (req, res) => {
   try {
     const response = await OrderServices.getAllApprovedRequests();

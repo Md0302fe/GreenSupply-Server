@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 const { Schema, Types } = mongoose;
 
-const adminFuelEntrySchema = new Schema(
+const purchaseMaterialPlanSchema = new Schema(
   {
     request_name: { type: String, required: true }, // Tên yêu cầu
-    fuel_type: { type: Types.ObjectId, ref: "fuel_types", required: true }, // Loại nhiên liệu
+    fuel_type: { type: Types.ObjectId, ref: "materials", required: true }, // Loại nhiên liệu
     fuel_image: { type: String, required: true }, // Hình ảnh nhiên liệu
     quantity: { type: Number, required: true, min: 1 }, // Số lượng nhiên liệu (không âm)
     quantity_remain: { type: Number, required: true, min: 0 }, // Số lượng nhiên liệu (không âm)
@@ -28,8 +28,8 @@ const adminFuelEntrySchema = new Schema(
 );
 
 const AdminFuelEntry = mongoose.model(
-  "admin_fuel_entrys", // Đổi tên model để khớp với tên schema
-  adminFuelEntrySchema
+  "purchase_material_plans", // Đổi tên model để khớp với tên schema
+  purchaseMaterialPlanSchema
 );
 
 module.exports = AdminFuelEntry;

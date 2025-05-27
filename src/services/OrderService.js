@@ -1,5 +1,5 @@
-const FuelRequest = require("../models/Fuel_Request");
-const FuelSupplyOrder = require("../models/Fuel_Supply_Order");
+const FuelRequest = require("../models/Material_Collection_Request");
+const FuelSupplyOrder = require("../models/Material_Provide_Request");
 const mongoose = require("mongoose");
 
 ///GetAll cả 2 bảng 

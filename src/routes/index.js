@@ -3,17 +3,17 @@ const UserRouter = require("./UserRouter");
 const ProductRouter = require("./ProductRouter");
 const PurchaseOrderRouter = require("./PurchaseOrderRouter");
 const HarvestRequestRouter = require("./HarvestRequestRouter");
-const FuelSupplyOrderRouter = require("./FuelSupplyOrderRouter");
-const FuelEntryRoutes = require("./FuelEntryRoutes");
-const FuelManagementRoutes = require("./FuelManagementRoutes");
+const MaterialProvideRequestRouter = require("./MaterialProvideRequestRouter"); // done
+const PurchaseMaterialPlanRoutes = require("./PurchaseMaterialPlanRoutes"); // done
+const MaterialManagementRoutes = require("./MaterialManagementRoutes"); // done
 const ProductRequestRouter = require("./ProductRequestRouter");
 const ProductionProcessingRouter = require("./ProductionProcessingRouter");
-const FuelStorageReceipt = require("./FuelStorageReceipt");
-const FuelRoute = require("./FuelRoutes");
+const StorageReceipt = require("./StorageReceipt");
+const FuelRouter = require("./MaterialRoutes");
 const RawMaterialBatchRouter = require("./RawMaterialBatchRouter")
 const MarterialStorageExportRouter = require("./MaterialStorageExportRouter");
 const BatchHistoryRouter = require("./BatchHistoryRouter")
-// const FuelStorageReceipt  = require("./FuelStorageReceipt");
+// const StorageReceipt  = require("./StorageReceipt");
 const OrderProductionRoutes = require("./OrderProductionRoutes");
 const OrderRoutes = require("./OrderRoutes");
 const ProvideOrderRoutes = require("./ProvideOrderRoutes");
@@ -29,15 +29,15 @@ const routes = (app) => {
   app.use("/api/product-orders", ProductOrderAdminRouter);
   app.use("/api/orders", OrderRoutes);
   app.use("/api/provide-order", ProvideOrderRoutes);
-  app.use("/api/fuel", FuelEntryRoutes);
-  app.use("/api/fuel-management", FuelManagementRoutes);
+  app.use("/api/fuel", PurchaseMaterialPlanRoutes);
+  app.use("/api/fuel-management", MaterialManagementRoutes);
   app.use("/api/product-request", ProductRequestRouter);
   app.use("/api/production-processing", ProductionProcessingRouter);
   app.use("/api/product", ProductRouter);
   app.use("/api/harvest-request", HarvestRequestRouter);
-  app.use("/api/fuel-supply-request", FuelSupplyOrderRouter);
-  app.use("/api/fuel-storage", FuelStorageReceipt);
-  app.use("/api/fuel", FuelRoute);
+  app.use("/api/fuel-supply-request", MaterialProvideRequestRouter);
+  app.use("/api/fuel-storage", StorageReceipt);
+  app.use("/api/fuel", FuelRouter);
   app.use("/api/purchase-order", PurchaseOrderRouter);
   app.use("/api", userAddressRoutes);
   app.use("/api/raw-material-batch", RawMaterialBatchRouter);
@@ -45,7 +45,7 @@ const routes = (app) => {
   app.use("/api/batch-history", BatchHistoryRouter);
 
 
-  // app.use("/api/fuel-storage", FuelStorageReceipt);
+  // app.use("/api/fuel-storage", StorageReceipt);
 };
 module.exports = routes;
 

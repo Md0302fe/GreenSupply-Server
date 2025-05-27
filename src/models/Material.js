@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema, Types } = mongoose;
 
-const FuelTypesSchema = new Schema(
+const MaterialsSchema = new Schema(
   {
     type_name: { type: String, required: true, maxlength: 100 }, // Tên loại nhiên liệu
     description: { type: String, required: true, maxlength: 500 }, // Mô tả loại nhiên liệu
@@ -13,5 +13,5 @@ const FuelTypesSchema = new Schema(
   }
 );
 
-const FuelTypes = mongoose.model("fuel_types", FuelTypesSchema);
-module.exports = FuelTypes;
+const Materials = mongoose.model("materials", MaterialsSchema);
+module.exports = Materials;
