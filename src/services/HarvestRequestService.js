@@ -1,5 +1,4 @@
-const FuelRequest = require("../models/Fuel_Request.js");
-const Supplier = require("../models/Supplier.js");
+const CollectionRequest = require("../models/Material_Collection_Request.js");
 const UserModel = require("../models/UserModel.js");
 const mongoose = require("mongoose");
 
@@ -51,7 +50,7 @@ const createHarvestRequest = async (data) => {
       data.status = "Chờ duyệt";
     }
 
-    const newRequest = new FuelRequest(data);
+    const newRequest = new CollectionRequest(data);
     await newRequest.save();
 
     return {
@@ -66,7 +65,7 @@ const createHarvestRequest = async (data) => {
 // Cập nhật thông tin yêu cầu thu hàng (chỉ khi trạng thái là "Chờ duyệt")
 const updateHarvestRequest = async (id, data) => {
   try {
-    const existingRequest = await FuelRequest.findById(id);
+    const existingRequest = await CollectionRequest.findById(id);
 
     if (!existingRequest) {
       throw new Error("Yêu cầu thu hàng không tồn tại!");
@@ -84,7 +83,7 @@ const updateHarvestRequest = async (id, data) => {
       data.total_price = data.price * data.quantity;
     }
 
-    const updatedRequest = await FuelRequest.findByIdAndUpdate(id, data, {
+    const updatedRequest = await CollectionRequest.findByIdAndUpdate(id, data, {
       new: true,
     });
 
@@ -104,7 +103,7 @@ const cancelHarvestRequest = async (id) => {
       throw new Error("ID yêu cầu thu hàng không hợp lệ!");
     }
 
-    const request = await FuelRequest.findById(id);
+    const request = await CollectionRequest.findById(id);
 
     if (!request) {
       return {
@@ -138,7 +137,7 @@ const cancelHarvestRequest = async (id) => {
 
 const getHarvestRequestById = async (id) => {
   try {
-    const request = await FuelRequest.findById(id).populate(
+    const request = await CollectionRequest.findById(id).populate(
       "supplier_id",
       "full_name email phone"
     );
@@ -162,7 +161,7 @@ const getAllHarvestRequests = async (user) => {
   try {
     const objectUserId = new mongoose.Types.ObjectId(user);
 
-    const requests = await FuelRequest.find({
+    const requests = await CollectionRequest.find({
       supplier_id: objectUserId,
       is_deleted: false,
     })
@@ -188,7 +187,7 @@ const getHarvestRequestHistories = async (user) => {
     // cast id to objectId before compare with data in mgdb
     const objectUserId = new mongoose.Types.ObjectId(user);
 
-    const requests = await FuelRequest.find({
+    const requests = await CollectionRequest.find({
       supplier_id: objectUserId,
       is_deleted: false,
       status : "Hoàn Thành" 

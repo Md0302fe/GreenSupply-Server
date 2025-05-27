@@ -1,4 +1,4 @@
-const MaterialStorageExport = require("../models/Material_Storage_Export");
+const MaterialStorageExport = require("../models/Storage_Export");
 const ProductionRequest = require("../models/Production_Request");
 const RawMaterialBatch = require("../models/Raw_Material_Batch");
 const batchHistory = require("../models/Batch_Export_History")

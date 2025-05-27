@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
-const AdminFuelEntry = require("../models/Admin_Fuel_Entry");
-const Fuel_Supply_Order = require("../models/Fuel_Supply_Order");
+const PurchaseMaterialPlan = require("../models/Purchase_Material_Plan");
+const Fuel_Supply_Order = require("../models/Material_Provide_Request");
 
 const createFuelSupplyRequest = async (data) => {
   try {
     // Lấy đơn yêu cầu từ Admin
-    const adminRequest = await AdminFuelEntry.findById(data.request_id);
+    const adminRequest = await PurchaseMaterialPlan.findById(data.request_id);
     if (!adminRequest) {
       throw new Error(
         "Không tìm thấy yêu cầu nhập hàng với ID: " + data.request_id
@@ -32,7 +32,7 @@ const createFuelSupplyRequest = async (data) => {
     // const newQuantity = adminRequest.quantity_remain - data.quantity;
     // const newStatus = newQuantity === 0 ? "Đã hoàn thành" : adminRequest.status;
 
-    // await AdminFuelEntry.findByIdAndUpdate(
+    // await PurchaseMaterialPlan.findByIdAndUpdate(
     //   data.request_id,
     //   { quantity_remain: newQuantity, status: newStatus }, // Cập nhật quantity & status
     //   { new: true } // Trả về dữ liệu đã cập nhật

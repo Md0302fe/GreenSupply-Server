@@ -1,11 +1,13 @@
-const FuelManagement = require("../models/Fuel_Management");
-const FuelTypes = require("../models/Fuel_Types");
+const MaterialManagement = require("../models/Material_Management");
+const Materials = require('../models/Material'); // ⚠️ BẮT BUỘC PHẢI IMPORT!
+
 const getAllFuel = async () => {
   try {
-    const requests = await FuelManagement.find()
+    const requests = await MaterialManagement.find()
     .populate('fuel_type_id')
     .sort({ createdAt: -1 }) // Sắp xếp theo ngày tạo mới nhất trước;
 
+    console.log("requests => ", requests)
     return {
       success: true,
       status: "Lấy danh sách loại nhiên liệu thành công!",
@@ -18,7 +20,7 @@ const getAllFuel = async () => {
 
 const updateFuel = async (id, data) => {
   try {
-    const updatedFuel = await FuelManagement.findByIdAndUpdate(
+    const updatedFuel = await MaterialManagement.findByIdAndUpdate(
       id,
       { 
         type_name: data.type_name,
@@ -45,7 +47,7 @@ const updateFuel = async (id, data) => {
 // ✅ Đổi deleteFuel -> cancelFuel (Chỉ đánh dấu là 'Đã xóa', không xóa khỏi DB)
 const cancelFuel = async (id) => {
   try {
-    const canceledFuel = await FuelManagement.findByIdAndUpdate(
+    const canceledFuel = await MaterialManagement.findByIdAndUpdate(
       id,
       { is_deleted: true, updatedAt: new Date() },
       { new: true }
@@ -68,8 +70,8 @@ const cancelFuel = async (id) => {
 
 const getDashboardSummary = async () => {
   try {
-    const totalFuelTypes = await FuelManagement.countDocuments();
-    const totalFuelQuantity = await FuelManagement.aggregate([{ $group: { _id: null, total: { $sum: "$quantity" } } }]);
+    const totalFuelTypes = await MaterialManagement.countDocuments();
+    const totalFuelQuantity = await MaterialManagement.aggregate([{ $group: { _id: null, total: { $sum: "$quantity" } } }]);
 
     return {
       success: true,
@@ -83,7 +85,7 @@ const getDashboardSummary = async () => {
 
 const getFuelTypesOverview = async () => {
   try {
-    const fuelData = await FuelManagement.find().populate("fuel_type_id");
+    const fuelData = await MaterialManagement.find().populate("fuel_type_id");
     
     const formattedData = fuelData.map((item) => ({
       type: item.fuel_type_id?.type_name || "???", 
@@ -99,7 +101,7 @@ const getFuelTypesOverview = async () => {
 const getFuelHistory = async () => {
   try {
     // Lấy dữ liệu từ cơ sở dữ liệu và sắp xếp theo updatedAt
-    const history = await FuelManagement.find()
+    const history = await MaterialManagement.find()
       .populate("fuel_type_id")
       .sort({ updatedAt: -1 }) 
       .limit(50);  
@@ -121,7 +123,7 @@ const getFuelHistory = async () => {
 
 const getLowStockAlerts = async () => {
   try {
-    const lowStock = await FuelManagement.find({ quantity: { $lt: 1000 } }).populate("fuel_type_id");
+    const lowStock = await MaterialManagement.find({ quantity: { $lt: 1000 } }).populate("fuel_type_id");
     return {
       success: true,
       lowStock: lowStock.map(stock => ({

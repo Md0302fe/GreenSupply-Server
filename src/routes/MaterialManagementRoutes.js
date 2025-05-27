@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const FuelController = require("../controllers/FuelController");
+const FuelController = require("../controllers/MaterialManagementController");
 
 const { authUserMidleware } = require("../middleware/AuthMidleware");
 

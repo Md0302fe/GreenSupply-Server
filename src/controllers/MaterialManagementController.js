@@ -1,8 +1,8 @@
-const FuelManagementService = require("../services/FuelManagementService");
+const FuelManagementService = require("../services/MaterialManagementService");
 
 const getAll = async (req, res) => {
   try {
-    const filters = req.query;
+
     const response = await FuelManagementService.getAllFuel();
     return res.status(200).json(response);
   } catch (error) {

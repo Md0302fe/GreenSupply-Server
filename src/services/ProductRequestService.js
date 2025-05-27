@@ -1,5 +1,5 @@
 const ProductionRequest = require("../models/Production_Request");
-const FuelManagement = require("../models/Fuel_Management");
+const MaterialManagement = require("../models/Material_Management");
 const RawMaterialBatch = require("../models/Raw_Material_Batch");
 
 const generateBatchId = (prefix = "XMTH") => {
@@ -21,8 +21,8 @@ const createProductRequest = async (productData) => {
     productData.status = "Chờ duyệt";
     const newProduct = new ProductionRequest(productData);
 
-    // 2. Tìm FuelManagement và trừ số lượng
-    const fuelDoc = await FuelManagement.findById(productData.material);
+    // 2. Tìm MaterialManagement và trừ số lượng
+    const fuelDoc = await MaterialManagement.findById(productData.material);
     if (!fuelDoc) {
       throw new Error("Không tìm thấy nhiên liệu!");
     }
@@ -118,8 +118,8 @@ const deleteById = async (id) => {
       throw new Error("Không tìm thấy đơn sản xuất!");
     }
 
-    // 2. Tìm FuelManagement liên quan đến sản phẩm đã xóa
-    const fuelDoc = await FuelManagement.findById(deleted.material);
+    // 2. Tìm MaterialManagement liên quan đến sản phẩm đã xóa
+    const fuelDoc = await MaterialManagement.findById(deleted.material);
     if (!fuelDoc) {
       throw new Error("Không tìm thấy nhiên liệu tương ứng trong kho!");
     }

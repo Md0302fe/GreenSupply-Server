@@ -1,4 +1,4 @@
-const PurchaseOrder = require("../models/Admin_Fuel_Entry");
+const PurchaseOrder = require("../models/Purchase_Material_Plan");
 // const CategoryModel = require("../models/CategoryModel");
 
 // Tạo sản phẩm mới   

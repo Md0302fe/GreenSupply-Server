@@ -1,4 +1,4 @@
-const FuelStorageReceiptService = require("../services/FuelStorageReceiptService");
+const StorageReceiptService = require("../services/StorageReceiptService");
 
 // 🟢 1. Tạo đơn nhập kho
 const createFuelStorageReceipt = async (req, res) => {
@@ -12,7 +12,7 @@ const createFuelStorageReceipt = async (req, res) => {
 
     const { receipt_supply_id, receipt_request_id } = req.body;
 
-    const newReceipt = await FuelStorageReceiptService.createFuelStorageReceipt(
+    const newReceipt = await StorageReceiptService.createFuelStorageReceipt(
       manager_id,
       receipt_supply_id,
       receipt_request_id
@@ -26,7 +26,7 @@ const createFuelStorageReceipt = async (req, res) => {
 
 const getAllFuelStorageReceipts = async (req, res) => {
   try {
-    const receipts = await FuelStorageReceiptService.getAllFuelStorageReceipts(
+    const receipts = await StorageReceiptService.getAllFuelStorageReceipts(
       req.query
     );
     return res.status(200).json({ success: true, data: receipts });
@@ -41,7 +41,7 @@ const updateFuelStorageReceiptStatus = async (req, res) => {
     const { status } = req.body; // Trạng thái mới từ body request
 
     const updatedReceipt =
-      await FuelStorageReceiptService.updateFuelStorageReceiptStatus(
+      await StorageReceiptService.updateFuelStorageReceiptStatus(
         id,
         status
       );
@@ -56,7 +56,7 @@ const getFuelStorageById = async (req, res) => {
   try {
     const { id } = req.params; // storage_id từ URL
 
-    const storage = await FuelStorageReceiptService.getFuelStorageById(id);
+    const storage = await StorageReceiptService.getFuelStorageById(id);
 
     return res.status(200).json({ success: true, data: storage });
   } catch (error) {
@@ -69,7 +69,7 @@ const getTotalFuelStorageReceipts = async (req, res) => {
   try {
     // Lấy tổng số đơn nhập kho và khoảng thời gian từ service
     const { totalReceipts, dateRange } =
-      await FuelStorageReceiptService.getTotalFuelStorageReceipts();
+      await StorageReceiptService.getTotalFuelStorageReceipts();
 
     // Trả về kết quả cho client
     return res.status(200).json({
@@ -89,7 +89,7 @@ const getTotalFuelStorageReceipts = async (req, res) => {
 
 const getStockImportByDate = async (req, res) => {
   try {
-    const data = await FuelStorageReceiptService.getStockImportByDate();
+    const data = await StorageReceiptService.getStockImportByDate();
     return res.status(200).json({
       success: true,
       data: data
@@ -101,7 +101,7 @@ const getStockImportByDate = async (req, res) => {
 
 const getStockImportCompletedByDate = async (req, res) => {
   try {
-    const data = await FuelStorageReceiptService.getStockImportCompletedByDate();
+    const data = await StorageReceiptService.getStockImportCompletedByDate();
     return res.status(200).json({
       success: true,
       data: data

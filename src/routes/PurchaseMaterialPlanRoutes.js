@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const FuelEntryController = require("../controllers/FuelEntryController");
+const FuelEntryController = require("../controllers/PurchaseMaterialPlanController");
 
 // API cho lịch sử yêu cầu nhiên liệu
 router.get("/fuel-list", FuelEntryController.getAll);

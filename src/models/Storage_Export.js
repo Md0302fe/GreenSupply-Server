@@ -14,5 +14,5 @@ const MaterialStorageExportSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const MaterialStorageExport = mongoose.model("material_storage_export", MaterialStorageExportSchema);
+const MaterialStorageExport = mongoose.model("storage_export", MaterialStorageExportSchema);
 module.exports = MaterialStorageExport;

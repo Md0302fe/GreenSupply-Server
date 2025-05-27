@@ -5,7 +5,7 @@ const RawMaterialBatchSchema = new Schema(
   {
     batch_id: { type: String, required: true, unique: true },
     batch_name: { type: String, required: true },
-    fuel_type_id: { type: Types.ObjectId, ref: "fuel_managements", required: true },
+    fuel_type_id: { type: Types.ObjectId, ref: "material_managements", required: true },
     production_request_id: { type: Types.ObjectId, ref: "production_requests", required: true },
     status: {
       type: String,
@@ -13,7 +13,7 @@ const RawMaterialBatchSchema = new Schema(
       default: "Đang chuẩn bị",
     },
     quantity: { type: Number, required: true, default: 0 },
-    storage_id: { type: Types.ObjectId, ref: "fuel_storages", required: false },
+    storage_id: { type: Types.ObjectId, ref: "storages", required: false },
     note: {type: String, default: "", trim: true},
     is_automatic: { type: Boolean, default: false },
     is_deleted: { type: Boolean, default: false },

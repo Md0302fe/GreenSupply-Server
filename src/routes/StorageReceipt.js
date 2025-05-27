@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const FuelStorageReceiptController = require("../controllers/FuelStorageReceiptController");
+const FuelStorageReceiptController = require("../controllers/StorageReceiptController");
 
 const {
   // authMidleware,
