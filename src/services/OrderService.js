@@ -50,12 +50,12 @@ const mongoose = require("mongoose");
 const getAllApprovedRequests = async () => {
   try {
       const approvedFuelRequests = await FuelRequest.find({
-          status: { $in: ["Đã duyệt", "Đang xử lý"] }, 
+          status: { $in: ["Đã duyệt"] }, 
           is_deleted: false,
       }).populate("supplier_id").lean();
 
       const approvedFuelSupplyOrders = await FuelSupplyOrder.find({
-          status: { $in: ["Đã duyệt", "Đang xử lý"] }, 
+          status: { $in: ["Đã duyệt"] }, 
           is_deleted: false,
       }).populate("supplier_id request_id").lean();
 
@@ -139,6 +139,7 @@ const getAllApprovedFuelRequests = async () => {
     const formattedRequests = approvedFuelRequests.map((order) => ({
       ...order,
       receipt_type: "request",
+       status: "Chờ Nhập Kho",
     }));
 
     return {
@@ -165,6 +166,7 @@ const getAllApprovedFuelSupplyOrders = async () => {
     const formattedSupplyOrders = approvedFuelSupplyOrders.map((order) => ({
       ...order,
       receipt_type: "supply",
+       status: "Chờ Nhập Kho",
     }));
 
     return {
