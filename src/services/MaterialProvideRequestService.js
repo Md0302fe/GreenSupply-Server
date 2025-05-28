@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const PurchaseMaterialPlan = require("../models/Purchase_Material_Plan");
-const Fuel_Supply_Order = require("../models/Material_Provide_Request");
+const Material_Provide_Request = require("../models/Material_Provide_Request");
 
 const createFuelSupplyRequest = async (data) => {
   try {
@@ -12,7 +12,7 @@ const createFuelSupplyRequest = async (data) => {
       );
     }
     // Tạo đơn cung cấp nhiên liệu
-    const newSupplyRequest = new Fuel_Supply_Order({
+    const newSupplyRequest = new Material_Provide_Request({
       supplier_id: data.supplier_id,
       request_id: data.request_id,
       fuel_name: data.fuel_name,
@@ -59,11 +59,11 @@ const getAllFuelSupplyRequest = async (user) => {
     // let query = { is_deleted: false };
 
     // Fetch all fuel supply requests, populated with supplier data, and sorted by createdAt
-    // const requests = await Fuel_Supply_Order.find(query)
+    // const requests = await Material_Provide_Request.find(query)
     //   .populate("supplier_id", "full_name email phone")
     //   .sort({ createdAt: -1 });
 
-    const requests = await Fuel_Supply_Order.find({
+    const requests = await Material_Provide_Request.find({
           supplier_id: objectUserId,
           is_deleted: false,
         })
@@ -82,7 +82,7 @@ const getAllFuelSupplyRequest = async (user) => {
 // Hủy yêu cầu thu hàng (Chỉ khi trạng thái là "Chờ duyệt")
 const deleteFuelSupplyRequest = async (id) => {
   try {
-    const request = await Fuel_Supply_Order.findByIdAndDelete(id);
+    const request = await Material_Provide_Request.findByIdAndDelete(id);
 
     return {
       success: true,
@@ -100,7 +100,7 @@ const deleteFuelSupplyRequest = async (id) => {
 // Cập nhật thông tin yêu cầu thu hàng (chỉ khi trạng thái là "Chờ duyệt")
 const updateFuelSupplyRequest = async (id, data) => {
   try {
-    const existingRequest = await Fuel_Supply_Order.findById(id);
+    const existingRequest = await Material_Provide_Request.findById(id);
 
     if (!existingRequest) {
       throw new Error("Yêu cầu thu hàng không tồn tại!");
@@ -127,7 +127,7 @@ const updateFuelSupplyRequest = async (id, data) => {
 
     data.total_price = quantity * price;
 
-    const updatedRequest = await Fuel_Supply_Order.findByIdAndUpdate(id, data, {
+    const updatedRequest = await Material_Provide_Request.findByIdAndUpdate(id, data, {
       new: true,
     });
 
@@ -143,7 +143,7 @@ const updateFuelSupplyRequest = async (id, data) => {
 const getById = async (id) => {
   try {
     // Tìm kiếm đơn yêu cầu theo ID
-    const request = await Fuel_Supply_Order.findById(id).populate(
+    const request = await Material_Provide_Request.findById(id).populate(
       "supplier_id",
       "full_name email phone"
     );
