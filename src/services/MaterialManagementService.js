@@ -67,6 +67,25 @@ const cancelFuel = async (id) => {
   }
 };
 
+const createFuel = async (data) => {
+  try {
+    const newFuelType = new Materials({
+      type_name: data.type_name,
+      description: data.description,
+      image: data.image_url || '', // thêm ảnh
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    const savedFuelType = await newFuelType.save();
+    return {
+      success: true,
+      message: "Tạo loại nhiên liệu mới thành công!",
+      data: savedFuelType,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
 
 const getDashboardSummary = async () => {
   try {
@@ -138,10 +157,15 @@ const getLowStockAlerts = async () => {
 };
 
 
+
+
+
 module.exports = { getAllFuel,
    updateFuel, 
    getDashboardSummary,
    getFuelTypesOverview,
    getFuelHistory,
    getLowStockAlerts,
-   cancelFuel, };
+   cancelFuel,
+   createFuel, 
+  };

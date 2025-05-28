@@ -40,7 +40,14 @@ const cancelFuel = async (req, res) => {
   }
 };
 
-
+const createFuel = async (req, res) => {
+  try {
+    const result = await FuelManagementService.createFuel(req.body);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Lỗi khi tạo nhiên liệu mới!", error: error.message });
+  }
+};
 
 
 const getDashboardSummary = async (req, res) => {
@@ -89,4 +96,5 @@ module.exports = {
   getFuelTypesOverview,
   getFuelHistory,
   getLowStockAlerts,
+  createFuel,
 };
