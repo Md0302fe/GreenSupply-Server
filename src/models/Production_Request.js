@@ -10,6 +10,7 @@
         production_date: { type: Date, required: true }, // ngày bắt đầu sản xuất
         end_date: { type: Date }, // ngày kết thúc sản xuất
         request_type: { type: String, required: true },
+        loss_percentage: { type: Number, min: 0, max: 100 },
         priority: { type: Number, required: true, min: 1, max: 3 }, // Mức độ ưu tiên (có thể sử dụng giá trị từ 1 đến 3)
         note: { type: String }
     },
