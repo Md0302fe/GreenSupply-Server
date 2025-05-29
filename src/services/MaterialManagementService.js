@@ -1,5 +1,6 @@
 const MaterialManagement = require("../models/Material_Management");
 const Materials = require('../models/Material'); // ⚠️ BẮT BUỘC PHẢI IMPORT!
+const storage_id = "665480f9bde459d62ca7d001";
 
 const getAllFuel = async () => {
   try {
@@ -69,17 +70,28 @@ const cancelFuel = async (id) => {
 
 const createFuel = async (data) => {
   try {
+    // Tạo mới nguyên liệu trong bảng Materials
     const newFuelType = new Materials({
       type_name: data.type_name,
       description: data.description,
-      image: data.image_url || '', // thêm ảnh
+      image: data.image_url || '',
       createdAt: new Date(),
       updatedAt: new Date(),
     });
     const savedFuelType = await newFuelType.save();
+
+    const newMaterialManagementRecord = new MaterialManagement({
+      fuel_type_id: savedFuelType._id,
+      quantity: 0,
+      storage_id: storage_id , // Lấy storage_id từ data truyền vào khi tạo
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    await newMaterialManagementRecord.save();
+
     return {
       success: true,
-      message: "Tạo loại nhiên liệu mới thành công!",
+      message: "Tạo loại nhiên liệu mới thành công và khởi tạo quản lý nguyên liệu!",
       data: savedFuelType,
     };
   } catch (error) {
