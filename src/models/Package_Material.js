@@ -32,6 +32,6 @@ const PackageMaterialSchema = new mongoose.Schema(
 );
 
 // Tạo model từ schema
-const PackageMaterial = mongoose.model("process_status", PackageMaterialSchema);
+const PackageMaterial = mongoose.model("package_materials", PackageMaterialSchema);
 
 module.exports = PackageMaterial;
