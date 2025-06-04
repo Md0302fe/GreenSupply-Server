@@ -1,15 +1,22 @@
 const Purchase_Material_Plan = require("../models/Purchase_Material_Plan");
+const MaterialProvideRequest = require("../models/Material_Provide_Request");
 
-const getAll = (options = {}) => {
+const getAll = (options = {}, user_id = null) => {
   return new Promise(async (resolve, reject) => {
     try {
       const { page, limit, paginate = false } = options;
-
+      const createdRequests = await MaterialProvideRequest.find({
+        supplier_id: user_id,
+      });
+      const createdRequestIds = createdRequests.map(
+        (request) => request.request_id
+      );
       // Tạo điều kiện lọc
       const now = new Date();
       const filter = {
         status: "Đang xử lý",
-        end_received: { $gt: now }, 
+        end_received: { $gt: now },
+        _id: { $nin: createdRequestIds },
       };
 
       if (paginate) {
@@ -19,7 +26,7 @@ const getAll = (options = {}) => {
           Purchase_Material_Plan.find(filter).skip(skip).limit(limit),
           Purchase_Material_Plan.countDocuments(filter),
         ]);
-        console.log(data)
+        console.log(data);
         return resolve({
           status: "OK",
           message: "Get Paginated Fuel Success",

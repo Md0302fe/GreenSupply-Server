@@ -3,7 +3,7 @@ const FuelEntryService = require("../services/PurchaseMaterialPlanService");
 const getAll = async (req, res) => {
   try {
     const { page, limit } = req.query;
-
+    const user = req.query.user_id;
     const options = {};
 
     if (page && limit) {
@@ -12,7 +12,7 @@ const getAll = async (req, res) => {
       options.limit = parseInt(limit) || 10;
     }
 
-    const response = await FuelEntryService.getAll(options);
+    const response = await FuelEntryService.getAll(options, user);
     return res.status(200).json(response);
   } catch (error) {
     console.error("Lỗi trong getAllFuel controller:", error.message);

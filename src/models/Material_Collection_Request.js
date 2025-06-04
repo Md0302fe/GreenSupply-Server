@@ -13,7 +13,7 @@ const materialCollectionRequestSchema = new Schema(
     address: { type: String, required: true },// Địa chỉ nhận hàng mới thêm 
     status: {
       type: String,
-      enum: ["Chờ duyệt", "Đã duyệt", "Từ chối", "Đã huỷ", "Nhập kho thành công", "Nhập kho thất bại", "Hoàn Thành", "Thát Bại"], // ✅ Thêm trạng thái mới
+      enum: ["Chờ duyệt", "Đã duyệt", "Từ chối", "Đã huỷ", "Nhập kho thành công", "Nhập kho thất bại", "Hoàn Thành", "Thất Bại"], // ✅ Thêm trạng thái mới
       default: "Chờ duyệt",
     },
     is_deleted: { type: Boolean, default: false }, // Trạng thái xóa
