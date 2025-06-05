@@ -19,6 +19,7 @@ const OrderRoutes = require("./OrderRoutes");
 const ProvideOrderRoutes = require("./ProvideOrderRoutes");
 const userAddressRoutes = require("./UserAddressRoutes");
 const ProductOrderAdminRouter = require("./ProductOrderAdminRouter");
+const PackageMaterialRouter = require("./PackageMaterialRouter");
 //  Định nghĩa hàm routes
 //  Đây là một hàm nhận vào đối tượng app (chính là instance của ứng dụng Express).
 const routes = (app) => {
@@ -43,7 +44,7 @@ const routes = (app) => {
   app.use("/api/raw-material-batch", RawMaterialBatchRouter);
   app.use("/api/material-storage-export", MarterialStorageExportRouter);
   app.use("/api/batch-history", BatchHistoryRouter);
-
+  app.use("/api/package-material", PackageMaterialRouter);
 
   // app.use("/api/fuel-storage", StorageReceipt);
 };
