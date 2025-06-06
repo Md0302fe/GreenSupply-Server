@@ -19,4 +19,7 @@ const {
   router.put("/change-status/:id", ProductRequestController.changeStatus);
   router.get("/getProductionChartData", ProductRequestController.getProductionChartData)
 
+  // get all pending for create process
+    router.get("/get-production-requests", ProductRequestController.getProductionRequests);
+
   module.exports = router;

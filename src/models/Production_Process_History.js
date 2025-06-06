@@ -4,7 +4,7 @@ const ProductionProcessHistorySchema = new mongoose.Schema(
   {
     production_process: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "production_processing",
+      ref: "single_processes",
       required: true,
     }, // ref to production_processing model
   },

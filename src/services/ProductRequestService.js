@@ -63,6 +63,22 @@ const getAll = async (filters) => {
   }
 };
 
+// get all pending for create product
+const getProductionRequests = async (filters) => {
+  try {
+    // Kết quả
+    const requests = await ProductionRequest.find({status : "Đã duyệt"}).sort({ createdAt: -1 });
+    
+    return {
+      success: true,
+      status: "Lấy danh sách loại nhiên liệu thành công!",
+      requests,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 const getAllProcessing = async (filters) => {
   try {
     const requests = await ProductionRequest.find({ status: "Đã duyệt" })
@@ -260,4 +276,5 @@ module.exports = {
   deleteById,
   changeStatus,
   getProductionChartData,
+  getProductionRequests
 };

@@ -4,8 +4,13 @@ const ProcessStatusSchema = new mongoose.Schema(
   {
     process_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "production_processing", // Tham chiếu đến quy trình sản xuất
       required: true,
+      refPath: "process_type",
+    },
+    process_type: {
+      type: String,
+      required: true,
+      enum: ["single_processes", "consolidated_processes"],
     },
     stage_no: {
       type: String,
@@ -33,7 +38,7 @@ const ProcessStatusSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Đang thực thi", "Hoàn thành" , "Đã hủy"],
+      enum: ["Đang thực thi", "Hoàn thành", "Đã hủy"],
       default: "Đang thực thi",
     },
 
