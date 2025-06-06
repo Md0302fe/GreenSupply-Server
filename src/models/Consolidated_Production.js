@@ -1,17 +1,22 @@
 const mongoose = require("mongoose");
 
-const ProductionProcessSchema = new mongoose.Schema(
+const ConsolidatedProductionSchema = new mongoose.Schema(
   {
-    production_request_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "production_requests",
-      required: true,
-    }, // Yc sản xuất
+    production_request_id: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "production_requests",
+        required: true,
+      },
+    ], // Danh sách yêu cầu sản xuất
     production_name: { type: String, required: true }, // Tên quy trình sản xuất
     start_time: { type: Date }, // Thời gian bắt đầu
     end_time: { type: Date }, // Thời gian kết thúc
     current_stage: { type: Number, default: 0 },
     processed_quantity: { type: Number, default: 0 },
+    total_loss_percentage: { type: Number, default: 0 },
+    total_raw_material: { type: Number, default: 0 },
+    total_finish_product: { type: Number, default: 0 },
     waste_quantity: { type: Number, default: 0 },
     status: {
       type: String,
@@ -19,8 +24,8 @@ const ProductionProcessSchema = new mongoose.Schema(
       default: "Chờ duyệt",
     },
     process_type: {
-      type: String,
-      default: "single_processes",
+      type:String,
+      default:"consolidated_processes"
     },
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
     note: { type: String, default: null },
@@ -44,9 +49,9 @@ const ProductionProcessSchema = new mongoose.Schema(
 );
 
 // Tạo model từ schema
-const Production = mongoose.model(
-  "single_processes",
-  ProductionProcessSchema
+const ConsolidatedProduction = mongoose.model(
+  "consolidated_processes",
+  ConsolidatedProductionSchema
 );
 
-module.exports = Production;
+module.exports = ConsolidatedProduction;

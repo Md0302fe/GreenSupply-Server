@@ -1,8 +1,9 @@
 const ProductionRequest = require("../models/Production_Request");
 const ProductionProcessing = require("../models/Production_Processing");
+const ConsolidateProductionProcessing = require("../models/Consolidated_Production");
 const ProcessStatus = require("../models/Process_Status ");
-const { default: mongoose } = require("mongoose");
 const ProductionProcessHistory = require("../models/Production_Process_History");
+const { default: mongoose } = require("mongoose");
 
 // stage Name
 const stageMap = {
@@ -79,6 +80,56 @@ const create = async (dataRequest) => {
   }
 };
 
+// consolidate create process
+
+const createConsolidateProcess = async (dataRequest) => {
+  try {
+    const {
+      production_request_id,
+      start_time,
+      end_time,
+      note,
+      user_id,
+      total_raw_material,
+      total_finish_product,
+      total_loss_percentage,
+    } = dataRequest;
+
+    // convert array in to array objectId
+    const productionRequestObjectId = production_request_id.map(
+      (id) => new mongoose.Types.ObjectId(id)
+    );
+
+    // 1. Tạo mới một bản ghi sản xuất
+    const newConsolidateProduction = new ConsolidateProductionProcessing({
+      production_request_id: productionRequestObjectId,
+      production_name: "Quy trình sản xuất tổng hợp",
+      total_raw_material,
+      total_finish_product,
+      total_loss_percentage,
+      start_time,
+      end_time,
+      note,
+      user_id,
+    });
+
+    // 2. Lưu vào DB
+    const savedProduction = await newConsolidateProduction.save();
+
+    // 3. Cập nhật trạng thái của `ProductionRequest` thành `"Đang sản xuất"`
+    await ProductionRequest.updateMany(
+      { _id: { $in: production_request_id } }, // production_request_id là mảng
+      { status: "Đang sản xuất" }
+    );
+
+    return savedProduction;
+  } catch (error) {
+    console.error("Lỗi khi tạo quy trình sản xuất:", error);
+    throw new Error("Không thể tạo quy trình sản xuất");
+  }
+};
+
+// get all single process
 const getAll = async (filters) => {
   try {
     let query = {};
@@ -132,11 +183,47 @@ const getAll = async (filters) => {
   }
 };
 
-// Get danh sách đang sảng xuất của hệ thống
+// get all consolidate process
+const getAllConsolidateProcess = async () => {
+  try {
+    // Lấy danh sách theo điều kiện lọc
+    const requests = await ConsolidateProductionProcessing.find().populate(
+      "production_request_id user_id"
+    );
+
+    return {
+      success: true,
+      message: "Lấy danh sách quy trình sản xuất thành công!",
+      data: requests,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Get danh sách đang sảng xuất (type - single) của hệ thống
 const getAllExecuteProcess = async () => {
   try {
     // Lấy danh sách theo điều kiện lọc
     const requests = await ProductionProcessing.find({
+      status: "Đang sản xuất",
+    }).populate("production_request_id user_id");
+
+    return {
+      success: true,
+      message: "Get All Execute Process Success!",
+      requests,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Get danh sách đang sảng xuất (type - consolidate) của hệ thống
+const getAllConsolidateExecuteProcess = async () => {
+  try {
+    // Lấy danh sách theo điều kiện lọc
+    const requests = await ConsolidateProductionProcessing.find({
       status: "Đang sản xuất",
     }).populate("production_request_id user_id");
 
@@ -237,7 +324,13 @@ const completeProductionProcess = async (process_id) => {
 };
 
 // Cập nhật trạng thái stage và tạo quy trình mới
-const finishStage = async (process_id, noStage, stage_id, data = {}) => {
+const finishStage = async (
+  process_id,
+  noStage,
+  stage_id,
+  data,
+  process_type = {}
+) => {
   try {
     const currentDate = new Date();
     // Cập nhật stage hiện tại
@@ -246,6 +339,8 @@ const finishStage = async (process_id, noStage, stage_id, data = {}) => {
       { ...data, status: "Hoàn thành", end_time: currentDate },
       { new: true }
     );
+
+    console.log("Check upadted => ", stageUpdated);
 
     if (!stageUpdated) {
       return {
@@ -256,7 +351,7 @@ const finishStage = async (process_id, noStage, stage_id, data = {}) => {
     }
     // Nếu stage hiện tại không phải cuối cùng → tạo stage tiếp theo
     if (noStage <= 6) {
-      await createNextStage(process_id, parseInt(noStage) + 1);
+      await createNextStage(process_id, parseInt(noStage) + 1, process_type);
     }
 
     if (noStage == 7) {
@@ -274,18 +369,46 @@ const finishStage = async (process_id, noStage, stage_id, data = {}) => {
 };
 
 // Hàm tạo stage mới
-const createNextStage = async (process_id, noStage) => {
-  // Map tới Name của quy trình tiếp theo
-  const nextStageName = stageMap[noStage];
-  // Map tới currentStage của quy trình tổng
-  const process_stage_start = processStartCurrentMap[noStage];
-  // Map tới endCurrentStage của quy trình tổng
-  const process_stage_end = processEndCurrentMap[noStage - 1];
+const createNextStage = async (process_id, noStage, process_type) => {
+  try {
+    // Map tới Name của quy trình tiếp theo
+    const nextStageName = stageMap[noStage];
+    // Map tới currentStage của quy trình tổng
+    const process_stage_start = processStartCurrentMap[noStage];
+    // Map tới endCurrentStage của quy trình tổng
+    const process_stage_end = processEndCurrentMap[noStage - 1];
 
-  if (!nextStageName || !process_stage_start || !process_stage_end) return;
+    if (!nextStageName || !process_stage_start || !process_stage_end) return;
 
+    // Phân loại process theo process_type
+    process_type === "single_processes"
+      ? createNextStepForSingleProcess(
+          nextStageName,
+          process_stage_start,
+          process_stage_end,
+          process_id
+        )
+      : createNextStepForConsolidateProcess(
+          nextStageName,
+          process_stage_start,
+          process_stage_end,
+          process_id
+        );
+  } catch (error) {
+    console.log("Có lỗi sảy ra trong quá trình cập nhật stage => ", error);
+  }
+};
+
+// Create Process Following Process_type
+const createNextStepForSingleProcess = async (
+  nextStageName,
+  process_stage_start,
+  process_stage_end,
+  process_id
+) => {
   // tìm productionProcessing
   const productionProcessing = await ProductionProcessing.findById(process_id);
+  console.log("find process by id to create ", productionProcessing);
   if (!productionProcessing) return;
 
   // Tăng stage hiện tại lên
@@ -301,6 +424,7 @@ const createNextStage = async (process_id, noStage) => {
 
   const newStage = new ProcessStatus({
     process_id,
+    process_type: productionProcessing.process_type,
     stage_name: nextStageName,
     start_time: new Date(),
   });
@@ -308,6 +432,37 @@ const createNextStage = async (process_id, noStage) => {
   await newStage.save();
 };
 
+const createNextStepForConsolidateProcess = async (
+  nextStageName,
+  process_stage_start,
+  process_stage_end,
+  process_id
+) => {
+  // tìm productionProcessing
+  const productionProcessing = await ConsolidateProductionProcessing.findById(process_id);
+  console.log("find process by id to create ", productionProcessing);
+  if (!productionProcessing) return;
+
+  // Tăng stage hiện tại lên
+  productionProcessing.current_stage += 1;
+
+  const currentDate = new Date();
+
+  // Cập nhật start & end time thông qua ánh xạ key
+  productionProcessing[process_stage_start] = currentDate;
+  productionProcessing[process_stage_end] = currentDate;
+
+  await productionProcessing.save();
+
+  const newStage = new ProcessStatus({
+    process_id,
+    process_type: productionProcessing.process_type,
+    stage_name: nextStageName,
+    start_time: new Date(),
+  });
+
+  await newStage.save();
+};
 const deleteById = async (id) => {
   try {
     // 1. Tìm đơn sản xuất theo id
@@ -326,7 +481,7 @@ const deleteById = async (id) => {
     throw new Error(error.message);
   }
 };
-
+// Update single process status
 const changeStatus = async (id) => {
   try {
     // 1. Tìm đơn sản xuất theo id
@@ -348,6 +503,7 @@ const changeStatus = async (id) => {
     // 3. Tạo Process Stage 1
     const newProcessStatus = new ProcessStatus({
       process_id: productionProcessing._id,
+      process_type: productionProcessing.process_type,
       stage_name: "Phân loại nguyên liệu",
       start_time: new Date(),
     });
@@ -367,7 +523,51 @@ const changeStatus = async (id) => {
   }
 };
 
-// get Processing Details
+// Update status consolidate process
+const approveConsolidateProcess = async (id) => {
+  try {
+    // 1. Tìm đơn sản xuất theo id
+    const consolidateProcess = await ConsolidateProductionProcessing.findById(
+      id
+    );
+    if (!consolidateProcess) {
+      return {
+        success: false,
+        message: "Không tìm thấy đơn sản xuất!",
+      };
+    }
+
+    // 2. Đổi trạng thái consolidateProcess thành "Đang sản xuất"
+    consolidateProcess.status = "Đang sản xuất";
+    // Cập nhật current lên 1
+    consolidateProcess.current_stage = consolidateProcess.current_stage + 1;
+    consolidateProcess.process_stage1_start = new Date();
+    await consolidateProcess.save();
+
+    // 3. Tạo Process Stage 1
+    const newProcessStatus = new ProcessStatus({
+      process_id: consolidateProcess._id,
+      process_type: consolidateProcess.process_type,
+      stage_name: "Phân loại nguyên liệu",
+      start_time: new Date(),
+    });
+
+    await newProcessStatus.save();
+
+    return {
+      success: true,
+      message: "Đã duyệt đơn thành công và tạo ProcessStatus!",
+      data: {
+        consolidateProcess,
+        processStatus: newProcessStatus,
+      },
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Get Single Processing Details
 const getProcessingDetails = async (id) => {
   try {
     // Lấy danh sách theo điều kiện lọc
@@ -385,8 +585,49 @@ const getProcessingDetails = async (id) => {
   }
 };
 
-// get Processing Details
+// Get Single Processing Details
+const getConsolidateProcessingDetails = async (id) => {
+  try {
+    // Lấy danh sách theo điều kiện lọc
+    const requests = await ConsolidateProductionProcessing.findById(
+      id
+    ).populate("production_request_id user_id");
+
+    return {
+      success: true,
+      message: "Get ProductionProcessing details successfully!",
+      data: requests,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// get Single Processing Details
 const getProcessStage = async (id) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new Error("Invalid process_id format (id is not an ObjectId)");
+    }
+    const objectId = new mongoose.Types.ObjectId(id);
+
+    // Lấy danh sách theo điều kiện lọc : objectId = id
+    const requests = await ProcessStatus.find({
+      process_id: objectId,
+    }).populate("process_id");
+
+    return {
+      success: true,
+      message: "Get Process Stage details successfully!",
+      data: requests,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// get Consolidate Processing Details
+const getConsolidateProcessStage = async (id) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new Error("Invalid process_id format (id is not an ObjectId)");
@@ -446,4 +687,10 @@ module.exports = {
   finishStage,
   getDashboardprocess,
   getAllHistoriesProcess,
+  createConsolidateProcess,
+  getAllConsolidateProcess,
+  approveConsolidateProcess,
+  getAllConsolidateExecuteProcess,
+  getConsolidateProcessingDetails,
+  getConsolidateProcessStage,
 };

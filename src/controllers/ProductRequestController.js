@@ -46,6 +46,22 @@ const getAll = async (req, res) => {
   }
 };
 
+// get all pending create production request
+const getProductionRequests = async (req, res) => {
+  try {
+    const filters = req.query;
+    const response = await ProductRequestService.getProductionRequests(filters);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Lỗi trong getAll controller:", error.message);
+    return res.status(500).json({
+      status: "ERROR",
+      message: "Lỗi server khi lấy danh sách nhiên liệu",
+      error: error.message,
+    });
+  }
+};
+
 const getAllProcessing = async (req, res) => {
   try {
     const filters = req.query;
@@ -119,4 +135,5 @@ module.exports = {
   deleteById,
   changeStatus,
   getProductionChartData,
+  getProductionRequests
 };

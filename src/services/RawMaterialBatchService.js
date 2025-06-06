@@ -1,5 +1,6 @@
 const RawMaterialBatch = require("../models/Raw_Material_Batch");
 const Storage = require("../models/Storage");
+const ProductionRequest = require("../models/Production_Request");
 
 const mongoose = require("mongoose");
 
@@ -102,13 +103,15 @@ const getBatchByRequestId = async (id) => {
   try {
     const batches = await RawMaterialBatch.find({
       production_request_id: id,
-    }).populate({
-      path: "fuel_type_id",
-      populate: [
-        { path: "storage_id" },
-        { path: "fuel_type_id" }, // <-- đặt tên này hơi trùng với chính field đang populate?
-      ],
-    });
+    })
+      .populate({
+        path: "fuel_type_id",
+        populate: [
+          { path: "storage_id" },
+          { path: "fuel_type_id" }, 
+        ],
+      })
+      .populate("production_request_id");
     if (!batches || batches.length === 0) {
       throw new Error("Không tìm thấy lô nguyên liệu!");
     }
