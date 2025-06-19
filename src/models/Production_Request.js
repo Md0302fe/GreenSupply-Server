@@ -12,10 +12,16 @@
         request_type: { type: String, required: true },
         loss_percentage: { type: Number, min: 0, max: 100 },
         priority: { type: Number, required: true, min: 1, max: 3 }, // Mức độ ưu tiên (có thể sử dụng giá trị từ 1 đến 3)
-        note: { type: String }
+        note: { type: String },
+        packaging: {
+             vacuumBag: { type: Number, default: 0 },
+             carton: { type: Number, default: 0 },
+             vacuumBagBoxId: { type: mongoose.Schema.Types.ObjectId, ref: "package_materials" },
+             cartonBoxId: { type: mongoose.Schema.Types.ObjectId, ref: "package_materials" },
+}
     },
     { timestamps: true }
-);
+    );
 
     const ProductionRequest = mongoose.model('production_requests', ProductionRequestSchema);
 

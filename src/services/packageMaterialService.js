@@ -27,22 +27,38 @@ const getBoxCategories = async (includeInactive = false) => {
 
 // Box Services
 const createBox = async (data) => {
+  const {
+    package_material_name,
+    package_material_categories,
+    quantity,
+    package_img,
+    type,
+    capacity, // Đây là giá trị người dùng nhập
+  } = data;
+
+  // 👉 Chuyển capacity sang gam nếu là túi chân không
+  const adjustedCapacity = type === "túi chân không" ? capacity * 1000 : capacity;
+
   const newBox = new Box({
-    package_material_name: data.package_material_name,
-    package_material_categories: data.package_material_categories,
-    quantity: data.quantity,
-    package_img: data.package_img || "",
-    storage_id: storage_id, 
+    package_material_name,
+    package_material_categories,
+    quantity,
+    package_img,
+    type,
+    capacity: adjustedCapacity, // dùng capacity đã chuyển đổi
+    storage_id,
   });
 
   const savedBox = await newBox.save();
 
-  await BoxCategory.findByIdAndUpdate(data.package_material_categories, {
-    $inc: { quantity: data.quantity },
+  // Cập nhật tổng quantity cho category
+  await BoxCategory.findByIdAndUpdate(package_material_categories, {
+    $inc: { quantity },
   });
 
   return savedBox;
 };
+
 
 
 const updateBox = async (id, data) => {
