@@ -1,6 +1,8 @@
 const ProductionRequest = require("../models/Production_Request");
 const MaterialManagement = require("../models/Material_Management");
 const RawMaterialBatch = require("../models/Raw_Material_Batch");
+const PackageMaterial = require("../models/Package_Material");
+const PackageMaterialCategory = require("../models/Package_Material_Categorie");
 
 const generateBatchId = (prefix = "XMTH") => {
   const today = new Date();
@@ -67,8 +69,10 @@ const getAll = async (filters) => {
 const getProductionRequests = async (filters) => {
   try {
     // Kết quả
-    const requests = await ProductionRequest.find({status : "Đã duyệt"}).sort({ createdAt: -1 });
-    
+    const requests = await ProductionRequest.find({ status: "Đã duyệt" }).sort({
+      createdAt: -1,
+    });
+
     return {
       success: true,
       status: "Lấy danh sách loại nhiên liệu thành công!",
@@ -178,7 +182,40 @@ const changeStatus = async (id) => {
       is_automatic: false,
     });
 
-    // 3. Đổi trạng thái ProductionRequest thành "Đã duyệt"
+    // 3. Trừ bao bì
+    const packaging = productionRequest.packaging || {};
+    const { vacuumBag, carton, vacuumBagBoxId, cartonBoxId } =
+      productionRequest.packaging || {};
+
+    // Trừ túi chân không
+    if (vacuumBag > 0 && vacuumBagBoxId) {
+      const vacuumBagBox = await PackageMaterial.findById(vacuumBagBoxId);
+      if (vacuumBagBox) {
+        vacuumBagBox.quantity -= vacuumBag;
+        await vacuumBagBox.save();
+
+        await PackageMaterialCategory.findByIdAndUpdate(
+          vacuumBagBox.package_material_categories,
+          { $inc: { quantity: -vacuumBag } }
+        );
+      }
+    }
+
+    // Trừ thùng carton
+    if (carton > 0 && cartonBoxId) {
+      const cartonBox = await PackageMaterial.findById(cartonBoxId);
+      if (cartonBox) {
+        cartonBox.quantity -= carton;
+        await cartonBox.save();
+
+        await PackageMaterialCategory.findByIdAndUpdate(
+          cartonBox.package_material_categories,
+          { $inc: { quantity: -carton } }
+        );
+      }
+    }
+
+    // 4. Đổi trạng thái ProductionRequest thành "Đã duyệt"
     productionRequest.status = "Đã duyệt";
     await productionRequest.save();
 
@@ -276,5 +313,5 @@ module.exports = {
   deleteById,
   changeStatus,
   getProductionChartData,
-  getProductionRequests
+  getProductionRequests,
 };

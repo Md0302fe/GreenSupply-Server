@@ -27,11 +27,23 @@ const PackageMaterialSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    type: { // Thêm trường loại nguyên liệu
+      type: String,
+      enum: ["túi chân không", "thùng carton"], // Quy định các loại
+      required: true,
+    },
+    capacity: { // Dung tích của nguyên liệu (ví dụ 0.5kg, 1kg)
+      type: Number,
+      required: true,
+    },
   },
   { timestamps: true } // Tự động tạo `createdAt` & `updatedAt`
 );
 
 // Tạo model từ schema
-const PackageMaterial = mongoose.model("package_materials", PackageMaterialSchema);
+const PackageMaterial = mongoose.model(
+  "package_materials",
+  PackageMaterialSchema
+);
 
 module.exports = PackageMaterial;
