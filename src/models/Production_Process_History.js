@@ -6,7 +6,7 @@ const ProductionProcessHistorySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "single_processes",
       required: true,
-    }, // ref to production_processing model
+    }, // ref to Single_Process model
   },
   { timestamps: true }
 );

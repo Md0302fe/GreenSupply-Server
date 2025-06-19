@@ -273,8 +273,8 @@ const update = async (req, res) => {
 // finish Stage
 const finishStage = async (req, res) => {
   try {
-    const {process_id, noStage , stage_id , process_type } = req.body.dataRequest;
-    const updatedProductionRequest = await ProductionProcessingService.finishStage(process_id, noStage, stage_id , process_type);
+    const {process_id, noStage , stage_id , process_type , dataUpdate } = req.body.dataRequest;
+    const updatedProductionRequest = await ProductionProcessingService.finishStage(process_id, noStage, stage_id , process_type , dataUpdate);
     if (!updatedProductionRequest) {
       return res.status(404).json({ success: false, message: "Không tìm thấy nhiên liệu!" });
     }

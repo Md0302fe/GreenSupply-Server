@@ -39,14 +39,19 @@ const ProductionProcessSchema = new mongoose.Schema(
     process_stage7_start: { type: Date, default: null },
     process_stage7_end: { type: Date, default: null },
     final_time_finish: { type: Date, default: null },
+    // infomation compare with plan
+    lastQuantityStage1: { type: Number, default: 0 },
+    lastQuantityStage2: { type: Number, default: 0 },
+    lastQuantityStage3: { type: Number, default: 0 },
+    lastQuantityStage4: { type: Number, default: 0 },
+    lastQuantityStage5: { type: Number, default: 0 },
+    finalQuantityProduction: { type: Number, default: 0 },
+    finalLossQuantity: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
 
 // Tạo model từ schema
-const Production = mongoose.model(
-  "single_processes",
-  ProductionProcessSchema
-);
+const Production = mongoose.model("single_processes", ProductionProcessSchema);
 
 module.exports = Production;
