@@ -1,6 +1,6 @@
 const ProductionRequest = require("../models/Production_Request");
-const ProductionProcessing = require("../models/Production_Processing");
-const ConsolidateProductionProcessing = require("../models/Consolidated_Production");
+const SingleProductionProcessing = require("../models/Single_Process");
+const ConsolidateProductionProcessing = require("../models/Consolidated_Process");
 const ProcessStatus = require("../models/Process_Status ");
 const ProductionProcessHistory = require("../models/Production_Process_History");
 const { default: mongoose } = require("mongoose");
@@ -8,13 +8,12 @@ const { default: mongoose } = require("mongoose");
 // stage Name
 const stageMap = {
   1: "Phân loại nguyên liệu",
-  2: "Rửa và làm sạch",
-  3: "Khử trùng/diệt khuẩn bề mặt",
-  4: "Phủ màng sinh học & làm khô",
-  5: "Ủ chín (kiểm soát nhiệt độ/độ ẩm)",
-  6: "Đóng gói thành phẩm",
-  7: "Ghi nhãn & truy xuất nguồn gốc",
-  8: "Bảo quản lạnh",
+  2: "Rửa – gọt vỏ - tách hạt – cắt lát",
+  3: "Chần để ức chế enzyme",
+  4: "Điều vị (ngâm đường/muối)",
+  5: "Sấy (máy sấy lạnh hoặc đối lưu)",
+  6: "Làm nguội – đóng gói – dán nhãn",
+  7: "Bảo quản lạnh",
 };
 
 // start stage
@@ -54,7 +53,7 @@ const create = async (dataRequest) => {
     }
 
     // 2️⃣ Tạo mới một bản ghi sản xuất
-    const newProduction = new ProductionProcessing({
+    const newProduction = new SingleProductionProcessing({
       production_request_id,
       production_name: productionRequest.request_name, // Lấy tên từ yêu cầu sản xuất
       start_time,
@@ -169,7 +168,7 @@ const getAll = async (filters) => {
     }
 
     // Lấy danh sách theo điều kiện lọc
-    const requests = await ProductionProcessing.find(query)
+    const requests = await SingleProductionProcessing.find(query)
       .sort(sortQuery)
       .populate("production_request_id user_id");
 
@@ -205,9 +204,11 @@ const getAllConsolidateProcess = async () => {
 const getAllExecuteProcess = async () => {
   try {
     // Lấy danh sách theo điều kiện lọc
-    const requests = await ProductionProcessing.find({
+    const requests = await SingleProductionProcessing.find({
       status: "Đang sản xuất",
-    }).populate("production_request_id user_id");
+    })
+      .populate("production_request_id user_id")
+      .sort({ createdAt: -1 }); // Sắp xếp theo ngày tạo mới nhất
 
     return {
       success: true,
@@ -257,7 +258,7 @@ const getAllHistoriesProcess = async () => {
 // Update infomation data
 const update = async (id, data) => {
   try {
-    const updated = await ProductionProcessing.findByIdAndUpdate(
+    const updated = await SingleProductionProcessing.findByIdAndUpdate(
       id,
       { ...data, updatedAt: new Date() },
       { new: true }
@@ -281,7 +282,7 @@ const update = async (id, data) => {
 const completeProductionProcess = async (process_id) => {
   try {
     // 1 : update Production Process Status and final_time_finish
-    const productionProcessing = await ProductionProcessing.findById(
+    const productionProcessing = await SingleProductionProcessing.findById(
       process_id
     );
 
@@ -328,15 +329,25 @@ const finishStage = async (
   process_id,
   noStage,
   stage_id,
-  data,
-  process_type = {}
+  process_type,
+  dataUpdate
 ) => {
   try {
     const currentDate = new Date();
-    // Cập nhật stage hiện tại
+    console.log("dataUpdate => ", dataUpdate);
+
+    // thông tin cập nhật mỗi giai đoạn
+    const updateFields = {
+      ...dataUpdate,
+      status: "Hoàn thành",
+      end_time: currentDate,
+    };
+    console.log("updateFields => ", updateFields);
+
+
     const stageUpdated = await ProcessStatus.findByIdAndUpdate(
       stage_id,
-      { ...data, status: "Hoàn thành", end_time: currentDate },
+      updateFields,
       { new: true }
     );
 
@@ -364,6 +375,7 @@ const finishStage = async (
       message: "Cập nhật thành công!",
     };
   } catch (error) {
+    console.log("Có lỗi : ", error)
     throw new Error(error.message);
   }
 };
@@ -407,7 +419,9 @@ const createNextStepForSingleProcess = async (
   process_id
 ) => {
   // tìm productionProcessing
-  const productionProcessing = await ProductionProcessing.findById(process_id);
+  const productionProcessing = await SingleProductionProcessing.findById(
+    process_id
+  );
   console.log("find process by id to create ", productionProcessing);
   if (!productionProcessing) return;
 
@@ -439,7 +453,9 @@ const createNextStepForConsolidateProcess = async (
   process_id
 ) => {
   // tìm productionProcessing
-  const productionProcessing = await ConsolidateProductionProcessing.findById(process_id);
+  const productionProcessing = await ConsolidateProductionProcessing.findById(
+    process_id
+  );
   console.log("find process by id to create ", productionProcessing);
   if (!productionProcessing) return;
 
@@ -466,7 +482,7 @@ const createNextStepForConsolidateProcess = async (
 const deleteById = async (id) => {
   try {
     // 1. Tìm đơn sản xuất theo id
-    const deleted = await ProductionProcessing.findByIdAndDelete(id);
+    const deleted = await SingleProductionProcessing.findByIdAndDelete(id);
     if (!deleted) {
       throw new Error("Không tìm thấy đơn sản xuất!");
     }
@@ -485,7 +501,7 @@ const deleteById = async (id) => {
 const changeStatus = async (id) => {
   try {
     // 1. Tìm đơn sản xuất theo id
-    const productionProcessing = await ProductionProcessing.findById(id);
+    const productionProcessing = await SingleProductionProcessing.findById(id);
     if (!productionProcessing) {
       return {
         success: false,
@@ -493,7 +509,7 @@ const changeStatus = async (id) => {
       };
     }
 
-    // 2. Đổi trạng thái ProductionProcessing thành "Đang sản xuất"
+    // 2. Đổi trạng thái SingleProductionProcessing thành "Đang sản xuất"
     productionProcessing.status = "Đang sản xuất";
     // Cập nhật current lên 1
     productionProcessing.current_stage = productionProcessing.current_stage + 1;
@@ -571,13 +587,13 @@ const approveConsolidateProcess = async (id) => {
 const getProcessingDetails = async (id) => {
   try {
     // Lấy danh sách theo điều kiện lọc
-    const requests = await ProductionProcessing.findById(id).populate(
+    const requests = await SingleProductionProcessing.findById(id).populate(
       "production_request_id user_id"
     );
 
     return {
       success: true,
-      message: "Get ProductionProcessing details successfully!",
+      message: "Get SingleProductionProcessing details successfully!",
       data: requests,
     };
   } catch (error) {
@@ -595,7 +611,7 @@ const getConsolidateProcessingDetails = async (id) => {
 
     return {
       success: true,
-      message: "Get ProductionProcessing details successfully!",
+      message: "Get SingleProductionProcessing details successfully!",
       data: requests,
     };
   } catch (error) {
@@ -654,13 +670,13 @@ const getConsolidateProcessStage = async (id) => {
 const getDashboardprocess = async () => {
   try {
     // Đếm số lượng theo trạng thái
-    const waitingCount = await ProductionProcessing.countDocuments({
+    const waitingCount = await SingleProductionProcessing.countDocuments({
       status: "Chờ duyệt",
     });
-    const processingCount = await ProductionProcessing.countDocuments({
+    const processingCount = await SingleProductionProcessing.countDocuments({
       status: "Đang sản xuất",
     });
-    const doneCount = await ProductionProcessing.countDocuments({
+    const doneCount = await SingleProductionProcessing.countDocuments({
       status: "Hoàn thành",
     });
 
