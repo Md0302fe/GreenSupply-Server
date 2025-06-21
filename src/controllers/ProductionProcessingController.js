@@ -273,10 +273,15 @@ const update = async (req, res) => {
 // finish Stage
 const finishStage = async (req, res) => {
   try {
+    // get dữ liệu từ dataRequest FE
     const {process_id, noStage , stage_id , process_type , dataUpdate } = req.body.dataRequest;
-    const updatedProductionRequest = await ProductionProcessingService.finishStage(process_id, noStage, stage_id , process_type , dataUpdate);
-    if (!updatedProductionRequest) {
-      return res.status(404).json({ success: false, message: "Không tìm thấy nhiên liệu!" });
+    // assigned data to object 
+    const dataRequest = {process_id, noStage , stage_id , process_type , dataUpdate }
+    // call services to finish stage
+    const updatedProductionRequest = await ProductionProcessingService.finishStage(dataRequest);
+
+    if (!updatedProductionRequest || updatedProductionRequest?.success === false) {
+      return res.status(404).json({ success: false, message: "Đã có lỗi phát sinh trong quá trình cập nhật quy trình" });
     }
     res.json({ success: true, message: "Cập nhật thành công!", data: updatedProductionRequest });
   } catch (error) {

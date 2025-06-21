@@ -4,7 +4,22 @@ const RawMaterialBatch = require("../models/Raw_Material_Batch");
 const PackageMaterial = require("../models/Package_Material");
 const PackageMaterialCategory = require("../models/Package_Material_Categorie");
 
+// generated batch id
 const generateBatchId = (prefix = "XMTH") => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0"); // Định dạng 2 số
+  const day = String(today.getDate()).padStart(2, "0"); // Định dạng 2 số
+
+  const batchNumber = Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, "0");
+
+  return `${prefix}${day}${month}${year}-${batchNumber}`;
+};
+
+// generated production batch id
+const generateProductionId = (prefix = "PMG") => {
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, "0"); // Định dạng 2 số
@@ -21,6 +36,8 @@ const createProductRequest = async (productData) => {
   try {
     // 1. Tạo một ProductionRequest mới
     productData.status = "Chờ duyệt";
+    // khởi tạo 1 id đọc nhất --> dùng để truy xuất sản phẩm với quy trình sau này
+    productData.production_id = generateProductionId();
     const newProduct = new ProductionRequest(productData);
 
     // 2. Tìm MaterialManagement và trừ số lượng
