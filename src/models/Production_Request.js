@@ -2,6 +2,7 @@
     const {  Types } = mongoose;
 
     const ProductionRequestSchema = new mongoose.Schema({
+        production_id: { type: String, required: true, unique: true },
         request_name: { type: String, required: true },
         status: { type: String, required: true },
         material: {type: Types.ObjectId, ref: "material_managements", required: true },
@@ -14,11 +15,11 @@
         priority: { type: Number, required: true, min: 1, max: 3 }, // Mức độ ưu tiên (có thể sử dụng giá trị từ 1 đến 3)
         note: { type: String },
         packaging: {
-             vacuumBag: { type: Number, default: 0 },
-             carton: { type: Number, default: 0 },
-             vacuumBagBoxId: { type: mongoose.Schema.Types.ObjectId, ref: "package_materials" },
-             cartonBoxId: { type: mongoose.Schema.Types.ObjectId, ref: "package_materials" },
-}
+            vacuumBag: { type: Number, default: 0 },
+            carton: { type: Number, default: 0 },
+            vacuumBagBoxId: { type: mongoose.Schema.Types.ObjectId, ref: "package_materials" },
+            cartonBoxId: { type: mongoose.Schema.Types.ObjectId, ref: "package_materials" },
+    }
     },
     { timestamps: true }
     );

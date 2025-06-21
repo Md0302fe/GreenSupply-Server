@@ -1,9 +1,15 @@
+const Product = require("../models/Products");
+const ProcessStatus = require("../models/Process_Status ");
+const StoreReceipt = require("../models/Storage_Receipt.js");
 const ProductionRequest = require("../models/Production_Request");
 const SingleProductionProcessing = require("../models/Single_Process");
-const ConsolidateProductionProcessing = require("../models/Consolidated_Process");
-const ProcessStatus = require("../models/Process_Status ");
 const ProductionProcessHistory = require("../models/Production_Process_History");
+const ConsolidateProductionProcessing = require("../models/Consolidated_Process");
+
 const { default: mongoose } = require("mongoose");
+
+// hard code wait for function create & update store
+const store_product_id = "6855623993433942fba4962e";
 
 // stage Name
 const stageMap = {
@@ -38,6 +44,13 @@ const processEndCurrentMap = {
   6: "process_stage6_end",
   7: "process_stage7_end",
 };
+
+function formatDateTime(date) {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Tháng tính từ 0
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
 
 const create = async (dataRequest) => {
   try {
@@ -325,44 +338,38 @@ const completeProductionProcess = async (process_id) => {
 };
 
 // Cập nhật trạng thái stage và tạo quy trình mới
-const finishStage = async (
-  process_id,
-  noStage,
-  stage_id,
-  process_type,
-  dataUpdate
-) => {
+const finishStage = async (dataRequest) => {
   try {
+    const { process_id, noStage, stage_id, process_type, dataUpdate } =
+      dataRequest;
+
     const currentDate = new Date();
-    console.log("dataUpdate => ", dataUpdate);
 
     // thông tin cập nhật mỗi giai đoạn
-    const updateFields = {
-      ...dataUpdate,
-      status: "Hoàn thành",
-      end_time: currentDate,
-    };
-    console.log("updateFields => ", updateFields);
+    // const updateFields = {
+    //   ...dataUpdate,
+    //   status: "Hoàn thành",
+    //   end_time: currentDate,
+    // };
 
+    // const stageUpdated = await ProcessStatus.findByIdAndUpdate(
+    //   stage_id,
+    //   updateFields,
+    //   { new: true }
+    // );
 
-    const stageUpdated = await ProcessStatus.findByIdAndUpdate(
-      stage_id,
-      updateFields,
-      { new: true }
-    );
+    // console.log("Check upadted => ", stageUpdated);
 
-    console.log("Check upadted => ", stageUpdated);
-
-    if (!stageUpdated) {
-      return {
-        success: false,
-        message: "Không tìm thấy stage_id",
-        data: null,
-      };
-    }
+    // if (!stageUpdated) {
+    //   return {
+    //     success: false,
+    //     message: "Không tìm thấy stage_id",
+    //     data: null,
+    //   };
+    // }
     // Nếu stage hiện tại không phải cuối cùng → tạo stage tiếp theo
     if (noStage <= 6) {
-      await createNextStage(process_id, parseInt(noStage) + 1, process_type);
+      await createNextStage(process_id, parseInt(noStage), process_type);
     }
 
     if (noStage == 7) {
@@ -375,7 +382,7 @@ const finishStage = async (
       message: "Cập nhật thành công!",
     };
   } catch (error) {
-    console.log("Có lỗi : ", error)
+    console.log("Có lỗi : ", error);
     throw new Error(error.message);
   }
 };
@@ -384,23 +391,25 @@ const finishStage = async (
 const createNextStage = async (process_id, noStage, process_type) => {
   try {
     // Map tới Name của quy trình tiếp theo
-    const nextStageName = stageMap[noStage];
+    const nextStageName = stageMap[parseInt(noStage) + 1];
     // Map tới currentStage của quy trình tổng
-    const process_stage_start = processStartCurrentMap[noStage];
+    const process_stage_start = processStartCurrentMap[parseInt(noStage) + 1];
     // Map tới endCurrentStage của quy trình tổng
-    const process_stage_end = processEndCurrentMap[noStage - 1];
+    const process_stage_end = processEndCurrentMap[parseInt(noStage)];
 
     if (!nextStageName || !process_stage_start || !process_stage_end) return;
 
     // Phân loại process theo process_type
     process_type === "single_processes"
       ? createNextStepForSingleProcess(
+          noStage,
           nextStageName,
           process_stage_start,
           process_stage_end,
           process_id
         )
       : createNextStepForConsolidateProcess(
+          noStage,
           nextStageName,
           process_stage_start,
           process_stage_end,
@@ -413,40 +422,114 @@ const createNextStage = async (process_id, noStage, process_type) => {
 
 // Create Process Following Process_type
 const createNextStepForSingleProcess = async (
+  noStage,
   nextStageName,
   process_stage_start,
   process_stage_end,
   process_id
 ) => {
-  // tìm productionProcessing
-  const productionProcessing = await SingleProductionProcessing.findById(
-    process_id
-  );
-  console.log("find process by id to create ", productionProcessing);
-  if (!productionProcessing) return;
+  try {
+    // get current time
+    const currentDate = new Date();
 
-  // Tăng stage hiện tại lên
-  productionProcessing.current_stage += 1;
+    // tìm productionProcessing
+    const processData = await SingleProductionProcessing.findById(
+      process_id
+    ).populate("production_request_id");
 
-  const currentDate = new Date();
+    if (!processData) return;
 
-  // Cập nhật start & end time thông qua ánh xạ key
-  productionProcessing[process_stage_start] = currentDate;
-  productionProcessing[process_stage_end] = currentDate;
+    // kiểm tra xem = 6 thì tạo 1 lô sản phẩm
+    if (parseInt(noStage) === 6) {
+      // cast giá trị to object Id trước khi tạo sản phẩm 'material_managements' & 'production_requests'
+      const type_material_id = new mongoose.Types.ObjectId(
+        processData?.production_request_id?.material
+      );
 
-  await productionProcessing.save();
+      const origin_production_request_id = new mongoose.Types.ObjectId(
+        processData?.production_request_id?._id
+      );
 
-  const newStage = new ProcessStatus({
-    process_id,
-    process_type: productionProcessing.process_type,
-    stage_name: nextStageName,
-    start_time: new Date(),
-  });
+      const created_date = new Date(); // Ngày tạo = hôm nay
+      const expiration_date = new Date(created_date);
+      expiration_date.setMonth(expiration_date.getMonth() + 5); // Cộng thêm 5 tháng
 
-  await newStage.save();
+      // khởi tạo 1 sản phẩm
+      const dataProduct = {
+        name: processData?.production_request_id?.request_name,
+        masanpham: processData?.production_request_id?.production_id + "10",
+        image: "",
+        type_material_id,
+        price: "",
+        description: "",
+        quantity: processData?.finalQuantityProduction,
+        origin_production_request_id,
+        created_date: formatDateTime(created_date), // Ngày tạo hàng
+        expiration_date: formatDateTime(expiration_date) , // Ngày hết hạng
+        certifications: "",
+      };
+
+      const created_product = await Product.create(dataProduct);
+
+      console.log("created_product => ", created_product)
+
+      if (!created_product) {
+        return {
+          success: false,
+          message:
+            "Đã xảy ra lỗi trong quá trình tạo sản phẩm. Vui lòng thử lại sau",
+        };
+      }
+
+      const product_id = new mongoose.Types.ObjectId(created_product._id);
+      const obectStoreId = new mongoose.Types.ObjectId(store_product_id);
+
+      // Data receipt store
+      const dataReceipt = {
+        storage_id: obectStoreId, // id kho thành phẩm
+        status: "Chờ duyệt", // trạng thái ban đầu của đơn nhập kho
+        storage_date: currentDate, // thời gian tạo đơn
+        production: product_id,
+        quantity: created_product.quantity,
+        receipt_type : "3", // type 3 = nhập kho thành phẩm
+        is_deleted: false,
+      };
+      const receipt_store = await StoreReceipt.create(dataReceipt);
+      if (!receipt_store) {
+        return {
+          success: false,
+          message:
+            "Đã xảy ra lỗi trong quá trình tạo yêu cầu nhập kho. Vui lòng thử lại sau",
+        };
+      }
+    }
+
+    // Tăng stage hiện tại lên
+    // processData.current_stage += 1;
+
+    // Cập nhật start & end time thông qua ánh xạ key
+    // processData[process_stage_start] = currentDate;
+    // processData[process_stage_end] = currentDate;
+
+    // await processData.save();
+
+    // const newStage = await ProcessStatus.create({
+    //   process_id,
+    //   process_type: processData.process_type,
+    //   stage_name: nextStageName,
+    //   start_time: new Date(),
+    // });
+  } catch (error) {
+    console.log("Error => ", error);
+    return {
+      success: false,
+      message: "Có lỗi trong quá trình cập nhật trạng thái quy trình",
+    };
+  }
 };
 
 const createNextStepForConsolidateProcess = async (
+  noStage,
   nextStageName,
   process_stage_start,
   process_stage_end,

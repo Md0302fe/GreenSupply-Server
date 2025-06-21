@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
+const { Schema, Types } = mongoose;
 
-const ProductSchema = new mongoose.Schema(
+const ProductSchema = new Schema(
   {
     name: {
       type: String,
@@ -13,17 +14,13 @@ const ProductSchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      required: true,
     },
-    type: {
-      type: String,
+    type_material_id: {
+      type: Types.ObjectId,
+      ref: "material_managements",
       required: true,
     },
     price: {
-      type: Number,
-      required: true,
-    },
-    oldPrice: {
       type: Number,
       default: 0,
     },
@@ -35,12 +32,23 @@ const ProductSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    origin: {
-      type: String,
+    origin_production_request_id: {
+      type: Types.ObjectId,
+      ref: "production_requests",
       required: true,
     },
+    // Ngày tạo hàng
+    created_date: { type: String, required: true },
+    // Ngày hết hạng
+    expiration_date: { type: String, required: true },
+    status: {
+      type: String,
+      required: true,
+      enum: ["còn hạn", "hết hạn", "đang giao hàng"],
+      default: "còn hạn",
+    },
     certifications: {
-      type: [String],
+      type: [String], // sửa luôn default là mảng
       default: [],
     },
   },
