@@ -41,10 +41,20 @@ const path = require("path");
 //   }
 // };
 
-
 const createProduct = async (req, res) => {
   try {
-    const { name, masanpham, image, type, price, oldPrice, description, quantity, origin, certifications } = req.body;
+    const {
+      name,
+      masanpham,
+      image,
+      type,
+      price,
+      oldPrice,
+      description,
+      quantity,
+      origin,
+      certifications,
+    } = req.body;
 
     // Kiểm tra các trường bắt buộc
     if (!name || !masanpham || !type || !price) {
@@ -113,7 +123,6 @@ function formatFileName(name) {
     .toLowerCase(); // Chuyển thành chữ thường
 }
 
-
 // Phương Thức Update Thông Tin Của Product
 const updateProduct = async (req, res) => {
   try {
@@ -150,7 +159,6 @@ const getProductDetail = async (req, res) => {
 module.exports = {
   getProductDetail,
 };
-
 
 // Phương Thức Delele User
 const deleteProduct = async (req, res) => {
@@ -191,7 +199,6 @@ const deleteAllProducts = async (req, res) => {
   }
 };
 
-
 // Phương Thức DELETE Many
 const deleteManyProduct = async (req, res) => {
   try {
@@ -219,7 +226,7 @@ const deleteManyProduct = async (req, res) => {
 //   try {
 //     // Lưu ý , với mỗi key query được sử dụng 2 lần thì nó sẽ có dạng array []
 //     const { limit, page, sort, filter } = req.query;
-   
+
 //     const respone = await ProductService.getAllProduct(
 //       +limit || 6,
 //       +page || 0,
@@ -227,7 +234,6 @@ const deleteManyProduct = async (req, res) => {
 //       filter
 //     );
 
-    
 //     // Log API Check
 //     return res.status(200).json(respone);
 //   } catch (error) {
@@ -240,28 +246,20 @@ const deleteManyProduct = async (req, res) => {
 const getAllProduct = async (req, res) => {
   try {
     const { limit, page, sort, filter } = req.query;
+    const parsedFilter =
+      typeof filter === "string" ? JSON.parse(filter) : filter || {};
 
-    // Gọi ProductService để lấy danh sách sản phẩm
-    const response = await ProductService.getAllProduct(
+    const { products, totalCount } = await ProductService.getAllProduct(
       +limit || 8,
       +page || 0,
       sort,
-      filter
+      parsedFilter
     );
 
-    // Base URL của server
-    const baseURL = "http://localhost:3001";
-
-    // Thêm URL đầy đủ cho ảnh và chỉ giữ lại dữ liệu trong `_doc`
-    const productsWithFullImageURL = response.products.map((product) => ({
-      ...product._doc, // Chỉ giữ dữ liệu gốc trong `_doc`
-      image: `${baseURL}/${product.image}`,
-    }));
-
-    // Trả về danh sách sản phẩm đã chỉnh sửa
     return res.status(200).json({
       status: "SUCCESS",
-      products: productsWithFullImageURL,
+      products,
+      totalCount, // ✅ Trả về tổng số bản ghi
     });
   } catch (error) {
     console.error("Lỗi trong getAllProduct:", error);
@@ -271,9 +269,6 @@ const getAllProduct = async (req, res) => {
     });
   }
 };
-
-
-
 
 // Phương Thức Search Product
 const searchProduct = async (req, res) => {
@@ -301,9 +296,6 @@ const searchProduct = async (req, res) => {
   }
 };
 
-
-
-
 // Phương Thức Khởi Tạo 1 New Category
 // const createCategory = async (req, res) => {
 //   try {
@@ -325,7 +317,6 @@ const searchProduct = async (req, res) => {
 //     });
 //   }
 // };
-
 
 // Phương Thức Get All PRODUCT
 // const getAllCategory = async (req, res) => {
@@ -349,7 +340,7 @@ module.exports = {
   deleteAllProducts,
   getAllProduct,
   deleteManyProduct,
-  searchProduct
+  searchProduct,
 };
 
 // File này nằm trong Controller / Folder điều khiển

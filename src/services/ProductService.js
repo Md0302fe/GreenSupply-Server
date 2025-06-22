@@ -8,7 +8,10 @@ const createProduct = async (productData) => {
   try {
     const newProduct = new product(productData);
     await newProduct.save();
-    return { status: "Create New Product Is Successfully!", product: newProduct };
+    return {
+      status: "Create New Product Is Successfully!",
+      product: newProduct,
+    };
   } catch (error) {
     throw new Error(error.message);
   }
@@ -17,11 +20,16 @@ const createProduct = async (productData) => {
 // Cập nhật sản phẩm
 const updateProduct = async (id, data) => {
   try {
-    const updatedProduct = await product.findByIdAndUpdate(id, data, { new: true });
+    const updatedProduct = await product.findByIdAndUpdate(id, data, {
+      new: true,
+    });
     if (!updatedProduct) {
       throw new Error("Product not found");
     }
-    return { status: "Update Product Is Successfully!", product: updatedProduct };
+    return {
+      status: "Update Product Is Successfully!",
+      product: updatedProduct,
+    };
   } catch (error) {
     throw new Error(error.message);
   }
@@ -30,7 +38,10 @@ const updateProduct = async (id, data) => {
 // Lấy chi tiết sản phẩm
 const getProductDetail = async (id) => {
   try {
-    const productDetail = await product.findById(id);
+    const productDetail = await product
+      .findById(id)
+      .populate("type_material_id") // Lấy thông tin loại vật liệu
+      .populate("origin_production_request_id"); // Lấy thông tin yêu cầu sản xuất
     if (!productDetail) {
       throw new Error("Product not found");
     }
@@ -40,20 +51,30 @@ const getProductDetail = async (id) => {
   }
 };
 
-
 // Lấy tất cả sản phẩm
-const getAllProduct = async (limit = 8, page = 0, sort, filter) => {
+const getAllProduct = async (limit = 8, page = 0, sort = {}, filter = {}) => {
   try {
-    const products = await product.find(filter)
+    const totalCount = await product.countDocuments(filter); // Tổng số sản phẩm
+
+    const products = await product
+      .find(filter)
+      .populate({
+        path: "type_material_id",
+        populate: {
+          path: "fuel_type_id",
+          model: "materials",
+        },
+      })
+      .populate("origin_production_request_id")
       .sort(sort)
       .limit(limit)
-  
-    return { status: "Get All Products Is Successfully!", products };
+      .skip(page * limit);
+
+    return { products, totalCount };
   } catch (error) {
     throw new Error(error.message);
   }
 };
-
 
 // Xóa sản phẩm
 const deleteProduct = async (id) => {
@@ -62,7 +83,10 @@ const deleteProduct = async (id) => {
     if (!deletedProduct) {
       throw new Error("Product not found");
     }
-    return { status: "Delete Product Is Successfully!", product: deletedProduct };
+    return {
+      status: "Delete Product Is Successfully!",
+      product: deletedProduct,
+    };
   } catch (error) {
     throw new Error(error.message);
   }
@@ -81,12 +105,14 @@ const deleteAllProducts = async () => {
   }
 };
 
-
 // Xóa nhiều sản phẩm
 const deleteManyProduct = async (ids) => {
   try {
     const deletedProducts = await product.deleteMany({ _id: { $in: ids } });
-    return { status: "Delete Many Products Is Successfully!", deletedCount: deletedProducts.deletedCount };
+    return {
+      status: "Delete Many Products Is Successfully!",
+      deletedCount: deletedProducts.deletedCount,
+    };
   } catch (error) {
     throw new Error(error.message);
   }
@@ -101,8 +127,6 @@ const searchProductByName = async (name) => {
     throw new Error(error.message);
   }
 };
-
-
 
 // Tạo danh mục mới
 // const createCategory = async (categoryData) => {
@@ -125,8 +149,6 @@ const searchProductByName = async (name) => {
 //   }
 // };
 
-
-
 module.exports = {
   createProduct,
   updateProduct,
@@ -135,5 +157,5 @@ module.exports = {
   deleteProduct,
   deleteAllProducts,
   deleteManyProduct,
-  searchProductByName
+  searchProductByName,
 };
