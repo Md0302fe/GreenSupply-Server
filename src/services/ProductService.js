@@ -40,8 +40,14 @@ const getProductDetail = async (id) => {
   try {
     const productDetail = await product
       .findById(id)
-      .populate("type_material_id") // Lấy thông tin loại vật liệu
-      .populate("origin_production_request_id"); // Lấy thông tin yêu cầu sản xuất
+      .populate({
+        path: "type_material_id",
+        populate: {
+          path: "fuel_type_id",
+          model: "materials",
+        },
+      }) 
+      .populate("origin_production_request_id");
     if (!productDetail) {
       throw new Error("Product not found");
     }
