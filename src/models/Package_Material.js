@@ -27,14 +27,25 @@ const PackageMaterialSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    type: { // Thêm trường loại nguyên liệu
+    type: {
+      // Thêm trường loại nguyên liệu
       type: String,
       enum: ["túi chân không", "thùng carton"], // Quy định các loại
       required: true,
     },
-    capacity: { // Dung tích của nguyên liệu (ví dụ 0.5kg, 1kg)
+    capacity: {
+      // Dung tích của nguyên liệu (ví dụ 0.5kg, 1kg)
       type: Number,
       required: true,
+    },
+    dimensions: {
+      length: { type: Number },
+      width: { type: Number },
+      height: { type: Number },
+    },
+    size_category: {
+      type: String,
+      enum: ["nhỏ", "trung bình", "lớn", "chưa xác định"],
     },
   },
   { timestamps: true } // Tự động tạo `createdAt` & `updatedAt`
