@@ -193,7 +193,7 @@ const changeStatus = async (id) => {
       batch_name: productionRequest.request_name,
       status: "Đang chuẩn bị",
       fuel_type_id: productionRequest.material,
-      quantity: productionRequest.product_quantity, // hoặc material_quantity
+      quantity: productionRequest.material_quantity, // hoặc material_quantity
       storage_id: productionRequest.material.storage_id, // Truyền storage_id từ fuelDoc
       production_request_id: productionRequest._id,
       is_automatic: false,

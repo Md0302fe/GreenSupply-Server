@@ -6,7 +6,24 @@ const SingleProductionProcessing = require("../models/Single_Process");
 const ProductionProcessHistory = require("../models/Production_Process_History");
 const ConsolidateProductionProcessing = require("../models/Consolidated_Process");
 
+const product_img_carton = require("../assets/product-image/prouct_carton_img.jpg")
+
 const { default: mongoose } = require("mongoose");
+
+// Convert Date To String
+const convertDateStringV1 = (dateString) => {
+  try {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+
+    return `${day}-${month}-${year}`; // Chỉ lấy ngày-tháng-năm
+  } catch (error) {
+    console.log("Lỗi trong quá trình convert thời gian: ", error);
+    return ""; // Tránh lỗi hiển thị nếu có lỗi
+  }
+};
 
 // hard code wait for function create & update store
 const store_product_id = "6855623993433942fba4962e";
@@ -46,8 +63,8 @@ const processEndCurrentMap = {
 };
 
 function formatDateTime(date) {
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Tháng tính từ 0
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Tháng tính từ 0
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 }
@@ -346,27 +363,26 @@ const finishStage = async (dataRequest) => {
     const currentDate = new Date();
 
     // thông tin cập nhật mỗi giai đoạn
-    // const updateFields = {
-    //   ...dataUpdate,
-    //   status: "Hoàn thành",
-    //   end_time: currentDate,
-    // };
+    const updateFields = {
+      ...dataUpdate,
+      status: "Hoàn thành",
+      end_time: currentDate,
+    };
 
-    // const stageUpdated = await ProcessStatus.findByIdAndUpdate(
-    //   stage_id,
-    //   updateFields,
-    //   { new: true }
-    // );
+    const stageUpdated = await ProcessStatus.findByIdAndUpdate(
+      stage_id,
+      updateFields,
+      { new: true }
+    );
 
-    // console.log("Check upadted => ", stageUpdated);
+    if (!stageUpdated) {
+      return {
+        success: false,
+        message: "Không tìm thấy stage_id",
+        data: null,
+      };
+    }
 
-    // if (!stageUpdated) {
-    //   return {
-    //     success: false,
-    //     message: "Không tìm thấy stage_id",
-    //     data: null,
-    //   };
-    // }
     // Nếu stage hiện tại không phải cuối cùng → tạo stage tiếp theo
     if (noStage <= 6) {
       await createNextStage(process_id, parseInt(noStage), process_type);
@@ -433,45 +449,73 @@ const createNextStepForSingleProcess = async (
     const currentDate = new Date();
 
     // tìm productionProcessing
-    const processData = await SingleProductionProcessing.findById(
+    const processData = await ConsolidateProductionProcessing.findById(
       process_id
-    ).populate("production_request_id");
+    ).populate([
+      {
+        path: "production_request_id",
+        populate: [
+          {
+            path: "material",
+            populate: {
+              path: "fuel_type_id storage_id", // Populate cả loại nhiên liệu và kho
+            },
+          },
+          {
+            path: "packaging.vacuumBagBoxId",
+          },
+          {
+            path: "packaging.cartonBoxId",
+          },
+        ],
+      },
+      {
+        path: "user_id",
+      },
+    ]);
 
     if (!processData) return;
 
     // kiểm tra xem = 6 thì tạo 1 lô sản phẩm
     if (parseInt(noStage) === 6) {
-      // cast giá trị to object Id trước khi tạo sản phẩm 'material_managements' & 'production_requests'
+      const productionRequest = processData?.production_request_id;
+
+      if (!productionRequest) {
+        return {
+          success: false,
+          message: "Không tìm thấy thông tin yêu cầu sản xuất.",
+        };
+      }
+
       const type_material_id = new mongoose.Types.ObjectId(
-        processData?.production_request_id?.material
+        productionRequest.material
       );
-
       const origin_production_request_id = new mongoose.Types.ObjectId(
-        processData?.production_request_id?._id
+        productionRequest._id
       );
+      const obectStoreId = new mongoose.Types.ObjectId(store_product_id);
 
-      const created_date = new Date(); // Ngày tạo = hôm nay
+      // Ngày tạo và hết hạn
+      const created_date = new Date();
       const expiration_date = new Date(created_date);
-      expiration_date.setMonth(expiration_date.getMonth() + 5); // Cộng thêm 5 tháng
+      expiration_date.setMonth(expiration_date.getMonth() + 5);
 
-      // khởi tạo 1 sản phẩm
-      const dataProduct = {
-        name: processData?.production_request_id?.request_name,
-        masanpham: processData?.production_request_id?.production_id + "10",
-        image: "",
+      // ✅ Khởi tạo sản phẩm đầy đủ
+      const productData = {
+        masanpham: productionRequest.production_id,
+        image: "../../assets/Feature_warehouse/prouct_carton_img.jpg",
         type_material_id,
         price: "",
         description: "",
-        quantity: processData?.finalQuantityProduction,
+        quantity: productionRequest.product_quantity,
         origin_production_request_id,
-        created_date: formatDateTime(created_date), // Ngày tạo hàng
-        expiration_date: formatDateTime(expiration_date) , // Ngày hết hạng
+        created_date: convertDateStringV1(created_date),
+        expiration_date: convertDateStringV1(expiration_date),
         certifications: "",
+        is_storaged: false,
       };
 
-      const created_product = await Product.create(dataProduct);
-
-      console.log("created_product => ", created_product)
+      const created_product = await Product.create(productData);
 
       if (!created_product) {
         return {
@@ -481,20 +525,19 @@ const createNextStepForSingleProcess = async (
         };
       }
 
-      const product_id = new mongoose.Types.ObjectId(created_product._id);
-      const obectStoreId = new mongoose.Types.ObjectId(store_product_id);
-
-      // Data receipt store
+      // Tạo đơn nhập kho
       const dataReceipt = {
-        storage_id: obectStoreId, // id kho thành phẩm
-        status: "Chờ duyệt", // trạng thái ban đầu của đơn nhập kho
-        storage_date: currentDate, // thời gian tạo đơn
-        production: product_id,
+        storage_id: obectStoreId,
+        storage_date: created_date,
+        production: created_product._id,
         quantity: created_product.quantity,
-        receipt_type : "3", // type 3 = nhập kho thành phẩm
+        receipt_type: "2", // type 2 = nhập kho thành phẩm
+        status: "Chờ duyệt",
         is_deleted: false,
       };
+
       const receipt_store = await StoreReceipt.create(dataReceipt);
+
       if (!receipt_store) {
         return {
           success: false,
@@ -505,20 +548,19 @@ const createNextStepForSingleProcess = async (
     }
 
     // Tăng stage hiện tại lên
-    // processData.current_stage += 1;
+    processData.current_stage += 1;
+    // (processData.finalQuantityProduction = dataProduct?.quantity),
+    processData[process_stage_start] = currentDate;
+    processData[process_stage_end] = currentDate;
 
-    // Cập nhật start & end time thông qua ánh xạ key
-    // processData[process_stage_start] = currentDate;
-    // processData[process_stage_end] = currentDate;
+    await processData.save();
 
-    // await processData.save();
-
-    // const newStage = await ProcessStatus.create({
-    //   process_id,
-    //   process_type: processData.process_type,
-    //   stage_name: nextStageName,
-    //   start_time: new Date(),
-    // });
+    const newStage = await ProcessStatus.create({
+      process_id,
+      process_type: processData.process_type,
+      stage_name: nextStageName,
+      start_time: new Date(),
+    });
   } catch (error) {
     console.log("Error => ", error);
     return {
@@ -528,6 +570,7 @@ const createNextStepForSingleProcess = async (
   }
 };
 
+// Luồng tạo stept kế tiếp cho quy trình tổng hợp
 const createNextStepForConsolidateProcess = async (
   noStage,
   nextStageName,
@@ -536,32 +579,115 @@ const createNextStepForConsolidateProcess = async (
   process_id
 ) => {
   // tìm productionProcessing
-  const productionProcessing = await ConsolidateProductionProcessing.findById(
+  const processData = await ConsolidateProductionProcessing.findById(
     process_id
-  );
-  console.log("find process by id to create ", productionProcessing);
-  if (!productionProcessing) return;
+  ).populate([
+    {
+      path: "production_request_id",
+      populate: [
+        {
+          path: "material",
+          populate: {
+            path: "fuel_type_id storage_id", // Populate cả loại nhiên liệu và kho
+          },
+        },
+        {
+          path: "packaging.vacuumBagBoxId",
+        },
+        {
+          path: "packaging.cartonBoxId",
+        },
+      ],
+    },
+    {
+      path: "user_id",
+    },
+  ]);
+
+  if (!processData) return;
+
+  // kiểm tra xem = 6 thì tạo 1 lô sản phẩm
+  if (parseInt(noStage) === 6) {
+    const created_date = new Date();
+    const expiration_date = new Date(created_date);
+    expiration_date.setMonth(expiration_date.getMonth() + 5);
+
+    const products = [];
+
+    for (const req of processData?.production_request_id || []) {
+      const type_material_id = new mongoose.Types.ObjectId(req.material);
+      const origin_production_request_id = new mongoose.Types.ObjectId(req._id);
+
+      const productData = {
+        masanpham: req.production_id,
+        image: product_img_carton,
+        type_material_id,
+        price: "",
+        description: "",
+        quantity: req.product_quantity,
+        origin_production_request_id,
+        created_date: convertDateStringV1(created_date),
+        expiration_date: convertDateStringV1(expiration_date),
+        certifications: "",
+        is_storaged: false,
+      };
+
+      // Lưu sản phẩm vào DB trước để lấy _id sản phẩm
+      const created_product = await Product.create(productData);
+      const obectStoreId = new mongoose.Types.ObjectId(store_product_id);
+
+      // Data receipt store
+      const dataReceipt = {
+        storage_id: obectStoreId,
+        storage_date: created_date,
+        production: created_product._id,
+        quantity: created_product.quantity,
+        receipt_type: "2",
+        status: "Chờ duyệt",
+        is_deleted: false,
+      };
+
+      const receipt_store = await StoreReceipt.create(dataReceipt);
+
+      if (!receipt_store) {
+        return {
+          success: false,
+          message:
+            "Đã xảy ra lỗi trong quá trình tạo yêu cầu nhập kho. Vui lòng thử lại sau",
+        };
+      }
+
+      products.push(created_product); // Push vào mảng sản phẩm sau khi tạo
+    }
+
+    if (products.length === 0) {
+      return {
+        success: false,
+        message:
+          "Đã xảy ra lỗi trong quá trình tạo sản phẩm. Vui lòng thử lại sau",
+      };
+    }
+  }
 
   // Tăng stage hiện tại lên
-  productionProcessing.current_stage += 1;
+  processData.current_stage += 1;
 
   const currentDate = new Date();
+  processData[process_stage_start] = currentDate;
+  processData[process_stage_end] = currentDate;
 
-  // Cập nhật start & end time thông qua ánh xạ key
-  productionProcessing[process_stage_start] = currentDate;
-  productionProcessing[process_stage_end] = currentDate;
-
-  await productionProcessing.save();
+  await processData.save();
 
   const newStage = new ProcessStatus({
     process_id,
-    process_type: productionProcessing.process_type,
+    process_type: processData.process_type,
     stage_name: nextStageName,
     start_time: new Date(),
   });
 
   await newStage.save();
 };
+
 const deleteById = async (id) => {
   try {
     // 1. Tìm đơn sản xuất theo id
@@ -670,9 +796,28 @@ const approveConsolidateProcess = async (id) => {
 const getProcessingDetails = async (id) => {
   try {
     // Lấy danh sách theo điều kiện lọc
-    const requests = await SingleProductionProcessing.findById(id).populate(
-      "production_request_id user_id"
-    );
+    const requests = await SingleProductionProcessing.findById(id).populate([
+      {
+        path: "production_request_id",
+        populate: [
+          {
+            path: "material",
+            populate: {
+              path: "fuel_type_id storage_id", // Populate cả loại nhiên liệu và kho
+            },
+          },
+          {
+            path: "packaging.vacuumBagBoxId",
+          },
+          {
+            path: "packaging.cartonBoxId",
+          },
+        ],
+      },
+      {
+        path: "user_id",
+      },
+    ]);
 
     return {
       success: true,
@@ -690,7 +835,28 @@ const getConsolidateProcessingDetails = async (id) => {
     // Lấy danh sách theo điều kiện lọc
     const requests = await ConsolidateProductionProcessing.findById(
       id
-    ).populate("production_request_id user_id");
+    ).populate([
+      {
+        path: "production_request_id",
+        populate: [
+          {
+            path: "material",
+            populate: {
+              path: "fuel_type_id storage_id", // Populate cả loại nhiên liệu và kho
+            },
+          },
+          {
+            path: "packaging.vacuumBagBoxId",
+          },
+          {
+            path: "packaging.cartonBoxId",
+          },
+        ],
+      },
+      {
+        path: "user_id",
+      },
+    ]);
 
     return {
       success: true,
