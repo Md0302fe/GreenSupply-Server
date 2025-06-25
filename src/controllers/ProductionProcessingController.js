@@ -274,7 +274,7 @@ const update = async (req, res) => {
 const finishStage = async (req, res) => {
   try {
     // get dữ liệu từ dataRequest FE
-    const {process_id, noStage , stage_id , process_type , dataUpdate } = req.body.dataRequest;
+    const {process_id, noStage , stage_id , process_type , dataUpdate} = req.body.dataRequest;
     // assigned data to object 
     const dataRequest = {process_id, noStage , stage_id , process_type , dataUpdate }
     // call services to finish stage

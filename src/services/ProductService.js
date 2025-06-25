@@ -58,7 +58,7 @@ const getProductDetail = async (id) => {
 };
 
 // Lấy tất cả sản phẩm
-const getAllProduct = async (limit = 8, page = 0, sort = {}, filter = {}) => {
+const getAllProduct = async (limit = 8, page = 0, sort = {createdAt : -1}, filter = {}) => {
   try {
     const totalCount = await product.countDocuments(filter); // Tổng số sản phẩm
 

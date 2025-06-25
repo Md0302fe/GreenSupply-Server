@@ -3,10 +3,10 @@ const { Schema, Types } = mongoose;
 
 const ProductSchema = new Schema(
   {
-    name: {
-      type: String,
-      required: true,
-    },
+    // name: {
+    //   type: String,
+    //   required: true,
+    // },
     masanpham: {
       type: String,
       required: true,
@@ -47,6 +47,7 @@ const ProductSchema = new Schema(
       enum: ["còn hạn", "hết hạn", "đang giao hàng"],
       default: "còn hạn",
     },
+    is_storaged: { type: Boolean, required: true, default: "false" },
     certifications: {
       type: [String], // sửa luôn default là mảng
       default: [],
