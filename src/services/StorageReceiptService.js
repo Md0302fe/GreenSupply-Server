@@ -82,41 +82,37 @@ const createFuelStorageReceipt = async (
 
 const getAllFuelStorageReceipts = async (query) => {
   try {
-    let { search, status, sortOrder } = query;
+    let { search, status, sortOrder, receipt_type } = query;
     let filter = { is_deleted: false };
-
-    // console.log("📥 API nhận request:", { search, status, sortOrder });
-
     // 🟢 1. Filter - Lọc theo trạng thái đơn
     if (status) {
       filter.status = status;
     }
-
+    if (receipt_type) {
+      filter.receipt_type = receipt_type;
+    }
     // 🟢 2. Sort - Sắp xếp theo `createdAt`
-    let sortOptions = { createdAt: sortOrder === "asc" ? 1 : -1 }; // Mặc định mới nhất trước
-
+    let sortOptions = { createdAt: sortOrder === "asc" ? 1 : -1 };
     // 🟢 3. Query Database (lấy tất cả dữ liệu trước)
     let receipts = await FuelStorageReceipt.find(filter)
-      .populate("manager_id", "full_name") // 🔹 Chỉ lấy `full_name`
-      .populate("storage_id", "name_storage") // 🔹 Chỉ lấy `name_storage`
+      .populate("manager_id", "full_name")
+      .populate("storage_id", "name_storage")
       .populate("receipt_supply_id receipt_request_id")
       .sort(sortOptions);
-
     // console.log("🔍 Dữ liệu trước khi lọc:", receipts);
 
     if (search) {
-      const regexSearch = new RegExp(search, "i"); // Không phân biệt hoa thường
+      const regexSearch = new RegExp(search, "i");
       receipts = receipts.filter(
         (receipt) =>
-          regexSearch.test(receipt.manager_id?.full_name || "") || // 🔍 Tìm theo tên quản lý
-          regexSearch.test(receipt.storage_id?.name_storage || "") || // 🔍 Tìm theo tên kho
-          regexSearch.test(receipt.status || "") || // 📌 Tìm theo trạng thái
-          regexSearch.test(receipt.note || "") || // ✍ Tìm theo ghi chú
-          (receipt.quantity && receipt.quantity.toString().includes(search)) || // 🔢 Tìm theo số lượng
-          regexSearch.test(receipt.receipt_supply_id ? "Cung cấp" : "Thu hàng") // 🔍 Tìm theo loại đơn hàng
+          regexSearch.test(receipt.manager_id?.full_name || "") ||
+          regexSearch.test(receipt.storage_id?.name_storage || "") ||
+          regexSearch.test(receipt.status || "") ||
+          regexSearch.test(receipt.note || "") ||
+          (receipt.quantity && receipt.quantity.toString().includes(search)) ||
+          regexSearch.test(receipt.receipt_supply_id ? "Cung cấp" : "Thu hàng")
       );
     }
-    // console.log("🔍 Dữ liệu sau khi lọc:", receipts);
 
     return receipts;
   } catch (error) {
@@ -137,42 +133,68 @@ const updateFuelStorageReceiptStatus = async (id, status) => {
 
     const receipt = await FuelStorageReceipt.findById(id)
       .populate("receipt_request_id")
-      .populate("receipt_supply_id");
+      .populate("receipt_supply_id")
+      .populate("production");
+
     if (!receipt) throw new Error("Không tìm thấy đơn nhập kho!");
 
-    const isSupply = !!receipt?.receipt_supply_id;
-    const relatedRequest = isSupply
-      ? receipt.receipt_supply_id
-      : receipt.receipt_request_id;
-    const materialId = isSupply
-      ? (await Purchase_Material_Plans.findById(relatedRequest?.request_id))
-          ?.fuel_type
-      : relatedRequest?.fuel_type;
+    const { receipt_type, quantity, storage_id } = receipt;
+    let materialId = null;
+    let relatedRequest = null;
 
-    const material = await MaterialManagement.findById(materialId);
-    if (material) {
-      const newQuantity = (material.quantity || 0) + (receipt.quantity || 0);
-      await MaterialManagement.findByIdAndUpdate(materialId, {
-        quantity: newQuantity,
-      });
+    // === ✅ Phân loại theo loại đơn ===
+    if (receipt_type === "1") {
+      // Đơn dùng chung (nguyên liệu): xác định là từ cung cấp hay thu gom
+      if (receipt.receipt_supply_id) {
+        relatedRequest = receipt.receipt_supply_id;
+        const plan = await Purchase_Material_Plans.findById(
+          relatedRequest?.request_id
+        );
+        materialId = plan?.fuel_type;
+      } else if (receipt.receipt_request_id) {
+        relatedRequest = receipt.receipt_request_id;
+        materialId = relatedRequest?.fuel_type;
+      }
+    } else if (receipt_type === "2") {
+      // Đơn thành phẩm
+      materialId = receipt.production?._id;
     }
 
+    // === ✅ Cập nhật số lượng vào MaterialManagement ===
+    if (materialId) {
+      const material = await MaterialManagement.findById(materialId);
+      if (material) {
+        const newQuantity = (material.quantity || 0) + (quantity || 0);
+        await MaterialManagement.findByIdAndUpdate(materialId, {
+          quantity: newQuantity,
+        });
+      }
+    }
+
+    // === ✅ Kiểm tra và trừ sức chứa kho ===
     if (status === "Nhập kho thành công") {
-      const storage = await FuelStorage.findById(receipt.storage_id);
+      const storage = await FuelStorage.findById(storage_id);
       if (!storage) throw new Error("Không tìm thấy kho!");
-      if (receipt.quantity > storage.remaining_capacity)
+      if (quantity > storage.remaining_capacity)
         throw new Error("Kho không đủ sức chứa!");
 
-      storage.remaining_capacity -= receipt.quantity;
+      storage.remaining_capacity -= quantity;
       await storage.save();
 
-      await updateOrderStatus(relatedRequest, "Hoàn Thành");
+      // ✅ Chỉ cập nhật trạng thái đơn hàng nếu là nguyên liệu (type 1)
+      if (receipt_type === "1" && relatedRequest) {
+        await updateOrderStatus(relatedRequest, "Hoàn Thành");
+      }
     }
 
+    // === ✅ Cập nhật trạng thái nếu huỷ ===
     if (status === "Đã huỷ") {
-      await updateOrderStatus(relatedRequest, "thất bại");
+      if (receipt_type === "1" && relatedRequest) {
+        await updateOrderStatus(relatedRequest, "thất bại");
+      }
     }
 
+    // === ✅ Cập nhật trạng thái đơn nhập kho ===
     receipt.status = status;
     await receipt.save();
   } catch (error) {
