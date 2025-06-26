@@ -6,7 +6,7 @@ const SingleProductionProcessing = require("../models/Single_Process");
 const ProductionProcessHistory = require("../models/Production_Process_History");
 const ConsolidateProductionProcessing = require("../models/Consolidated_Process");
 
-const product_img_carton = require("../assets/product-image/prouct_carton_img.jpg")
+const product_img_carton = "/assets/product-image/prouct_carton_img.jpg";
 
 const { default: mongoose } = require("mongoose");
 
@@ -617,6 +617,7 @@ const createNextStepForConsolidateProcess = async (
     for (const req of processData?.production_request_id || []) {
       const type_material_id = new mongoose.Types.ObjectId(req.material);
       const origin_production_request_id = new mongoose.Types.ObjectId(req._id);
+      const product_img_carton = "/assets/product-image/product_carton_img.jpg"; // sửa chính tả nếu cần
 
       const productData = {
         masanpham: req.production_id,
