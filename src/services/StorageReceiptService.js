@@ -5,6 +5,7 @@ const MaterialProvideRequest = require("../models/Material_Provide_Request");
 
 const MaterialManagement = require("../models/Material_Management");
 const Purchase_Material_Plans = require("../models/Purchase_Material_Plan");
+const Products = require("../models/Products");
 
 const storage_id = "665480f9bde459d62ca7d001";
 
@@ -158,6 +159,10 @@ const updateFuelStorageReceiptStatus = async (id, status) => {
     } else if (receipt_type === "2") {
       // Đơn thành phẩm
       materialId = receipt.production?._id;
+      const product = await Products.findByIdAndUpdate(materialId, {
+        is_storaged: true,
+      });
+      console.log("product: ", product)
     }
 
     // === ✅ Cập nhật số lượng vào MaterialManagement ===

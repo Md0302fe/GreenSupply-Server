@@ -60,10 +60,11 @@ const getProductDetail = async (id) => {
 // Lấy tất cả sản phẩm
 const getAllProduct = async (limit = 8, page = 0, sort = {createdAt : -1}, filter = {}) => {
   try {
-    const totalCount = await product.countDocuments(filter); // Tổng số sản phẩm
+    const finalFilter = { ...filter, is_storaged: true };
+    const totalCount = await product.countDocuments(finalFilter); // Tổng số sản phẩm
 
     const products = await product
-      .find(filter)
+      .find(finalFilter)
       .populate({
         path: "type_material_id",
         populate: {
