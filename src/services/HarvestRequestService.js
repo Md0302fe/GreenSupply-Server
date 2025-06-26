@@ -195,7 +195,7 @@ const getHarvestRequestHistories = async (user) => {
       .populate("supplier_id", "full_name email phone")
       .sort({ createdAt: -1 });
 
-    console.log("requests => ", requests)
+ 
     // Manually calculate the total_price for each request
     const updatedRequests = requests.map((request) => {
       request.total_price = request.quantity * request.price;

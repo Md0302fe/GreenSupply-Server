@@ -8,7 +8,6 @@ const getAllFuel = async () => {
     .populate('fuel_type_id')
     .sort({ createdAt: -1 }) // Sắp xếp theo ngày tạo mới nhất trước;
 
-    console.log("requests => ", requests)
     return {
       success: true,
       status: "Lấy danh sách loại nhiên liệu thành công!",
