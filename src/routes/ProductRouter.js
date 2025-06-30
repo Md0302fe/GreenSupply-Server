@@ -17,6 +17,9 @@ const {
   router.delete('/deleteAllProducts', ProductController.deleteAllProducts);
   router.get("/getAllProduct", ProductController.getAllProduct);
   router.get("/searchProduct", ProductController.searchProduct);    
-  router.get("/getProductDetail/:id", ProductController.getProductDetail);    
+  router.get("/getProductDetail/:id", ProductController.getProductDetail);
+  
+  // get product by product code
+  router.get("/getProductDetailV2/:productCode", ProductController.getProductDetailByCode);
 
   module.exports = router;

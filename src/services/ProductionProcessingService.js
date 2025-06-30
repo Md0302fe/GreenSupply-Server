@@ -388,7 +388,7 @@ const finishStage = async (dataRequest) => {
       await createNextStage(process_id, parseInt(noStage), process_type);
     }
 
-    if (noStage == 7) {
+    if (noStage === 7) {
       console.log("noStage => ", noStage);
       const result = await completeProductionProcess(process_id);
       if (!result.success) return result;
