@@ -145,10 +145,23 @@ const updateProduct = async (req, res) => {
   }
 };
 
+// get product detail by id
 const getProductDetail = async (req, res) => {
   try {
     const productId = req.params.id;
     const response = await ProductService.getProductDetail(productId);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Error fetching product detail:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// get product detail by code
+const getProductDetailByCode = async (req, res) => {
+  try {
+    const productCode = req.params.productCode;
+    const response = await ProductService.getProductDetailByCode(productCode);
     return res.status(200).json(response);
   } catch (error) {
     console.error("Error fetching product detail:", error);
@@ -341,6 +354,7 @@ module.exports = {
   getAllProduct,
   deleteManyProduct,
   searchProduct,
+  getProductDetailByCode
 };
 
 // File này nằm trong Controller / Folder điều khiển

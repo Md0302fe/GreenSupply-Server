@@ -35,7 +35,7 @@ const updateProduct = async (id, data) => {
   }
 };
 
-// Lấy chi tiết sản phẩm
+// Lấy chi tiết sản phẩm = id
 const getProductDetail = async (id) => {
   try {
     const productDetail = await product
@@ -52,6 +52,30 @@ const getProductDetail = async (id) => {
       throw new Error("Product not found");
     }
     return { status: "Get Product Details Is Successfully!", productDetail };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// get product detail by product Code
+const getProductDetailByCode = async (productCode) => {
+  try {
+
+    const productDetail = await product
+      .find({masanpham : productCode}) // find by product_code
+      .populate({
+        path: "type_material_id",
+        populate: {
+          path: "fuel_type_id",
+          model: "materials",
+        },
+      }) 
+      .populate("origin_production_request_id");
+    if (!productDetail) {
+      throw new Error("Product not found");
+    }
+
+    return { status: "Get Product Details Is Successfully!", productDetail};
   } catch (error) {
     throw new Error(error.message);
   }
@@ -165,4 +189,5 @@ module.exports = {
   deleteAllProducts,
   deleteManyProduct,
   searchProductByName,
+  getProductDetailByCode
 };
