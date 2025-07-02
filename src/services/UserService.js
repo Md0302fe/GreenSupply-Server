@@ -837,7 +837,85 @@ const deleteAddress = async (user_id, address_id) => {
     return { status: "ERROR", message: "Lỗi khi xóa địa chỉ." };
   }
 };
+
+
+
+
+const getUserOverview = async () => {
+  try {
+    // 1. Tổng số user
+    const totalUser = await User.countDocuments();
+
+    // 2. Số user bị chặn
+    const totalBlocked = await User.countDocuments({ is_blocked: true });
+
+    // 3. Số user mới hôm nay
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const newToday = await User.countDocuments({ createdAt: { $gte: startOfToday } });
+
+    // 4. Số user dùng Google đăng nhập
+    const googleLogin = await User.countDocuments({ googleId: { $ne: null } });
+
+    // 5. 5 user mới nhất
+    const latestUsers = await User.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select("full_name email createdAt")
+      .populate("role_id", "role_name");
+
+    // 6. Số user chưa bị chặn
+      const totalActive = await User.countDocuments({ is_blocked: false });
+
+    // Thống kê vai trò
+    const role = await User.aggregate([
+      {
+        $lookup: {
+          from: "roles",
+          localField: "role_id",
+          foreignField: "_id",
+          as: "role"
+        }
+      },
+      { $unwind: "$role" },
+      {
+        $group: {
+          _id: "$role.role_name",
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          role: "$_id",
+          count: 1,
+          _id: 0
+        }
+      }
+    ]);
+    return {
+      status: "OK",
+      data: {
+        totalUser,
+        totalBlocked,
+        totalActive,
+        role,
+        newToday,
+        googleLogin,
+        latestUsers,
+      }
+    };
+  } catch (error) {
+    console.error("DashboardService error:", error);
+    return {
+      status: "ERROR",
+      message: "Lỗi khi lấy dữ liệu thống kê",
+      error: error.message
+    };
+  }
+};
+
 module.exports = {
+  getUserOverview,
   createUser,
   userLogin,
   updateUser,

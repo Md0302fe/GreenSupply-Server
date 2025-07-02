@@ -51,7 +51,8 @@ router.delete("/address/delete/:id", authUserMidleware, UserController.deleteAdd
 router.get("/address/getAll", authUserMidleware, UserController.getAllAddresses);
 router.get("/address/detail/:id", authUserMidleware, UserController.getDetailAddress);
 
-
+// Dashboard Overview
+router.get("/Dashborad-User", authUserMidleware, UserController.getUserOverview);
 
 module.exports = router;
 // File này là UserRouter / Router dành riêng cho User
