@@ -485,7 +485,20 @@ const getAllAddresses = async (req, res) => {
   }
 };
 
+
+///Dashboard
+const getUserOverview = async (req, res) => {
+  const result = await UserService.getUserOverview();
+  if (result.status === "OK") {
+    return res.status(200).json(result);
+  } else {
+    return res.status(500).json(result);
+  }
+};
+
+
 module.exports = {
+  getUserOverview,
   createUser,
   userLogin,
   updateUser,
