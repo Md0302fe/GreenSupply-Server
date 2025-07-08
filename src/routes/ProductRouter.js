@@ -22,4 +22,8 @@ const {
   // get product by product code
   router.get("/getProductDetailV2/:productCode", ProductController.getProductDetailByCode);
 
+
+  // get product dashboard
+  router.get("/getProductDashboard", ProductController.getProductDashboard);
+
   module.exports = router;

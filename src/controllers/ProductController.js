@@ -345,6 +345,26 @@ const searchProduct = async (req, res) => {
 //   }
 // };
 
+
+const getProductDashboard = async (req, res) => {
+  try {
+    const result = await ProductService.getProductDashboard();
+    return res.status(200).json({
+      status: "SUCCESS",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Lỗi tại ProductController:", error);
+    return res.status(500).json({
+      status: "ERROR",
+      message: "Không thể lấy dữ liệu dashboard",
+      eMsg: error.message,
+    });
+  }
+};
+
+
+
 module.exports = {
   createProduct,
   updateProduct,
@@ -354,7 +374,8 @@ module.exports = {
   getAllProduct,
   deleteManyProduct,
   searchProduct,
-  getProductDetailByCode
+  getProductDetailByCode,
+  getProductDashboard
 };
 
 // File này nằm trong Controller / Folder điều khiển

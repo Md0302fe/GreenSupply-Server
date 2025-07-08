@@ -1,5 +1,5 @@
 // services/ProductService.js
-
+const moment = require("moment");
 const product = require("../models/Products");
 // const CategoryModel = require("../models/CategoryModel");
 
@@ -180,6 +180,99 @@ const searchProductByName = async (name) => {
 //   }
 // };
 
+
+
+
+/// Dashboard cho thành phẩm
+ const getProductDashboard = async () => {
+  const today = moment().startOf("day");
+  const sevenDaysLater = moment().add(7, "days").endOf("day");
+
+  //  Lấy tất cả thành phẩm còn trong kho
+  const storedProducts = await product.find({ is_storaged: true });
+
+  //  Lấy tất các thành phẩm còn trong kho cũng như là trạng thái của chúng
+  const totalProducts = storedProducts.length;
+  const validProducts = storedProducts.filter(p => p.status === "còn hạn").length;
+  const expiredProducts = storedProducts.filter(p => p.status === "hết hạn").length;
+  const shippingProducts = storedProducts.filter(p => p.status === "đang giao hàng").length;
+
+  //  Thành phẩm sắp hết hạn (lấy ngày hiện tại + thêm 7 ngày nếu nằm trong khoảng tg hết hạn thì no sẽ cảnh báo)
+  const expiringProductsRaw = storedProducts.filter(p =>
+    moment(p.expiration_date, "YYYY-MM-DD").isBetween(today, sevenDaysLater, null, "[]")
+  );
+
+
+  // Lấy danh sách thành phẩm sắp hết hạn
+  const expiringProducts = expiringProductsRaw.map(p => ({
+    name: p.name,
+    masanpham: p.masanpham,
+    expiration_date: p.expiration_date,
+    days_left: moment(p.expiration_date).diff(today, "days"),
+  }));
+
+  //  thành phẩm mới nhất (còn trong kho)
+  const latestProducts = await product.find({ is_storaged: true })
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .select("name masanpham createdAt");
+
+  //  Biểu đồ phân bổ loại nguyên liệu
+const productByType = await product.aggregate([
+  { $match: { is_storaged: true } },
+  {
+    $group: {
+      _id: "$type_material_id",
+      totalQuantity: { $sum: "$quantity" },
+    },
+  },
+  {
+    $lookup: {
+      from: "material_managements",
+      localField: "_id",
+      foreignField: "_id",
+      as: "materialInfo",
+    },
+  },
+  { $unwind: "$materialInfo" },
+  {
+    $lookup: {
+      from: "materials",
+      localField: "materialInfo.fuel_type_id",
+      foreignField: "_id",
+      as: "materialType",
+    },
+  },
+  { $unwind: "$materialType" },
+  {
+    $project: {
+      _id: 1,
+      type: "$materialType.type_name", 
+      value: "$totalQuantity",         
+    },
+  },
+  { $sort: { value: -1 } },
+]);
+
+  //  Lấy các thành phẩm có trường is_storaged là false (được xem là đã xuất kho)
+  const exportedProductsCount = await product.countDocuments({ is_storaged: false });
+
+  return {
+    totalProducts,
+    validProducts,
+    expiredProducts,
+    shippingProducts,
+    expiringSoon: expiringProducts.length,
+    latestProducts,
+    productByType,
+    expiringProducts,
+    inStock: storedProducts.length,
+    exported: exportedProductsCount
+  };
+};
+
+
+
 module.exports = {
   createProduct,
   updateProduct,
@@ -189,5 +282,6 @@ module.exports = {
   deleteAllProducts,
   deleteManyProduct,
   searchProductByName,
-  getProductDetailByCode
+  getProductDetailByCode,
+  getProductDashboard
 };
