@@ -162,7 +162,6 @@ const updateFuelStorageReceiptStatus = async (id, status) => {
       const product = await Products.findByIdAndUpdate(materialId, {
         is_storaged: true,
       });
-      console.log("product: ", product)
     }
 
     // === ✅ Cập nhật số lượng vào MaterialManagement ===

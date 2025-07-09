@@ -263,7 +263,6 @@ const getProvideOrderHistories = async (user_id) => {
       .populate("supplier_id", "full_name email phone")
       .sort({ createdAt: -1 });
 
-    console.log("provide orders histories=> ", requests)
     return {
       status: "Lấy danh sách yêu cầu thu hàng thành công!",
       requests,

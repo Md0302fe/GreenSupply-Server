@@ -80,7 +80,6 @@ const updatePurchaseOrder = async (id, data) => {
 const acceptPurchaseOrder = async (id, data) => {
   try {
     const newData = {...data, status : "Đang xử lý"};
-    console.log("newData => ", newData);
     const acceptedPurchaseOrder = await PurchaseOrder.findByIdAndUpdate(
       id,
       newData,

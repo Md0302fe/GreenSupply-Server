@@ -39,12 +39,10 @@ const createOtp = async (req, res) => {
 // Phương Thức Khởi Tạo 1 New User //
 const createUser = async (req, res) => {
   try {
-    console.log("CHECK BE ");
     const { name, email, password, confirmPassword, phone } = req.body;
     //regex check email
     const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     const isCheckEmail = regex.test(email);
-    console.log(req.body);
     if (!name || !email || !password || !confirmPassword || !phone) {
       return res.status(200).json({
         status: "ERROR",
@@ -241,7 +239,6 @@ const updateUser = async (req, res) => {
 // Phương Thức Update Thông Tin Của User
 const updateAccount = async (req, res) => {
   try {
-    console.log("body: ", req.body);
 
     // Lấy được id người dùng thông qua URL (/update-user/:id) / get = params
     const userId = req.params.id;
@@ -287,7 +284,6 @@ const blockUser = async (req, res) => {
 // Phương Thức Delele User
 const unBlockUser = async (req, res) => {
   try {
-    console.log("CON CAC");
     // Lấy được id người dùng thông qua URL (/update-user/:id) / get = params
     const userId = req.params.id;
     if (!userId) {

@@ -171,7 +171,6 @@ const AcceptStorageExport = async (storage_export_id) => {
     
     // Tạo Lịch Sử Xuất Lô Khi Cập Nhật Đơn Thành Công
     const batchHistory = await createNewBatchStorageExport(storage_export_id);
-    console.log("batchHistory => ", batchHistory)
     if(batchHistory){
       return { success: true, message: "Cập nhật đơn thành công" };
     }else{
