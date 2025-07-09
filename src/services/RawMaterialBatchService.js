@@ -33,7 +33,6 @@ const generateBatchId = (prefix = "XMTH") => {
 const create = async (batchData) => {
   try {
     const newBatch = await RawMaterialBatch.create(batchData);
-    console.log(" newBatch => ", newBatch);
 
     if (!newBatch) {
       return {

@@ -2,9 +2,20 @@ const mongoose = require("mongoose");
 const PurchaseMaterialPlan = require("../models/Purchase_Material_Plan");
 const Material_Provide_Request = require("../models/Material_Provide_Request");
 
+const UserModel = require("../models/UserModel.js");
+const Notifications = require("../models/Notifications.js");
+const socket = require("../socket.js");
+
+const object_admin_role = new mongoose.Types.ObjectId(
+  "67950da386a0a462d408c7b9"
+);
+const object_management_role = "";
+
 const createFuelSupplyRequest = async (data) => {
   try {
     // Lấy đơn yêu cầu từ Admin
+    const supplier = await UserModel.findById(data.supplier_id);
+
     const adminRequest = await PurchaseMaterialPlan.findById(data.request_id);
     if (!adminRequest) {
       throw new Error(
@@ -12,7 +23,7 @@ const createFuelSupplyRequest = async (data) => {
       );
     }
     // Tạo đơn cung cấp nhiên liệu
-    const newSupplyRequest = new Material_Provide_Request({
+    const newSupplyRequest = await Material_Provide_Request.create({
       supplier_id: data.supplier_id,
       request_id: data.request_id,
       fuel_name: data.fuel_name,
@@ -26,7 +37,37 @@ const createFuelSupplyRequest = async (data) => {
       fuel_type: data.fuel_type || "",
     });
 
-    await newSupplyRequest.save();
+    console.log("newSupplyRequest => ", newSupplyRequest)
+
+    if (newSupplyRequest) {
+      const io = socket.getIO();
+
+      const newNoti = {
+        user_id: new mongoose.Types.ObjectId(data.supplier_id), // Người tạo đơn
+        role_id: [object_admin_role], // send to
+        title: "Đơn cung cấp nguyên liệu",
+        text_message: `${supplier?.full_name} vừa tạo đơn cung cấp nguyên liệu mới`,
+        type: ["request_supplier"],
+        is_read: false,
+        description: "Tạo đơn cung cấp liệu mới thành công",
+      };
+
+      console.log("newNoti =>? ", newNoti)
+
+      const newNotification = await Notifications.create(newNoti);
+
+      if (!newNotification) {
+        return {
+          status: 400,
+          success: false,
+          message: "Tạo thông báo thất bại",
+        };
+      }
+      io.emit("pushNotification", {
+        ...newNotification.toObject(),
+        timestamp: newNotification.createdAt,
+      });
+    }
 
     // Cập nhật số lượng còn lại của đơn yêu cầu
     // const newQuantity = adminRequest.quantity_remain - data.quantity;
@@ -64,11 +105,11 @@ const getAllFuelSupplyRequest = async (user) => {
     //   .sort({ createdAt: -1 });
 
     const requests = await Material_Provide_Request.find({
-          supplier_id: objectUserId,
-          is_deleted: false,
-        })
-          .populate("supplier_id", "full_name email phone")
-          .sort({ createdAt: -1 });
+      supplier_id: objectUserId,
+      is_deleted: false,
+    })
+      .populate("supplier_id", "full_name email phone")
+      .sort({ createdAt: -1 });
 
     return {
       status: "Lấy danh sách yêu cầu cung cấp thành công!",
@@ -127,9 +168,13 @@ const updateFuelSupplyRequest = async (id, data) => {
 
     data.total_price = quantity * price;
 
-    const updatedRequest = await Material_Provide_Request.findByIdAndUpdate(id, data, {
-      new: true,
-    });
+    const updatedRequest = await Material_Provide_Request.findByIdAndUpdate(
+      id,
+      data,
+      {
+        new: true,
+      }
+    );
 
     return {
       status: "Cập nhật yêu cầu thu hàng thành công!",

@@ -389,7 +389,6 @@ const finishStage = async (dataRequest) => {
     }
 
     if (noStage === 7) {
-      console.log("noStage => ", noStage);
       const result = await completeProductionProcess(process_id);
       if (!result.success) return result;
     }
@@ -414,7 +413,6 @@ const createNextStage = async (process_id, noStage, process_type) => {
     const process_stage_end = processEndCurrentMap[parseInt(noStage)];
 
     if (!nextStageName || !process_stage_start || !process_stage_end) return;
-    console.log("process_id => ", process_id)
     // Phân loại process theo process_type
     process_type === "single_processes"
       ? createNextStepForSingleProcess(
@@ -447,7 +445,6 @@ const createNextStepForSingleProcess = async (
   try {
     // get current time
     const currentDate = new Date();
-    console.log("singleProcess ==> ")
 
     // tìm productionProcessing
     const processData = await SingleProductionProcessing.findById(
@@ -475,7 +472,6 @@ const createNextStepForSingleProcess = async (
       },
     ]);
 
-    console.log("processData ==> ", processData)
 
 
     if (!processData) return;

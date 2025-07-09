@@ -1,11 +1,18 @@
 const CollectionRequest = require("../models/Material_Collection_Request.js");
 const UserModel = require("../models/UserModel.js");
+const Notifications = require("../models/Notifications.js");
+const socket = require("../socket.js");
 const mongoose = require("mongoose");
+
+const object_admin_role = new mongoose.Types.ObjectId(
+  "67950da386a0a462d408c7b9"
+);
+const object_management_role = "";
 
 const createHarvestRequest = async (data) => {
   try {
-    const existingSupplier = await UserModel.findById(data.supplier_id);
-    if (!existingSupplier) {
+    const supplier = await UserModel.findById(data.supplier_id);
+    if (!supplier) {
       throw new Error("Không tìm thấy Supplier với ID: " + data.supplier_id);
     }
 
@@ -52,6 +59,35 @@ const createHarvestRequest = async (data) => {
 
     const newRequest = new CollectionRequest(data);
     await newRequest.save();
+
+    // nếu tạo collection thành công --> taoj 1 record save to DB (notifications) và send noti to admin
+    if (newRequest) {
+      const io = socket.getIO();
+
+      const newNoti = {
+        user_id: new mongoose.Types.ObjectId(supplier?._id), // Người tạo đơn
+        role_id: [object_admin_role], // send to
+        title: "Đơn yêu cầu thu nguyên liệu",
+        text_message: `${supplier?.full_name} vừa tạo đơn yêu cầu thu nguyên liệu mới`,
+        type: ["request_supplier"],
+        is_read: false,
+        description: "Tạo đơn thu nguyên liệu mới thành công",
+      };
+
+      const newNotification = await Notifications.create(newNoti);
+
+      if (!newNotification) {
+        return {
+          status: 400,
+          success: false,
+          message: "Tạo thông báo thất bại",
+        };
+      }
+      io.emit("pushNotification", {
+        ...newNotification.toObject(),
+        timestamp: newNotification.createdAt,
+      });
+    }
 
     return {
       status: "Tạo yêu cầu thu hàng thành công!",
@@ -190,12 +226,11 @@ const getHarvestRequestHistories = async (user) => {
     const requests = await CollectionRequest.find({
       supplier_id: objectUserId,
       is_deleted: false,
-      status : "Hoàn Thành" 
+      status: "Hoàn Thành",
     })
       .populate("supplier_id", "full_name email phone")
       .sort({ createdAt: -1 });
 
- 
     // Manually calculate the total_price for each request
     const updatedRequests = requests.map((request) => {
       request.total_price = request.quantity * request.price;

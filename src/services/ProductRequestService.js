@@ -150,7 +150,6 @@ const deleteById = async (id) => {
   try {
     // 1. Tìm đơn sản xuất theo id
     const deleted = await ProductionRequest.findByIdAndDelete(id);
-    console.log(deleted);
     if (!deleted) {
       throw new Error("Không tìm thấy đơn sản xuất!");
     }

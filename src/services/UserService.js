@@ -556,7 +556,6 @@ const blockUser = (id) => {
           message: `Có lỗi sảy ra trong quá trình block tài khoản!`,
         });
       }
-      console.log("blockUser ", blockUser);
       return resolve({
         status: "OK",
         message: "Chặn tài khoản người dùng thành công",
@@ -586,7 +585,6 @@ const unBlockUser = (id) => {
           message: `Có lỗi sảy ra trong quá trình gỡ block tài khoản!`,
         });
       }
-      console.log("blockUser ", blockUser);
       return resolve({
         status: "OK",
         message: "Gỡ chặn tài khoản người dùng thành công",

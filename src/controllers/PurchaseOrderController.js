@@ -6,7 +6,7 @@ const path = require("path");
 const createPurchaseOrder = async (req, res) => {
   try {
     const data = req.body;
-    console.log("data => ", data);
+    
     // Kiểm tra các trường bắt buộc
     if (!data) {
       return res.status(400).json({
