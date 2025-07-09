@@ -203,6 +203,8 @@ const exportBox = async (id, quantity) => {
   return box;
 };
 
+
+
 module.exports = {
   createBoxCategory,
   updateBoxCategory,

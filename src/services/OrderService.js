@@ -219,8 +219,8 @@ const SupplierOrderDashboard = async () => {
   const approvedFuelRequests = await FuelRequest.countDocuments({ status: "Đã duyệt", is_deleted: false });
   const approvedFuelSupplyOrders = await FuelSupplyOrder.countDocuments({ status: "Đã duyệt", is_deleted: false });
 
-  const completedFuelRequests = await FuelRequest.countDocuments({ status: "Hoàn thành", is_deleted: false });
-  const completedFuelSupplyOrders = await FuelSupplyOrder.countDocuments({ status: "Hoàn thành", is_deleted: false });
+  const completedFuelRequests = await FuelRequest.countDocuments({ status: "Hoàn Thành", is_deleted: false });
+  const completedFuelSupplyOrders = await FuelSupplyOrder.countDocuments({ status: "Hoàn Thành", is_deleted: false });
 
 
   return {
