@@ -929,27 +929,65 @@ const getConsolidateProcessStage = async (id) => {
 
 const getDashboardprocess = async () => {
   try {
-    // Đếm số lượng theo trạng thái
-    const waitingCount = await SingleProductionProcessing.countDocuments({
-      status: "Chờ duyệt",
-    });
-    const processingCount = await SingleProductionProcessing.countDocuments({
-      status: "Đang sản xuất",
-    });
-    const doneCount = await SingleProductionProcessing.countDocuments({
-      status: "Hoàn thành",
+    // 1. Đếm số lượng kế hoạch sản xuất theo trạng thái "Chờ duyệt"
+    const waitingPlanCount = await ProductionRequest.countDocuments({ status: "Chờ duyệt" });
+
+    // 2. Đếm số lượng quy trình đơn theo trạng thái
+    const processingCount = await SingleProductionProcessing.countDocuments({ status: "Đang sản xuất" });
+    const doneCount = await SingleProductionProcessing.countDocuments({ status: "Hoàn thành" });
+
+    // 3. Đếm số lượng quy trình đang thực hiện
+    const executingSingle = processingCount;
+    const executingConsolidate = await ConsolidateProductionProcessing.countDocuments({ status: "Đang sản xuất" });
+
+    // 4. Tổng số quy trình đã tạo
+    const totalSingleProcess = await SingleProductionProcessing.countDocuments();
+    const totalConsolidateProcess = await ConsolidateProductionProcessing.countDocuments();
+
+    // 5. Tổng số kế hoạch sản xuất
+    const totalProductionPlans = await ProductionRequest.countDocuments();
+
+    // 6. Danh sách kế hoạch mới nhất
+    const latestProductionPlans = await ProductionRequest.find()
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    // 7. Danh sách kế hoạch đã duyệt nhưng chưa có quy trình
+    const usedInSingle = await SingleProductionProcessing.find().distinct("production_request_id");
+    const consolidateList = await ConsolidateProductionProcessing.find().select("production_request_id");
+    const usedInConsolidate = consolidateList.flatMap(doc => doc.production_request_id || []);
+    const usedIds = [...new Set([...usedInSingle, ...usedInConsolidate.map(id => id.toString())])];
+
+    const waitingToBeCreatedPlans = await ProductionRequest.find({
+      status: "Đã duyệt",
+      _id: { $nin: usedIds },
     });
 
-    // Có thể thêm biểu đồ ở đây sau
+    // 8. Trả kết quả về client
     return {
-      waiting: waitingCount,
+      // 📌 Các số liệu chính
+      waiting: waitingPlanCount, // ✅ lấy từ bảng ProductionRequest
       processing: processingCount,
       done: doneCount,
+
+      executingSingle,
+      executingConsolidate,
+
+      totalSingleProcess,
+      totalConsolidateProcess,
+      totalProductionPlans,
+
+      // 📌 Dữ liệu hiển thị thêm
+      latestPlans: latestProductionPlans,
+      plansWaitingProcessCreate: waitingToBeCreatedPlans,
     };
   } catch (error) {
     throw new Error("Lỗi khi thống kê dashboard: " + error.message);
   }
 };
+
+
+
 
 module.exports = {
   create,

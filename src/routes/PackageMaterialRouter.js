@@ -17,7 +17,7 @@ router.delete("/boxes/:id", authUserMidleware, controller.deleteBox);
 router.get("/boxes", controller.getBoxes);
 
 // ===== KHO =====
-router.post("/boxes/:id/import", authUserMidleware, controller.importBox);
-router.post("/boxes/:id/export", authUserMidleware, controller.exportBox);
+// router.post("/boxes/:id/import", authUserMidleware, controller.importBox);
+// router.post("/boxes/:id/export", authUserMidleware, controller.exportBox);
 
 module.exports = router;

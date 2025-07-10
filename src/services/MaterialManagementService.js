@@ -1,5 +1,7 @@
 const MaterialManagement = require("../models/Material_Management");
 const Materials = require('../models/Material'); // ⚠️ BẮT BUỘC PHẢI IMPORT!
+const Box = require("../models/Package_Material");
+const BoxCategory = require("../models/Package_Material_Categorie");
 const storage_id = "665480f9bde459d62ca7d001";
 
 const getAllFuel = async () => {
@@ -100,18 +102,79 @@ const createFuel = async (data) => {
 
 const getDashboardSummary = async () => {
   try {
-    const totalFuelTypes = await MaterialManagement.countDocuments();
-    const totalFuelQuantity = await MaterialManagement.aggregate([{ $group: { _id: null, total: { $sum: "$quantity" } } }]);
+    // ====== FUEL ======
+    const totalFuelTypes = await Materials.countDocuments({ is_deleted: false });
+
+    const totalFuelQuantityResult = await MaterialManagement.aggregate([
+      { $group: { _id: null, total: { $sum: "$quantity" } } }
+    ]);
+    const totalFuelQuantity = totalFuelQuantityResult[0]?.total || 0;
+
+    // ====== BOX CATEGORY ======
+    const allBoxCategories = await BoxCategory.find().lean();
+    const activeBoxCategories = allBoxCategories.filter(cat => !cat.is_delete);
+    const inactiveBoxCategories = allBoxCategories.filter(cat => cat.is_delete);
+
+    const totalBoxCategories = allBoxCategories.length;
+    const activeCount = activeBoxCategories.length;
+    const inactiveCount = inactiveBoxCategories.length;
+
+    const validForStat = activeBoxCategories.filter(cat => typeof cat.quantity === 'number');
+
+    const maxStockBoxCategory = validForStat.reduce(
+      (a, b) => (a.quantity > b.quantity ? a : b),
+      validForStat[0] || null
+    );
+
+    const minCandidates = validForStat.filter(cat => cat.quantity > 0);
+    const minStockBoxCategory = minCandidates.length
+      ? minCandidates.reduce((a, b) => (a.quantity < b.quantity ? a : b))
+      : null;
+
+    // ====== TYPE BREAKDOWN: túi/thùng ======
+    const boxList = await Box.find({ is_delete: false }).lean();
+
+    const typeStats = {
+      "túi chân không": 0,
+      "thùng carton": 0,
+    };
+
+    for (const box of boxList) {
+      if (box.type in typeStats) {
+        typeStats[box.type] += box.quantity || 0;
+      }
+    }
 
     return {
       success: true,
-      totalFuelTypes,
-      totalFuelQuantity: totalFuelQuantity.length ? totalFuelQuantity[0].total : 0,
+      fuel: {
+        totalFuelTypes,
+        totalFuelQuantity,
+      },
+      boxCategory: {
+        totalBoxCategories,           //  Tổng loại
+        activeBoxCategories: activeCount,   //  Đang hoạt động
+        inactiveBoxCategories: inactiveCount, //  Đã ngừng
+        maxStockBoxCategory: maxStockBoxCategory
+          ? {
+              name: maxStockBoxCategory.categories_name,
+              quantity: maxStockBoxCategory.quantity,
+            }
+          : null,
+        minStockBoxCategory: minStockBoxCategory
+          ? {
+              name: minStockBoxCategory.categories_name,
+              quantity: minStockBoxCategory.quantity,
+            }
+          : null,
+        typeBreakdown: typeStats     // ✅ Tổng số túi và thùng đang có
+      },
     };
   } catch (error) {
-    throw new Error(error.message);
+    throw new Error("Lỗi khi lấy dashboard summary: " + error.message);
   }
 };
+
 
 const getFuelTypesOverview = async () => {
   try {
