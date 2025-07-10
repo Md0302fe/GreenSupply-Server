@@ -1,7 +1,6 @@
 const { truncate } = require("lodash");
 const Notification = require("../models/Notifications");
 
-
 // Get All Notificatons
 const getAllNotifications = async (data) => {
   try {
@@ -9,6 +8,22 @@ const getAllNotifications = async (data) => {
       createdAt: -1,
     });
     console.log(allNoti);
+    return allNoti;
+  } catch (err) {
+    console.error("Error updating notification:", err);
+    throw err;
+  }
+};
+
+// Get All Notificatons By Id
+const getAllNotificationsById = async (user_id) => {
+  try {
+    const allNoti = await Notification.find({
+      user_id: user_id,
+      is_delete: false,
+    }).sort({
+      createdAt: -1,
+    });
     return allNoti;
   } catch (err) {
     console.error("Error updating notification:", err);
@@ -46,9 +61,9 @@ const deleteNotification = async (notification_id) => {
   }
 };
 
-
 module.exports = {
   getAllNotifications,
   readNotification,
-  deleteNotification
+  deleteNotification,
+  getAllNotificationsById,
 };

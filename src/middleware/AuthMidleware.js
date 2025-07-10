@@ -63,7 +63,8 @@ const authUserMidleware = async (req, res, next) => {
   try {
     // console.log("Token từ FE gửi lên:", req.headers.authorization);
     // Lấy token từ headers (chấp nhận cả "Authorization" hoặc "token")
-    const tokenHeader = req.headers.authorization || req.headers.token;
+    const tokenHeader = req.headers.authorization || req.headers.token ;
+    console.log("tokenHeader => ", tokenHeader);
 
     // Nếu không có token, trả về lỗi
     if (!tokenHeader) {
