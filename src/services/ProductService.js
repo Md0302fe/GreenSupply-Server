@@ -46,8 +46,21 @@ const getProductDetail = async (id) => {
           path: "fuel_type_id",
           model: "materials",
         },
-      }) 
-      .populate("origin_production_request_id");
+      })
+      .populate({
+        path: "origin_production_request_id",
+        populate: [
+          {
+            path: "packaging.vacuumBagBoxId",
+            model: "package_materials",
+          },
+          {
+            path: "packaging.cartonBoxId",
+            model: "package_materials",
+          },
+        ],
+      })
+
     if (!productDetail) {
       throw new Error("Product not found");
     }
@@ -62,27 +75,27 @@ const getProductDetailByCode = async (productCode) => {
   try {
 
     const productDetail = await product
-      .find({masanpham : productCode}) // find by product_code
+      .find({ masanpham: productCode }) // find by product_code
       .populate({
         path: "type_material_id",
         populate: {
           path: "fuel_type_id",
           model: "materials",
         },
-      }) 
+      })
       .populate("origin_production_request_id");
     if (!productDetail) {
       throw new Error("Product not found");
     }
 
-    return { status: "Get Product Details Is Successfully!", productDetail};
+    return { status: "Get Product Details Is Successfully!", productDetail };
   } catch (error) {
     throw new Error(error.message);
   }
 };
 
 // Lấy tất cả sản phẩm
-const getAllProduct = async (limit = 8, page = 0, sort = {createdAt : -1}, filter = {}) => {
+const getAllProduct = async (limit = 8, page = 0, sort = { createdAt: -1 }, filter = {}) => {
   try {
     const finalFilter = { ...filter, is_storaged: true };
     const totalCount = await product.countDocuments(finalFilter); // Tổng số sản phẩm
@@ -96,7 +109,20 @@ const getAllProduct = async (limit = 8, page = 0, sort = {createdAt : -1}, filte
           model: "materials",
         },
       })
-      .populate("origin_production_request_id")
+      .populate({
+        path: "origin_production_request_id",
+        populate: [
+          {
+            path: "packaging.vacuumBagBoxId",
+            model: "package_materials",
+          },
+          {
+            path: "packaging.cartonBoxId",
+            model: "package_materials",
+          },
+        ],
+      })
+
       .sort(sort)
       .limit(limit)
       .skip(page * limit);
@@ -184,7 +210,7 @@ const searchProductByName = async (name) => {
 
 
 /// Dashboard cho thành phẩm
- const getProductDashboard = async () => {
+const getProductDashboard = async () => {
   const today = moment().startOf("day");
   const sevenDaysLater = moment().add(7, "days").endOf("day");
 
@@ -218,41 +244,41 @@ const searchProductByName = async (name) => {
     .select("name masanpham createdAt");
 
   //  Biểu đồ phân bổ loại nguyên liệu
-const productByType = await product.aggregate([
-  { $match: { is_storaged: true } },
-  {
-    $group: {
-      _id: "$type_material_id",
-      totalQuantity: { $sum: "$quantity" },
+  const productByType = await product.aggregate([
+    { $match: { is_storaged: true } },
+    {
+      $group: {
+        _id: "$type_material_id",
+        totalQuantity: { $sum: "$quantity" },
+      },
     },
-  },
-  {
-    $lookup: {
-      from: "material_managements",
-      localField: "_id",
-      foreignField: "_id",
-      as: "materialInfo",
+    {
+      $lookup: {
+        from: "material_managements",
+        localField: "_id",
+        foreignField: "_id",
+        as: "materialInfo",
+      },
     },
-  },
-  { $unwind: "$materialInfo" },
-  {
-    $lookup: {
-      from: "materials",
-      localField: "materialInfo.fuel_type_id",
-      foreignField: "_id",
-      as: "materialType",
+    { $unwind: "$materialInfo" },
+    {
+      $lookup: {
+        from: "materials",
+        localField: "materialInfo.fuel_type_id",
+        foreignField: "_id",
+        as: "materialType",
+      },
     },
-  },
-  { $unwind: "$materialType" },
-  {
-    $project: {
-      _id: 1,
-      type: "$materialType.type_name", 
-      value: "$totalQuantity",         
+    { $unwind: "$materialType" },
+    {
+      $project: {
+        _id: 1,
+        type: "$materialType.type_name",
+        value: "$totalQuantity",
+      },
     },
-  },
-  { $sort: { value: -1 } },
-]);
+    { $sort: { value: -1 } },
+  ]);
 
   //  Lấy các thành phẩm có trường is_storaged là false (được xem là đã xuất kho)
   const exportedProductsCount = await product.countDocuments({ is_storaged: false });
