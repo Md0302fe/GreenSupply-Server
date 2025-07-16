@@ -58,13 +58,6 @@ const create = async (storageExport) => {
     if (!existingUser) {
       throw new Error(`Không tìm thấy người dùng với ID: ${user_id}`);
     }
-
-    // Kiểm tra tính hợp lệ của export_name (chỉ cho phép chữ cái, số và khoảng trắng)
-    if (!/^[a-zA-Z0-9\s\u00C0-\u1EF9]+$/.test(export_name)) {
-      throw new Error(
-        "Tên xuất kho không hợp lệ! Chỉ được chứa chữ cái, số và khoảng trắng."
-      );
-    }
     
     // Tạo record đơn xuất kho
     const newStorageExport = new MaterialStorageExport({
