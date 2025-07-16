@@ -3,7 +3,7 @@ const router = express.Router();
 const FuelEntryController = require("../controllers/PurchaseMaterialPlanController");
 
 const {
-    authMidleware,
+    authAdminMidleware,
     authUserMidleware,
   } = require("../middleware/AuthMidleware");
 

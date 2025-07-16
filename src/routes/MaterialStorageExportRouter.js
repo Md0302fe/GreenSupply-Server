@@ -6,7 +6,7 @@ const router = express.Router();
 const MaterialStorageExportController = require("../controllers/MaterialStorageExportController");
 
 const {
-    authMidleware,
+    authAdminMidleware,
     authUserMidleware,
   } = require("../middleware/AuthMidleware");
 

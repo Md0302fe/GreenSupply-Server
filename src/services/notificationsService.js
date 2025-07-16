@@ -1,13 +1,21 @@
-const { truncate } = require("lodash");
+const mongoose = require("mongoose");
 const Notification = require("../models/Notifications");
 
-// Get All Notificatons
-const getAllNotifications = async (data) => {
+const admin_role = "67950da386a0a462d408c7b9";
+const object_admin_role = new mongoose.Types.ObjectId(
+  "67950da386a0a462d408c7b9"
+);
+
+// Get All Notifications By Role (Admin - Manager)
+const getAllNotifications = async (role_id) => {
   try {
-    const allNoti = await Notification.find({ is_delete: false }).sort({
+    const allNoti = await Notification.find({
+      role_id: role_id,
+      is_delete: false,
+    }).sort({
       createdAt: -1,
     });
-    console.log(allNoti);
+
     return allNoti;
   } catch (err) {
     console.error("Error updating notification:", err);
@@ -21,6 +29,7 @@ const getAllNotificationsById = async (user_id) => {
     const allNoti = await Notification.find({
       user_id: user_id,
       is_delete: false,
+      is_sended: true,
     }).sort({
       createdAt: -1,
     });

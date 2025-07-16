@@ -6,7 +6,7 @@ const router = express.Router();
 const RawMaterialBatchController = require("../controllers/RawMaterialBatchController");
 
 const {
-    authMidleware,
+    authAdminMidleware,
     authUserMidleware,
   } = require("../middleware/AuthMidleware");
 

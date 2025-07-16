@@ -1,9 +1,11 @@
 const Notifications = require("../services/notificationsService");
 
-// Get All Notifications By Admin
+// Get All Notifications By Role (Admin - Manager)
 const getAllNotifications = async (req, res) => {
   try {
-    const data = await Notifications.getAllNotifications(req.body);
+    const role_id = req.user.role_id;
+    console.log("role_id", role_id)
+    const data = await Notifications.getAllNotifications(role_id);
     if (!data) {
       res.status(500).json({
         success: false,

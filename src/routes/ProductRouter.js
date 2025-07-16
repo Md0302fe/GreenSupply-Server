@@ -6,7 +6,7 @@ const router = express.Router();
 const ProductController = require("../controllers/ProductController");
 
 const {
-    authMidleware,
+    authAdminMidleware,
     authUserMidleware,
   } = require("../middleware/AuthMidleware");
 

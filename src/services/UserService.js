@@ -14,6 +14,8 @@ const {
 } = require("../services/JwtService");
 const { default: mongoose } = require("mongoose");
 
+const isAdminRoles = ["Admin", "Material Manager", "Warehouse Manager", "Process Manager"];
+
 // Tạo mã otp
 const generateOTP = () => {
   return crypto.randomInt(100000, 999999).toString(); // Tạo mã OTP ngẫu nhiên từ 100000 -> 999999
@@ -56,6 +58,7 @@ const sendOtpEmail = async (email, phone) => {
 
       // Tạo mã OTP
       const otp = generateOTP(); // Hàm generateOTP() tạo mã OTP
+      console.log("otp ", otp)
 
       // Nội dung email
       const mailOptions = {
@@ -404,14 +407,18 @@ const userLogin = (userLogin) => {
               "Tài khoản của bạn vi phạm một số chính sách của hệ thống nên đã bị khóa",
           });
         }
+
+        
         // 4. Tạo access_token và refresh_token
         const access_token = await genneralAccessToken({
           id: user.id,
-          isAdmin: user.role_id.role_name,
+          isAdmin: isAdminRoles?.includes(user.role_id?.role_name)? "Admin" : "Other",
+          role_id: user.role_id?._id,
         });
         const refresh_token = await genneralRefreshToken({
           id: user.id,
-          isAdmin: user.role_id.role_name,
+          isAdmin: isAdminRoles?.includes(user.role_id?.role_name)? "Admin" : "Other",
+          role_id: user.role_id?._id,
         });
         // 5. Trả về thông tin đăng nhập
         return resolve({
@@ -457,11 +464,13 @@ const userLogin = (userLogin) => {
           // Tạo token khi đăng nhập thành công
           const access_token = await genneralAccessToken({
             id: user.id,
-            isAdmin: user.role_id.role_name,
+            isAdmin: isAdminRoles?.includes(user.role_id?.role_name)? "Admin" : "Other",
+            role_id: user.role_id?._id,
           });
           const refresh_token = await genneralRefreshToken({
             id: user.id,
-            isAdmin: user.role_id.role_name,
+            isAdmin: isAdminRoles?.includes(user.role_id?.role_name)? "Admin" : "Other",
+            role_id: user.role_id?._id,
           });
 
           return resolve({

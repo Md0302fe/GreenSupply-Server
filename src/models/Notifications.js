@@ -6,13 +6,13 @@ const notificationsSchema = new Schema(
     user_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",
-      default: "",
+      default: null,
     },
     role_id: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "roles",
-        default: "",
+        default: null,
       },
     ],
     title: {
@@ -36,6 +36,7 @@ const notificationsSchema = new Schema(
         ],
       },
     ],
+    is_sended: { type: Boolean, default: false }, // dùng để phân loại noti - Gữi đến Hay được gữi đến
     is_read: {
       type: Boolean,
       default: false,

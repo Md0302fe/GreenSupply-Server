@@ -2,7 +2,8 @@ const jwt = require("jsonwebtoken"); // import jsonwebtoken
 const dotenv = require("dotenv");
 dotenv.config(); // process.env
 
-const authMidleware = async (req, res, next) => {
+  // Kiểm tra user (tk) - chỉ cho phép tài khoảng (admin) mới sử dụng được tính năng
+const authAdminMidleware = async (req, res, next) => {
   // verify a token symmetric
   console.log("req.headers.token => ", req.headers.token)
   
@@ -13,7 +14,7 @@ const authMidleware = async (req, res, next) => {
     // err: như token không hợp lệ, hết hạn, hoặc không thể giải mã
     if (err) {
       return res.status(404).json({
-        status: "Error at authMidleware",
+        status: "Error at authAdminMidleware",
         message: "The authentications get error",
       });
     } else {
@@ -23,7 +24,7 @@ const authMidleware = async (req, res, next) => {
         next();
       } else {
         return res.status(404).json({
-          status: "Error at authMidleware",
+          status: "Error at authAdminMidleware",
           message: "Your authentications is not available for this function",
         });
       }
@@ -31,40 +32,12 @@ const authMidleware = async (req, res, next) => {
   });
 };
 
-// const authUserMidleware = async (req, res, next) => {
-//   // verify a token symmetric
-//   const stringToken = req.headers.token.split(" ");
-//   const token = stringToken[1];
-//   const userId = req.params.id;
-//   jwt.verify(token, process.env.ACCESS_TOKEN, function (err, user) {
-//     // err: như token không hợp lệ, hết hạn, hoặc không thể giải mã
-//     if (err) {
-//       return res.status(404).json({
-//         status: "Error at authMidleware",
-//         message: "The authentications get error",
-//       });
-//     } else {
-//       // ngược lại nếu tìm thấy token -> tiếp đến check admin và tiến hành xóa user
-//       const { id, isAdmin } = user;
-//       //  nếu là admin || only user đó -> next() / ngược lại res về lỗi
-//       if (isAdmin || id === userId) {
-//         next();
-//       } else {
-//         return res.status(404).json({
-//           status: "Error at authMidleware",
-//           message: "Your authentications is not available for this function",
-//         });
-//       }
-//     }
-//   });
-// };
-
+ // Kiểm tra user (tk) - chỉ cho phép có tài khoảng mới sử dụng được tính năng
 const authUserMidleware = async (req, res, next) => {
   try {
     // console.log("Token từ FE gửi lên:", req.headers.authorization);
     // Lấy token từ headers (chấp nhận cả "Authorization" hoặc "token")
     const tokenHeader = req.headers.authorization || req.headers.token ;
-    console.log("tokenHeader => ", tokenHeader);
 
     // Nếu không có token, trả về lỗi
     if (!tokenHeader) {
@@ -95,6 +68,7 @@ const authUserMidleware = async (req, res, next) => {
       // Kiểm tra user sau khi decode token
       // console.log("Token giải mã được:", user); 
       req.user = user; // Gán thông tin user vào request
+      console.log("req.user ", req.user)
       next();
     });
   } catch (error) {
@@ -106,4 +80,4 @@ const authUserMidleware = async (req, res, next) => {
   }
 };
 
-module.exports = { authMidleware, authUserMidleware };
+module.exports = { authAdminMidleware, authUserMidleware };
