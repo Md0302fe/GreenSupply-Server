@@ -229,13 +229,13 @@ const getAll = async (filters) => {
 const getAllConsolidateProcess = async () => {
   try {
     // Lấy danh sách theo điều kiện lọc
-    const requests = await ConsolidateProductionProcessing.find().populate(
-      "production_request_id user_id"
-    );
+    const requests = await ConsolidateProductionProcessing.find()
+      .populate("production_request_id user_id")
+      .sort({ createdAt: -1 });
 
     return {
       success: true,
-      message: "Lấy danh sách quy trình sản xuất thành công!",
+      message: "Lấy danh sách quy trình sản xuất tổng hợp thành công!",
       data: requests,
     };
   } catch (error) {
@@ -269,11 +269,13 @@ const getAllConsolidateExecuteProcess = async () => {
     // Lấy danh sách theo điều kiện lọc
     const requests = await ConsolidateProductionProcessing.find({
       status: "Đang sản xuất",
-    }).populate("production_request_id user_id");
+    })
+      .populate("production_request_id user_id")
+      .sort({ createdAt: -1 });
 
     return {
       success: true,
-      message: "Get All Execute Process Success!",
+      message: "Get All Execute Consolidate Process Success!",
       requests,
     };
   } catch (error) {
@@ -678,6 +680,8 @@ const createNextStepForConsolidateProcess = async (
         }
 
         products.push(created_product); // Push vào mảng sản phẩm sau khi tạo
+        // ==> tạo đơn nhập kho -> push thông báo đến kho
+        generatedNotifications({ receipt_store, created_product });
       }
 
       if (products.length === 0) {
@@ -687,25 +691,25 @@ const createNextStepForConsolidateProcess = async (
             "Đã xảy ra lỗi trong quá trình tạo sản phẩm. Vui lòng thử lại sau",
         };
       }
-
-      // Tăng stage hiện tại lên
-      processData.current_stage += 1;
-
-      const currentDate = new Date();
-      processData[process_stage_start] = currentDate;
-      processData[process_stage_end] = currentDate;
-
-      await processData.save();
-
-      const newStage = new ProcessStatus({
-        process_id,
-        process_type: processData.process_type,
-        stage_name: nextStageName,
-        start_time: new Date(),
-      });
-
-      await newStage.save();
     }
+
+    // Tăng stage hiện tại lên
+    processData.current_stage += 1;
+
+    const currentDate = new Date();
+    processData[process_stage_start] = currentDate;
+    processData[process_stage_end] = currentDate;
+
+    await processData.save();
+
+    const newStage = new ProcessStatus({
+      process_id,
+      process_type: processData.process_type,
+      stage_name: nextStageName,
+      start_time: new Date(),
+    });
+
+    await newStage.save();
   } catch (error) {
     console.log("Error : ", error);
     throw new Error(error.message);
