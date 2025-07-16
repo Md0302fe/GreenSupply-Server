@@ -8,7 +8,20 @@ const ConsolidateProductionProcessing = require("../models/Consolidated_Process"
 
 const product_img_carton = "/assets/product-image/prouct_carton_img.jpg";
 
-const { default: mongoose } = require("mongoose");
+const Notifications = require("../models/Notifications.js");
+const socket = require("../socket.js");
+const mongoose = require("mongoose");
+
+const admin_role_id = new mongoose.Types.ObjectId("67950da386a0a462d408c7b9");
+const material_mng_role_id = new mongoose.Types.ObjectId(
+  "686f3835d7eaed8a9fd5a8b8"
+);
+const warehouse_mng_role_id = new mongoose.Types.ObjectId(
+  "686f3835d7eaed8a9fd5a8b7"
+);
+const process_mng_role_id = new mongoose.Types.ObjectId(
+  "686f3835d7eaed8a9fd5a8b6"
+);
 
 // Convert Date To String
 const convertDateStringV1 = (dateString) => {
@@ -472,8 +485,6 @@ const createNextStepForSingleProcess = async (
       },
     ]);
 
-
-
     if (!processData) return;
 
     // kiểm tra xem = 6 thì tạo 1 lô sản phẩm
@@ -545,6 +556,8 @@ const createNextStepForSingleProcess = async (
             "Đã xảy ra lỗi trong quá trình tạo yêu cầu nhập kho. Vui lòng thử lại sau",
         };
       }
+      // ==> tạo đơn nhập kho -> push thông báo đến kho
+      generatedNotifications({ receipt_store, created_product });
     }
 
     // Tăng stage hiện tại lên
@@ -930,19 +943,30 @@ const getConsolidateProcessStage = async (id) => {
 const getDashboardprocess = async () => {
   try {
     // 1. Đếm số lượng kế hoạch sản xuất theo trạng thái "Chờ duyệt"
-    const waitingPlanCount = await ProductionRequest.countDocuments({ status: "Chờ duyệt" });
+    const waitingPlanCount = await ProductionRequest.countDocuments({
+      status: "Chờ duyệt",
+    });
 
     // 2. Đếm số lượng quy trình đơn theo trạng thái
-    const processingCount = await SingleProductionProcessing.countDocuments({ status: "Đang sản xuất" });
-    const doneCount = await SingleProductionProcessing.countDocuments({ status: "Hoàn thành" });
+    const processingCount = await SingleProductionProcessing.countDocuments({
+      status: "Đang sản xuất",
+    });
+    const doneCount = await SingleProductionProcessing.countDocuments({
+      status: "Hoàn thành",
+    });
 
     // 3. Đếm số lượng quy trình đang thực hiện
     const executingSingle = processingCount;
-    const executingConsolidate = await ConsolidateProductionProcessing.countDocuments({ status: "Đang sản xuất" });
+    const executingConsolidate =
+      await ConsolidateProductionProcessing.countDocuments({
+        status: "Đang sản xuất",
+      });
 
     // 4. Tổng số quy trình đã tạo
-    const totalSingleProcess = await SingleProductionProcessing.countDocuments();
-    const totalConsolidateProcess = await ConsolidateProductionProcessing.countDocuments();
+    const totalSingleProcess =
+      await SingleProductionProcessing.countDocuments();
+    const totalConsolidateProcess =
+      await ConsolidateProductionProcessing.countDocuments();
 
     // 5. Tổng số kế hoạch sản xuất
     const totalProductionPlans = await ProductionRequest.countDocuments();
@@ -953,10 +977,21 @@ const getDashboardprocess = async () => {
       .limit(5);
 
     // 7. Danh sách kế hoạch đã duyệt nhưng chưa có quy trình
-    const usedInSingle = await SingleProductionProcessing.find().distinct("production_request_id");
-    const consolidateList = await ConsolidateProductionProcessing.find().select("production_request_id");
-    const usedInConsolidate = consolidateList.flatMap(doc => doc.production_request_id || []);
-    const usedIds = [...new Set([...usedInSingle, ...usedInConsolidate.map(id => id.toString())])];
+    const usedInSingle = await SingleProductionProcessing.find().distinct(
+      "production_request_id"
+    );
+    const consolidateList = await ConsolidateProductionProcessing.find().select(
+      "production_request_id"
+    );
+    const usedInConsolidate = consolidateList.flatMap(
+      (doc) => doc.production_request_id || []
+    );
+    const usedIds = [
+      ...new Set([
+        ...usedInSingle,
+        ...usedInConsolidate.map((id) => id.toString()),
+      ]),
+    ];
 
     const waitingToBeCreatedPlans = await ProductionRequest.find({
       status: "Đã duyệt",
@@ -986,8 +1021,41 @@ const getDashboardprocess = async () => {
   }
 };
 
+// Generated Notificatiosn
+const generatedNotifications = async (data) => {
+  try {
+    const { receipt_store, created_product } = data;
 
+    const io = socket.getIO();
 
+    const newNoti = {
+      user_id: null,
+      role_id: [warehouse_mng_role_id], // send to
+      title: `Y/c nhập kho lạnh - Mã nhập kho : ${receipt_store?._id}`,
+      text_message: `Lô thành phẩm mới ${created_product?.masanpham} đã được tạo và cần được nhập kho lạnh.`,
+      type: ["warehouse"],
+      is_read: false,
+      description: "Lô thành phẩm mới vừa được tạo - cần nhập kho thành phẩm",
+    };
+
+    const newNotification = await Notifications.create(newNoti);
+    console.log("newNoti => ", newNotification);
+    if (!newNotification) {
+      return {
+        status: 400,
+        success: false,
+        message: "Tạo thông báo thất bại",
+      };
+    }
+    io.emit("pushNotification", {
+      ...newNotification.toObject(),
+      timestamp: newNotification.createdAt,
+    });
+  } catch (error) {
+    console.log("Đã có lỗi tại quá trình tạo thông báo");
+    throw new Error(error.message);
+  }
+};
 
 module.exports = {
   create,

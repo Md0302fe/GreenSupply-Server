@@ -5,6 +5,22 @@ const batchHistory = require("../models/Batch_Export_History")
 const User = require("../models/UserModel");
 const mongoose = require("mongoose");
 
+const Notifications = require("../models/Notifications.js");
+const socket = require("../socket.js");
+
+
+const admin_role_id = new mongoose.Types.ObjectId("67950da386a0a462d408c7b9");
+const material_mng_role_id = new mongoose.Types.ObjectId(
+  "686f3835d7eaed8a9fd5a8b8"
+);
+const warehouse_mng_role_id = new mongoose.Types.ObjectId(
+  "686f3835d7eaed8a9fd5a8b7"
+);
+const process_mng_role_id = new mongoose.Types.ObjectId(
+  "686f3835d7eaed8a9fd5a8b6"
+);
+
+
 
 const create = async (storageExport) => {
   try {
@@ -49,7 +65,8 @@ const create = async (storageExport) => {
         "Tên xuất kho không hợp lệ! Chỉ được chứa chữ cái, số và khoảng trắng."
       );
     }
-
+    
+    // Tạo record đơn xuất kho
     const newStorageExport = new MaterialStorageExport({
       production_request_id,
       batch_id,
@@ -63,6 +80,8 @@ const create = async (storageExport) => {
 
     await newStorageExport.save();
 
+
+
     const populatedExport = await MaterialStorageExport.findById(newStorageExport._id)
       .populate({
         path: "production_request_id",
@@ -70,6 +89,18 @@ const create = async (storageExport) => {
       })
       .populate("batch_id")
       .populate("user_id");
+
+
+    if(!populatedExport) {
+        return {
+        success: false,
+        message: "Tạo đơn xuất kho thất bại!",
+        export: populatedExport,
+        };
+    }
+    
+    // Tạo thông báo
+    generatedNotifications({populatedExport}); // props : đơn xuất kho đã populated
 
     return {
       success: true,
@@ -296,6 +327,42 @@ const getStockExportCompletedByDate = async () => {
     return result;
   } catch (error) {
     throw new Error("Lỗi khi lấy dữ liệu đơn xuất kho đã hoàn thành theo ngày: " + error.message);
+  }
+};
+
+const generatedNotifications = async (data) => {
+  try {
+    const { populatedExport } = data;
+
+    const io = socket.getIO();
+    console.log("populatedExport => ", populatedExport)
+
+    const newNoti = {
+      user_id: null,
+      role_id: [process_mng_role_id], // send to process_manager
+      title: `Lô nguyên liệu: ${populatedExport?.batch_id?.batch_id}`,
+      text_message: `Lô nguyên liệu ${populatedExport?.batch_id?.batch_id} (${populatedExport?.batch_id?.batch_name}) đã được chuẩn bị xong.`,
+      type: ["process"],
+      is_read: false,
+      description: "Lô nguyên liệu đã được chuẩn bị xong - bộ phận sản xuất có thể đến lấy hàng",
+    };
+
+    const newNotification = await Notifications.create(newNoti);
+
+    if (!newNotification) {
+      return {
+        status: 400,
+        success: false,
+        message: "Tạo thông báo thất bại",
+      };
+    }
+    io.emit("pushNotification", {
+      ...newNotification.toObject(),
+      timestamp: newNotification.createdAt,
+    });
+  } catch (error) {
+    console.log("Đã có lỗi tại quá trình tạo thông báo");
+    throw new Error(error.message);
   }
 };
 

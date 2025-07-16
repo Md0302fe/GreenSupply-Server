@@ -1,5 +1,6 @@
 const MaterialStorageExportService = require("../services/MaterialStorageExportService");
 
+
 const create = async (req, res) => {
   try {
     const { production_request_id, batch_id, user_id, export_name, type_export, note } = req.body;
@@ -20,7 +21,8 @@ const create = async (req, res) => {
       note: note || "",
     };
 
-    const response = await MaterialStorageExportService.create(storageExportData);
+    // Record tạo đơn xuất kho
+    const response = await MaterialStorageExportService.create(storageExportData);  
     return res.status(response.success ? 201 : 400).json(response);
 
   } catch (error) {
@@ -185,6 +187,9 @@ const getStockExportCompletedByDate = async (req, res) => {
     });
   }
 };
+
+
+
 
 module.exports = {
   create,
