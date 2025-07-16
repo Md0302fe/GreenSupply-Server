@@ -3,7 +3,7 @@ const router = express.Router();
 const ProvideOrderController = require("../controllers/ProvideOrderController");
 
 const {
-    authMidleware,
+    authAdminMidleware,
     authUserMidleware,
   } = require("../middleware/AuthMidleware");
 

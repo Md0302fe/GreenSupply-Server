@@ -6,33 +6,33 @@ const router = express.Router();
 const PurchaseOrderController = require("../controllers/PurchaseOrderController");
 
 const {
-  authMidleware,
+  authAdminMidleware,
   authUserMidleware,
 } = require("../middleware/AuthMidleware");
 
 // Routes cho Address
 router.post(
   "/createPurchaseOrder",
-  authMidleware,
+  authAdminMidleware,
   PurchaseOrderController.createPurchaseOrder
 );
 router.put(
-  "/updatePurchaseOrder/:id", authMidleware,
+  "/updatePurchaseOrder/:id", authAdminMidleware,
   PurchaseOrderController.updatePurchaseOrder
 );
 
 router.put(
-  "/acceptPurchaseOrder/:id", authMidleware,
+  "/acceptPurchaseOrder/:id", authAdminMidleware,
   PurchaseOrderController.acceptPurchaseOrder
 );
 router.put(
   "/softDelete/:id",
-  authMidleware,
+  authAdminMidleware,
   PurchaseOrderController.deletePurchaseOrder
 );
 router.delete(
   "/deleteAllPurchaseOrders",
-  authMidleware,
+  authAdminMidleware,
   PurchaseOrderController.deleteAllPurchaseOrders
 );
 router.get("/getAllPurchaseOrder", PurchaseOrderController.getAllPurchaseOrder);

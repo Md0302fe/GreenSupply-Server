@@ -4,7 +4,7 @@ const router = express.Router();
 const MaterialProvideRequest = require('../controllers/MaterialProvideRequestController');
 
 const {
-  authMidleware,
+  authAdminMidleware,
   authUserMidleware,
 } = require("../middleware/AuthMidleware");
 

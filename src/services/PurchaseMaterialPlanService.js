@@ -18,7 +18,7 @@ const getAll = (options = {}, user_id = null) => {
         end_received: { $gt: now },
         _id: { $nin: createdRequestIds },
       };
-
+      
       if (paginate) {
         const skip = (page - 1) * limit;
 

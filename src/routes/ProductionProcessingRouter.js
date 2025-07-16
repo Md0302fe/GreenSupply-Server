@@ -6,7 +6,7 @@ const router = express.Router();
 const ProductionProcessingController = require("../controllers/ProductionProcessingController");
 
 const {
-    authMidleware,
+    authAdminMidleware,
     authUserMidleware,
   } = require("../middleware/AuthMidleware");
 
@@ -39,7 +39,7 @@ const {
   router.post("/finishStage", ProductionProcessingController.finishStage);
 
   // Router create consolidate process
-  router.post("/consolidated-create", authMidleware , ProductionProcessingController.createConsolidateProcess);
+  router.post("/consolidated-create", authAdminMidleware , ProductionProcessingController.createConsolidateProcess);
 
   // Get All Consolidate Process
   router.get("/get-consolidate-process", ProductionProcessingController.getAllConsolidateProcess);

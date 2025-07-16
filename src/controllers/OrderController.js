@@ -2,6 +2,11 @@ const FuelRequest = require("../models/Material_Collection_Request");
 const FuelSupplyOrder = require("../models/Material_Provide_Request");
 const AdminFuelEntry = require("../models/Purchase_Material_Plan");
 
+const mongoose = require("mongoose");
+const socket = require("../socket.js");
+const UserModel = require("../models/UserModel.js");
+const Notifications = require("../models/Notifications.js");
+
 
 const OrderServices = require("../services/OrderService");
 
@@ -146,10 +151,45 @@ const getFuelRequestById = async (req, res) => {
 const acceptFuelRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const request = await FuelRequest.findByIdAndUpdate(id, { status: "Đã duyệt" }, { new: true });
-    if (!request) return res.status(404).json({ success: false, error: "Yêu cầu không tồn tại" });
-    res.json({ success: true, data: request });
+    const response = await FuelRequest.findByIdAndUpdate(id, { status: "Đã duyệt" }, { new: true });
+    // sau khi xác nhận -> send notifications to supplier người tạo ra cái đơn này
+    // 1. get thông tin người tạo đơn
+    if (!response) return res.status(404).json({ success: false, error: "Yêu cầu không tồn tại" });
+    
+    if (response) {
+        const supplier_id = response?.supplier_id; // id người dùng
+        const io = socket.getIO();
+    
+          const newNoti = {
+            user_id: new mongoose.Types.ObjectId(supplier_id), // Người tạo đơn
+            role_id: null, // không gữi đến admin trong case này
+            title: "Yêu cầu đã được duyệt",
+            text_message: `${response?.fuel_name} đã được xác nhận`, // tên yêu cầu + thông báo xác nhận
+            type: ["request_supplier"], //
+            is_sended: true, // được gữi đến -> 
+            is_read: false, // chưa đọc
+            description: "Xác nhận yêu cầu thu nguyên liệu thành công",
+          };
+    
+          const newNotification = await Notifications.create(newNoti);
+          console.log(newNotification);
+    
+          if (!newNotification) {
+            return {
+              status: 400,
+              success: false,
+              message: "Tạo thông báo thất bại",
+            };
+          }
+          io.emit("pushNotification_Send_To_Supplier", {
+            ...newNotification.toObject(),
+            timestamp: newNotification.createdAt,
+          });
+        }
+
+    return res.json({ success: true, data: response });
   } catch (error) {
+    console.log("error => ", error)
     res.status(500).json({ success: false, error: "Lỗi khi chấp nhận yêu cầu nhiên liệu" });
   }
 };
@@ -158,9 +198,41 @@ const acceptFuelRequest = async (req, res) => {
 const rejectFuelRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const request = await FuelRequest.findByIdAndUpdate(id, { status: "Đã Hủy" }, { new: true });
-    if (!request) return res.status(404).json({ success: false, error: "Yêu cầu không tồn tại" });
-    res.json({ success: true, data: request });
+    const response = await FuelRequest.findByIdAndUpdate(id, { status: "Đã Hủy" }, { new: true });
+    if (!response) return res.status(404).json({ success: false, error: "Yêu cầu không tồn tại" });
+
+    if (response) {
+        const supplier_id = response?.supplier_id; // id người dùng
+        const io = socket.getIO();
+    
+          const newNoti = {
+            user_id: new mongoose.Types.ObjectId(supplier_id), // Người tạo đơn
+            role_id: null, // không gữi đến admin trong case này
+            title: "Yêu cầu đã bị từ chuối",
+            text_message: `${response?.fuel_name} đã bị từ chối`, // tên yêu cầu + thông báo xác nhận
+            type: ["request_supplier"], //
+            is_sended: true, // được gữi đến -> 
+            is_read: false, // chưa đọc
+            description: "Từ chối yêu cầu thu nguyên liệu thành công",
+          };
+    
+          const newNotification = await Notifications.create(newNoti);
+          console.log(newNotification);
+    
+          if (!newNotification) {
+            return {
+              status: 400,
+              success: false,
+              message: "Tạo thông báo thất bại",
+            };
+          }
+          io.emit("pushNotification_Send_To_Supplier", {
+            ...newNotification.toObject(),
+            timestamp: newNotification.createdAt,
+          });
+        }
+
+    return res.json({ success: true, data: response });
   } catch (error) {
     res.status(500).json({ success: false, error: "Lỗi khi từ chối yêu cầu nhiên liệu" });
   }
@@ -195,8 +267,40 @@ const getFuelSupplyOrderById = async (req, res) => {
 const acceptFuelSupplyOrder = async (req, res) => {
   try {
     const { id } = req.params;
-    const checkOrder = await FuelSupplyOrder.findByIdAndUpdate(id, { status: "Đã duyệt" }, { new: true });
-    if (!checkOrder) return res.status(404).json({ success: false, error: "Đơn hàng không tồn tại" });
+    const response = await FuelSupplyOrder.findByIdAndUpdate(id, { status: "Đã duyệt" }, { new: true });
+    if (!response) return res.status(404).json({ success: false, error: "Đơn hàng không tồn tại" });
+    
+    if (response) {
+        const supplier_id = response?.supplier_id; // id người dùng
+        const io = socket.getIO();
+    
+          const newNoti = {
+            user_id: new mongoose.Types.ObjectId(supplier_id), // Người tạo đơn
+            role_id: null, // không gữi đến admin trong case này
+            title: "Đơn cung cấp đã được duyệt",
+            text_message: `${response?.fuel_name} đã được xác nhận`, // tên yêu cầu + thông báo xác nhận
+            type: ["request_supplier"], //
+            is_sended: true, // được gữi đến -> 
+            is_read: false, // chưa đọc
+            description: "Xác nhận yêu cầu thu nguyên liệu thành công",
+          };
+    
+          const newNotification = await Notifications.create(newNoti);
+          console.log(newNotification);
+    
+          if (!newNotification) {
+            return {
+              status: 400,
+              success: false,
+              message: "Tạo thông báo thất bại",
+            };
+          }
+          io.emit("pushNotification_Send_To_Supplier", {
+            ...newNotification.toObject(),
+            timestamp: newNotification.createdAt,
+          });
+        }
+    
 
     const order = await FuelSupplyOrder.findByIdAndUpdate(
       id,
@@ -241,9 +345,41 @@ const acceptFuelSupplyOrder = async (req, res) => {
 const rejectFuelSupplyOrder = async (req, res) => {
   try {
     const { id } = req.params;
-    const order = await FuelSupplyOrder.findByIdAndUpdate(id, { status: "Đã hủy" }, { new: true });
-    if (!order) return res.status(404).json({ success: false, error: "Đơn hàng không tồn tại" });
-    res.json({ success: true, data: order });
+    const response = await FuelSupplyOrder.findByIdAndUpdate(id, { status: "Đã hủy" }, { new: true });
+    if (!response) return res.status(404).json({ success: false, error: "Đơn hàng không tồn tại" });
+
+    if (response) {
+        const supplier_id = response?.supplier_id; // id người dùng
+        const io = socket.getIO();
+    
+          const newNoti = {
+            user_id: new mongoose.Types.ObjectId(supplier_id), // Người tạo đơn
+            role_id: null, // không gữi đến admin trong case này
+            title: "Đơn cung cấp đã bị từ chuối",
+            text_message: `${response?.fuel_name} đã bị từ chối`, // tên yêu cầu + thông báo xác nhận
+            type: ["request_supplier"], //
+            is_sended: true, // được gữi đến -> 
+            is_read: false, // chưa đọc
+            description: "Từ chối yêu cầu thu nguyên liệu thành công",
+          };
+    
+          const newNotification = await Notifications.create(newNoti);
+          console.log(newNotification);
+    
+          if (!newNotification) {
+            return {
+              status: 400,
+              success: false,
+              message: "Tạo thông báo thất bại",
+            };
+          }
+          io.emit("pushNotification_Send_To_Supplier", {
+            ...newNotification.toObject(),
+            timestamp: newNotification.createdAt,
+          });
+        }
+
+    res.json({ success: true, data: response });
   } catch (error) {
     res.status(500).json({ success: false, error: "Lỗi khi từ chối đơn cung cấp nhiên liệu" });
   }

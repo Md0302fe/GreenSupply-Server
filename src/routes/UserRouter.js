@@ -6,7 +6,7 @@ const router = express.Router();
 const UserController = require("../controllers/UserController");
 
 const {
-  authMidleware,
+  authAdminMidleware,
   authUserMidleware,
 } = require("../middleware/AuthMidleware");
 
@@ -25,17 +25,17 @@ router.put("/update-user/:id", authUserMidleware, UserController.updateUser);
 // # UPDATE - ACCOUNT / PUT
 router.put("/update-account/:id", authUserMidleware, UserController.updateAccount);
 // # PUT - USER / PUT
-router.put("/block-user/:id", authMidleware, UserController.blockUser);
+router.put("/block-user/:id", authAdminMidleware, UserController.blockUser);
 // # PUT - USER / PUT
-router.put("/unblock-user/:id", authMidleware, UserController.unBlockUser);
+router.put("/unblock-user/:id", authAdminMidleware, UserController.unBlockUser);
 // # GET ALL USER - USER / GET
-router.get("/getAll", authMidleware, UserController.getAllUser);
+router.get("/getAll", authAdminMidleware, UserController.getAllUser);
 // # GET DETAIL USER - USER / GET
 router.get("/detail-user/:id", authUserMidleware, UserController.getDetailUser);
 // # POST REFRESH--TOKEN - POST
 router.post("/refresh-token", UserController.refreshToken);
 // # DELETE DELETE--MANY-TOKEN - DELETE
-router.delete("/delete-many", authMidleware, UserController.deleteManyUser);
+router.delete("/delete-many", authAdminMidleware, UserController.deleteManyUser);
 
 // 
 router.post("/check-email", UserController.checkEmail);

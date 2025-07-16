@@ -4,6 +4,21 @@ const RawMaterialBatch = require("../models/Raw_Material_Batch");
 const PackageMaterial = require("../models/Package_Material");
 const PackageMaterialCategory = require("../models/Package_Material_Categorie");
 
+const Notifications = require("../models/Notifications.js");
+const socket = require("../socket.js");
+const mongoose = require("mongoose");
+
+const admin_role_id = new mongoose.Types.ObjectId("67950da386a0a462d408c7b9");
+const material_mng_role_id = new mongoose.Types.ObjectId(
+  "686f3835d7eaed8a9fd5a8b8"
+);
+const warehouse_mng_role_id = new mongoose.Types.ObjectId(
+  "686f3835d7eaed8a9fd5a8b7"
+);
+const process_mng_role_id = new mongoose.Types.ObjectId(
+  "686f3835d7eaed8a9fd5a8b6"
+);
+
 // generated batch id
 const generateBatchId = (prefix = "XMTH") => {
   const today = new Date();
@@ -197,7 +212,7 @@ const changeStatus = async (id) => {
       production_request_id: productionRequest._id,
       is_automatic: false,
     });
-
+    
     // 3. Trừ bao bì
     const packaging = productionRequest.packaging || {};
     const { vacuumBag, carton, vacuumBagBoxId, cartonBoxId } =
@@ -235,12 +250,19 @@ const changeStatus = async (id) => {
     productionRequest.status = "Đã duyệt";
     await productionRequest.save();
 
+    // 5. Sau khi xong tất cả tiến hành tạo thông báo
+    if (productionRequest) {
+      const dataToPushNotif = { newBatch }; // thông tin lô nguyên liệu cần chuẩn bị
+      generatedNotifications(dataToPushNotif);
+    }
+
     return {
       success: true,
       message: "Đã duyệt đơn sản xuất thành công!",
       data: productionRequest,
     };
   } catch (error) {
+    console.log("Đã có lỗi: ", error);
     throw new Error(error.message);
   }
 };
@@ -318,6 +340,41 @@ const getProductionChartData = async () => {
     };
   } catch (error) {
     throw new Error("Lỗi khi thống kê yêu cầu sản xuất: " + error.message);
+  }
+};
+
+const generatedNotifications = async (data) => {
+  try {
+    const { newBatch } = data;
+
+    const io = socket.getIO();
+
+    const newNoti = {
+      user_id: null,
+      role_id: [warehouse_mng_role_id], // send to
+      title: `Yêu cầu chuẩn bị lô: ${newBatch?.batch_id}`,
+      text_message: `Lô nguyên liệu ${newBatch?.batch_id} (${newBatch?.batch_name}) đã được tạo và cần được chuẩn bị.`,
+      type: ["warehouse"],
+      is_read: false,
+      description: "Yêu cầu chuẩn bị lô nguyên liệu",
+    };
+
+    const newNotification = await Notifications.create(newNoti);
+
+    if (!newNotification) {
+      return {
+        status: 400,
+        success: false,
+        message: "Tạo thông báo thất bại",
+      };
+    }
+    io.emit("pushNotification", {
+      ...newNotification.toObject(),
+      timestamp: newNotification.createdAt,
+    });
+  } catch (error) {
+    console.log("Đã có lỗi tại quá trình tạo thông báo");
+    throw new Error(error.message);
   }
 };
 

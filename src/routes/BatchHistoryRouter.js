@@ -6,7 +6,7 @@ const router = express.Router();
 const BatchHistoryController = require("../controllers/BatchHistoryController");
 
 const {
-    authMidleware,
+    authAdminMidleware,
     authUserMidleware,
   } = require("../middleware/AuthMidleware");
 
