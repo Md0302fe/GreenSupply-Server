@@ -1,5 +1,5 @@
 const MaterialManagement = require("../models/Material_Management");
-const Materials = require('../models/Material'); // ⚠️ BẮT BUỘC PHẢI IMPORT!
+const Materials = require("../models/Material"); // ⚠️ BẮT BUỘC PHẢI IMPORT!
 const Box = require("../models/Package_Material");
 const BoxCategory = require("../models/Package_Material_Categorie");
 const storage_id = "665480f9bde459d62ca7d001";
@@ -7,8 +7,8 @@ const storage_id = "665480f9bde459d62ca7d001";
 const getAllFuel = async () => {
   try {
     const requests = await MaterialManagement.find()
-    .populate('fuel_type_id')
-    .sort({ createdAt: -1 }) // Sắp xếp theo ngày tạo mới nhất trước;
+      .populate("fuel_type_id")
+      .sort({ createdAt: -1 }); // Sắp xếp theo ngày tạo mới nhất trước;
 
     return {
       success: true,
@@ -24,9 +24,10 @@ const updateFuel = async (id, data) => {
   try {
     const updatedFuel = await MaterialManagement.findByIdAndUpdate(
       id,
-      { 
+      {
         type_name: data.type_name,
         description: data.description,
+        quantity: data.quantity,
         updatedAt: new Date(),
       },
       { new: true }
@@ -71,11 +72,22 @@ const cancelFuel = async (id) => {
 
 const createFuel = async (data) => {
   try {
+    // Kiểm tra xem tên loại nhiên liệu đã tồn tại chưa
+    const existing = await Materials.findOne({
+      type_name: { $regex: new RegExp(`^${data.type_name.trim()}$`, "i") },
+    });
+
+    if (existing) {
+      const error = new Error("Tên loại nhiên liệu đã tồn tại!");
+      error.code = "DUPLICATE_NAME";
+      throw error;
+    }
+
     // Tạo mới nguyên liệu trong bảng Materials
     const newFuelType = new Materials({
       type_name: data.type_name,
-      description: data.description,
-      image: data.image_url || '',
+      description: data.description || "Không có mô tả",
+      image: data.image_url || "",
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -84,7 +96,7 @@ const createFuel = async (data) => {
     const newMaterialManagementRecord = new MaterialManagement({
       fuel_type_id: savedFuelType._id,
       quantity: 0,
-      storage_id: storage_id , // Lấy storage_id từ data truyền vào khi tạo
+      storage_id: storage_id,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -92,7 +104,8 @@ const createFuel = async (data) => {
 
     return {
       success: true,
-      message: "Tạo loại nhiên liệu mới thành công và khởi tạo quản lý nguyên liệu!",
+      message:
+        "Tạo loại nhiên liệu mới thành công và khởi tạo quản lý nguyên liệu!",
       data: savedFuelType,
     };
   } catch (error) {
@@ -103,30 +116,38 @@ const createFuel = async (data) => {
 const getDashboardSummary = async () => {
   try {
     // ====== FUEL ======
-    const totalFuelTypes = await Materials.countDocuments({ is_deleted: false });
+    const totalFuelTypes = await Materials.countDocuments({
+      is_deleted: false,
+    });
 
     const totalFuelQuantityResult = await MaterialManagement.aggregate([
-      { $group: { _id: null, total: { $sum: "$quantity" } } }
+      { $group: { _id: null, total: { $sum: "$quantity" } } },
     ]);
     const totalFuelQuantity = totalFuelQuantityResult[0]?.total || 0;
 
     // ====== BOX CATEGORY ======
     const allBoxCategories = await BoxCategory.find().lean();
-    const activeBoxCategories = allBoxCategories.filter(cat => !cat.is_delete);
-    const inactiveBoxCategories = allBoxCategories.filter(cat => cat.is_delete);
+    const activeBoxCategories = allBoxCategories.filter(
+      (cat) => !cat.is_delete
+    );
+    const inactiveBoxCategories = allBoxCategories.filter(
+      (cat) => cat.is_delete
+    );
 
     const totalBoxCategories = allBoxCategories.length;
     const activeCount = activeBoxCategories.length;
     const inactiveCount = inactiveBoxCategories.length;
 
-    const validForStat = activeBoxCategories.filter(cat => typeof cat.quantity === 'number');
+    const validForStat = activeBoxCategories.filter(
+      (cat) => typeof cat.quantity === "number"
+    );
 
     const maxStockBoxCategory = validForStat.reduce(
       (a, b) => (a.quantity > b.quantity ? a : b),
       validForStat[0] || null
     );
 
-    const minCandidates = validForStat.filter(cat => cat.quantity > 0);
+    const minCandidates = validForStat.filter((cat) => cat.quantity > 0);
     const minStockBoxCategory = minCandidates.length
       ? minCandidates.reduce((a, b) => (a.quantity < b.quantity ? a : b))
       : null;
@@ -152,8 +173,8 @@ const getDashboardSummary = async () => {
         totalFuelQuantity,
       },
       boxCategory: {
-        totalBoxCategories,           //  Tổng loại
-        activeBoxCategories: activeCount,   //  Đang hoạt động
+        totalBoxCategories, //  Tổng loại
+        activeBoxCategories: activeCount, //  Đang hoạt động
         inactiveBoxCategories: inactiveCount, //  Đã ngừng
         maxStockBoxCategory: maxStockBoxCategory
           ? {
@@ -167,7 +188,7 @@ const getDashboardSummary = async () => {
               quantity: minStockBoxCategory.quantity,
             }
           : null,
-        typeBreakdown: typeStats     // ✅ Tổng số túi và thùng đang có
+        typeBreakdown: typeStats, // ✅ Tổng số túi và thùng đang có
       },
     };
   } catch (error) {
@@ -175,13 +196,12 @@ const getDashboardSummary = async () => {
   }
 };
 
-
 const getFuelTypesOverview = async () => {
   try {
     const fuelData = await MaterialManagement.find().populate("fuel_type_id");
-    
+
     const formattedData = fuelData.map((item) => ({
-      type: item.fuel_type_id?.type_name || "???", 
+      type: item.fuel_type_id?.type_name || "???",
       value: item.quantity || 0, // ✅ Nếu thiếu thì hiển thị 0
     }));
 
@@ -196,50 +216,48 @@ const getFuelHistory = async () => {
     // Lấy dữ liệu từ cơ sở dữ liệu và sắp xếp theo updatedAt
     const history = await MaterialManagement.find()
       .populate("fuel_type_id")
-      .sort({ updatedAt: -1 }) 
-      .limit(50);  
+      .sort({ updatedAt: -1 })
+      .limit(50);
     return {
       success: true,
-      history: history.map(entry => ({
+      history: history.map((entry) => ({
         type: entry.fuel_type_id?.type_name || "Không xác định",
         action: entry.quantity >= 0 ? "Nhập kho" : "Xuất kho",
         quantity: Math.abs(entry.quantity),
-        timestamp: entry.updatedAt || new Date()
-      }))
+        timestamp: entry.updatedAt || new Date(),
+      })),
     };
   } catch (error) {
     throw new Error(error.message);
   }
 };
-
-
 
 const getLowStockAlerts = async () => {
   try {
-    const lowStock = await MaterialManagement.find({ quantity: { $lt: 1000 } }).populate("fuel_type_id");
+    const lowStock = await MaterialManagement.find({
+      quantity: { $lt: 1000 },
+    }).populate("fuel_type_id");
     return {
       success: true,
-      lowStock: lowStock.map(stock => ({
+      lowStock: lowStock.map((stock) => ({
         fuel_type: stock.fuel_type_id?.type_name || "Không xác định",
         quantity: stock.quantity || 0,
-        warning: stock.quantity === 0 ? "Hết nhiên liệu!" : "Sắp hết nhiên liệu!"
-      }))
+        warning:
+          stock.quantity === 0 ? "Hết nhiên liệu!" : "Sắp hết nhiên liệu!",
+      })),
     };
   } catch (error) {
     throw new Error(error.message);
   }
 };
 
-
-
-
-
-module.exports = { getAllFuel,
-   updateFuel, 
-   getDashboardSummary,
-   getFuelTypesOverview,
-   getFuelHistory,
-   getLowStockAlerts,
-   cancelFuel,
-   createFuel, 
-  };
+module.exports = {
+  getAllFuel,
+  updateFuel,
+  getDashboardSummary,
+  getFuelTypesOverview,
+  getFuelHistory,
+  getLowStockAlerts,
+  cancelFuel,
+  createFuel,
+};
