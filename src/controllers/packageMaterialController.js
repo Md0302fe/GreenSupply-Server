@@ -6,9 +6,14 @@ const createBoxCategory = async (req, res) => {
     const data = await service.createBoxCategory(req.body);
     res.status(201).json({ success: true, data });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({
+      success: false,
+      message: err.code || "UNKNOWN_ERROR",
+      error: err.message,
+    });
   }
 };
+
 
 const updateBoxCategory = async (req, res) => {
   try {
