@@ -24,6 +24,8 @@ const PackageMaterialRouter = require("./PackageMaterialRouter");
 // notifications router
 const NotificationsRouter = require("./NotificationRouter.js");
 
+// Dashboard router
+const DashboardRouter = require("./DashboardRouter");
 
 //  Định nghĩa hàm routes
 //  Đây là một hàm nhận vào đối tượng app (chính là instance của ứng dụng Express).
@@ -52,6 +54,7 @@ const routes = (app) => {
   app.use("/api/package-material", PackageMaterialRouter);
 
   app.use("/api/notifications", NotificationsRouter);
+  app.use("/api/dashboard", DashboardRouter);
 
   // app.use("/api/fuel-storage", StorageReceipt);
 };
