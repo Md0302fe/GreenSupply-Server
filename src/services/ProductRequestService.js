@@ -101,9 +101,17 @@ const getAll = async (filters) => {
 const getProductionRequests = async (filters) => {
   try {
     // Kết quả
-    const requests = await ProductionRequest.find({ status: "Đã duyệt" }).sort({
-      createdAt: -1,
-    });
+    const requests = await ProductionRequest.find({ status: "Đã duyệt" })
+      .populate({
+        path: "material", // populate cho trường material trong ProductionRequest
+        populate: {
+          path: "fuel_type_id", // populate thêm fuel_type_id trong FuelManagement
+          model: "materials", // Đảm bảo bạn đang populate từ mô hình materials
+        },
+      })
+      .sort({
+        createdAt: -1,
+      });
 
     return {
       success: true,
@@ -212,7 +220,7 @@ const changeStatus = async (id) => {
       production_request_id: productionRequest._id,
       is_automatic: false,
     });
-    
+
     // 3. Trừ bao bì
     const packaging = productionRequest.packaging || {};
     const { vacuumBag, carton, vacuumBagBoxId, cartonBoxId } =

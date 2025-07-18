@@ -26,7 +26,7 @@ const getAll = (options = {}, user_id = null) => {
           Purchase_Material_Plan.find(filter).skip(skip).limit(limit),
           Purchase_Material_Plan.countDocuments(filter),
         ]);
-        console.log(data);
+        console.log("data",data);
         return resolve({
           status: "OK",
           message: "Get Paginated Fuel Success",
