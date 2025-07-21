@@ -18,7 +18,7 @@ const ProductionProcessSchema = new mongoose.Schema(
       enum: ["Chờ duyệt", "Đang sản xuất", "Hoàn thành", "Tạm hoãng", "Đã hủy"],
       default: "Chờ duyệt",
     },
-    process_type: {
+    process_type: { 
       type: String,
       default: "single_processes",
     },

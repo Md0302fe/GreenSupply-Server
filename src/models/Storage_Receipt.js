@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema, Types } = mongoose;
 
-const FuelStorageReceiptSchema = new Schema(
+const StorageReceiptSchema = new Schema(
   {
     manager_id: { type: Types.ObjectId, ref: "users" },
     storage_id: { type: Types.ObjectId, ref: "storages", required: true },
@@ -33,6 +33,6 @@ const FuelStorageReceiptSchema = new Schema(
 
 const FuelStorageReceipt = mongoose.model(
   "storage_receipts",
-  FuelStorageReceiptSchema
+  StorageReceiptSchema
 );
 module.exports = FuelStorageReceipt;

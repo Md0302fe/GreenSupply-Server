@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema, Types } = mongoose;
 
-const FuelManagementSchema = new Schema(
+const MaterialManagementSchema = new Schema(
   {
     fuel_type_id: { type: Types.ObjectId, ref: "materials", required: true },
     quantity: { type: Number, default: 0 }, // Giới hạn số lượng nếu cần thiết
@@ -12,5 +12,5 @@ const FuelManagementSchema = new Schema(
   }
 );
 
-const FuelManagement = mongoose.model("material_managements", FuelManagementSchema);
+const FuelManagement = mongoose.model("material_managements", MaterialManagementSchema);
 module.exports = FuelManagement;

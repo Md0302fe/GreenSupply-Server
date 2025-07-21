@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema, Types } = mongoose;
 
-const FuelStoreSchema = new Schema(
+const StoreSchema = new Schema(
   {
     manager_id: { type: Types.ObjectId, ref: "users", required: true }, // Người quản lý kho
     name_storage: { type: String, required: true }, // Tên kho
@@ -17,5 +17,5 @@ const FuelStoreSchema = new Schema(
   }
 );
 
-const FuelStorage = mongoose.model("storages", FuelStoreSchema);
+const FuelStorage = mongoose.model("storages", StoreSchema);
 module.exports = FuelStorage;
