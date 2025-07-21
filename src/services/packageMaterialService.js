@@ -3,9 +3,20 @@ const BoxCategory = require("../models/Package_Material_Categorie");
 const storage_id = "665480f9bde459d62ca7d001";
 // Box Category Services
 const createBoxCategory = async (data) => {
+  const existing = await BoxCategory.findOne({
+    categories_name: { $regex: new RegExp(`^${data.categories_name.trim()}$`, "i") },
+  });
+
+  if (existing) {
+    const error = new Error("Tên loại thùng đã tồn tại!");
+    error.code = "DUPLICATE_CATEGORY_NAME";
+    throw error;
+  }
+
   const newCategory = new BoxCategory({ ...data, quantity: 0 });
   return await newCategory.save();
 };
+
 
 const updateBoxCategory = async (id, data) => {
   return await BoxCategory.findByIdAndUpdate(id, data, { new: true });
