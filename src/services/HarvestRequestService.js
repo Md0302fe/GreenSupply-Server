@@ -16,18 +16,6 @@ const createHarvestRequest = async (data) => {
       throw new Error("Không tìm thấy Supplier với ID: " + data.supplier_id);
     }
 
-    // Kiểm tra Tên yêu cầu
-    if (
-      !data.fuel_name ||
-      !/^[a-zA-Z0-9\s\u00C0-\u1EF9]+$/.test(data.fuel_name)
-    ) {
-      return Promise.reject({
-        status: 400,
-        message:
-          "Tên yêu cầu không hợp lệ! Chỉ được chứa chữ cái, số và khoảng trắng.",
-      });
-    }
-
     // Kiểm tra số lượng
     if (
       !data.quantity ||
