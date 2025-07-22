@@ -42,14 +42,6 @@ const createHarvestRequest = async (data) => {
       throw new Error("Giá phải là số nguyên dương!");
     }
 
-    // Kiểm tra địa chỉ
-    if (
-      !data.address ||
-      !/^[a-zA-Z0-9\s\u00C0-\u1EF9,.-]+$/.test(data.address)
-    ) {
-      throw new Error("Địa chỉ không hợp lệ!");
-    }
-
     // Tự động tính tổng giá
     data.total_price = data.price * data.quantity;
 
