@@ -154,7 +154,7 @@ const updateFuelSupplyRequest = async (id, data) => {
     if (data.address && data.address.trim() === "") {
       throw new Error("Địa chỉ nhận hàng không được để trống!");
     }
-
+    console.log("Dữ liệu nhận được:", data);
     const quantity = parseFloat(data.quantity);
     const price = parseFloat(data.price);
 
