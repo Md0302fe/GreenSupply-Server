@@ -272,14 +272,14 @@ const getProductionChartData = async () => {
     const result = await ProductionRequest.aggregate([
       {
         $match: {
-          status: { $in: ["Đang sản xuất", "Đã duyệt"] },
+          status: { $in: ["Chờ duyệt", "Đã duyệt"] },
         },
       },
       {
         $group: {
           _id: {
             date: {
-              $dateToString: { format: "%m-%d-%Y", date: "$production_date" },
+              $dateToString: { format: "%m-%d-%Y", date: "$createdAt" },
             },
             status: "$status",
           },
@@ -301,14 +301,14 @@ const getProductionChartData = async () => {
         $project: {
           _id: 0,
           date: "$_id",
-          "Đang sản xuất": {
+          "Chờ duyệt": {
             $let: {
               vars: {
                 filtered: {
                   $filter: {
                     input: "$counts",
                     as: "item",
-                    cond: { $eq: ["$$item.status", "Đang sản xuất"] },
+                    cond: { $eq: ["$$item.status", "Chờ duyệt"] },
                   },
                 },
               },

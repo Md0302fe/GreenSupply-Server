@@ -972,7 +972,7 @@ const getDashboardprocess = async () => {
     const totalConsolidateProcess =
       await ConsolidateProductionProcessing.countDocuments();
 
-    // 5. Tổng số kế hoạch sản xuất
+    // 5. Tổng số kế hoạch sản xuất                                                                      
     const totalProductionPlans = await ProductionRequest.countDocuments();
 
     // 6. Danh sách kế hoạch mới nhất
@@ -1061,6 +1061,54 @@ const generatedNotifications = async (data) => {
   }
 };
 
+// Thống kê quy trình theo ngày và trạng thái
+const getProductionProcessChartData = async () => {
+  try {
+    const aggregateResult = await SingleProductionProcessing.aggregate([
+      {
+        $project: {
+          date: {
+            $dateToString: { format: "%Y-%m-%d", date: "$start_time" },
+          },
+          status: 1,
+        },
+      },
+      {
+        $group: {
+          _id: { date: "$date", status: "$status" },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Convert to chart format
+    const chartMap = {};
+
+    aggregateResult.forEach((item) => {
+      const date = item._id.date;
+      const status = item._id.status;
+
+      if (!chartMap[date]) {
+        chartMap[date] = { date, ĐangSảnXuất: 0, HoànThành: 0 };
+      }
+
+      if (status === "Đang sản xuất") {
+        chartMap[date].ĐangSảnXuất = item.count;
+      } else if (status === "Hoàn thành") {
+        chartMap[date].HoànThành = item.count;
+      }
+    });
+
+    const chartData = Object.values(chartMap).sort(
+      (a, b) => new Date(a.date) - new Date(b.date)
+    );
+
+    return chartData;
+  } catch (error) {
+    throw new Error("Lỗi khi lấy dữ liệu biểu đồ quy trình sản xuất: " + error.message);
+  }
+};
+
 module.exports = {
   create,
   getAll,
@@ -1079,4 +1127,5 @@ module.exports = {
   getAllConsolidateExecuteProcess,
   getConsolidateProcessingDetails,
   getConsolidateProcessStage,
+  getProductionProcessChartData,
 };

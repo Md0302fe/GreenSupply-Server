@@ -346,7 +346,7 @@ const getStockImportCompletedByDate = async () => {
       {
         $match: {
           is_deleted: false,
-          status: "Đã duyệt",
+          status: "Nhập kho thành công",
         },
       },
       {

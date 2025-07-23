@@ -2,6 +2,15 @@ const StorageReceiptService = require("../services/StorageReceiptService");
 const MaterialStorageExportService = require("../services/MaterialStorageExportService");
 const RawMaterialBatchService = require("../services/RawMaterialBatchService");
 const ProductRequestService = require("../services/ProductRequestService");
+const ProductionProcessingService = require("../services/ProductionProcessingService");
+const UserService = require("../services/UserService");
+const { getFuelStorageById } = require("../services/StorageReceiptService");
+const storage_id = "665480f9bde459d62ca7d001";
+const { SupplierOrderDashboard } = require("../services/OrderService");
+const MaterialService = require("../services/MaterialManagementService");
+const ProductService = require("../services/ProductService");
+
+
 
 
 const getDashboardOverview = async (req, res) => {
@@ -34,6 +43,32 @@ const getDashboardOverview = async (req, res) => {
     const productionChartResult =
       await ProductRequestService.getProductionChartData();
 
+    const productionProcessChart =
+      await ProductionProcessingService.getProductionProcessChartData();
+
+    const userOverviewRes = await UserService.getUserOverview();
+    const roleDistribution = userOverviewRes?.data?.role || [];
+    const warehouseCapacityRaw = await StorageReceiptService.getFuelStorageById(storage_id);
+    const supplierOrderStats = await SupplierOrderDashboard();
+    const fuelTypesOverview = await MaterialService.getFuelTypesOverview();
+    const dashboardBoxSummary = await MaterialService.getDashboardSummary();
+    const rawMaterialDistribution = dashboardBoxSummary?.rawMaterial?.typeBreakdown || {};
+    const packagingDistribution = dashboardBoxSummary?.boxCategory?.typeBreakdown || {};
+    const summaryStats = await ProductionProcessingService.getDashboardprocess();
+    const productDashboard = await ProductService.getProductDashboard();
+
+
+    const used = warehouseCapacityRaw.capacity - warehouseCapacityRaw.remaining_capacity;
+    const usagePercent = Math.round((used / warehouseCapacityRaw.capacity) * 100);
+    const warehouseCapacity = {
+      name: warehouseCapacityRaw.name_storage,
+      capacity: warehouseCapacityRaw.capacity,
+      remaining: warehouseCapacityRaw.remaining_capacity,
+      used,
+      usagePercent,
+    };
+
+
     // ✅ Trả dữ liệu hợp nhất về client
     return res.status(200).json({
       success: true,
@@ -48,6 +83,15 @@ const getDashboardOverview = async (req, res) => {
         stockImportCompletedByDate,
         stockExportCompletedByDate,
         productionChartData: productionChartResult.data || [],
+        productionProcessChart,
+        roleDistribution,
+        warehouseCapacity,
+        supplierOrderStats,
+        fuelDistribution: fuelTypesOverview?.fuelData || [],
+        packagingDistribution,
+        rawMaterialDistribution,
+        summaryStats,
+        productDashboard
       },
     });
   } catch (error) {
