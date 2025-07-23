@@ -284,11 +284,11 @@ const getAllConsolidateExecuteProcess = async () => {
 };
 
 // Get All Histories Process
-const getAllHistoriesProcess = async () => {
+const getAllHistoriesProcess = async (type_process) => {
   try {
-    const requests = await ProductionProcessHistory.find().populate(
-      "production_process"
-    );
+    const requests = await ProductionProcessHistory.find({
+      process_model: type_process,
+    }).populate("production_process");
 
     return {
       success: true,
@@ -324,38 +324,56 @@ const update = async (id, data) => {
 };
 
 // Cập nhật quy trình sản xuất khi hoàng thành 7 giai đoạn
-const completeProductionProcess = async (process_id) => {
+const completeProductionProcess = async (process_id, process_type) => {
   try {
+    // Phân loại quy trình
     // 1 : update Production Process Status and final_time_finish
-    const productionProcessing = await SingleProductionProcessing.findById(
-      process_id
-    );
+    if (process_type === "single_processes") {
+      const productionProcessing = await SingleProductionProcessing.findById(
+        process_id
+      );
+      console.log("Đơn => " , productionProcessing)
 
-    if (!productionProcessing) {
-      return {
-        success: false,
-        message: "Không tìm thấy đơn sản xuất!",
-      };
+      if (!productionProcessing) {
+        return {
+          success: false,
+          message: "Không tìm thấy đơn sản xuất!",
+        };
+      }
+      const date = new Date();
+      productionProcessing.status = "Hoàn thành";
+      productionProcessing.final_time_finish = date;
+      await productionProcessing.save();
+    } else {
+      const productionProcessing = await ConsolidateProductionProcessing.findById(
+        process_id
+      );
+      console.log("Tổng hợp => " , productionProcessing)
+      if (!productionProcessing) {
+        return {
+          success: false,
+          message: "Không tìm thấy đơn sản xuất!",
+        };
+      }
+      const date = new Date();
+      productionProcessing.status = "Hoàn thành";
+      productionProcessing.final_time_finish = date;
+      await productionProcessing.save();
     }
-    const date = new Date();
-    productionProcessing.status = "Hoàn thành";
-    productionProcessing.final_time_finish = date;
-    await productionProcessing.save();
-
     const objectProcessId = new mongoose.Types.ObjectId(process_id);
 
     // 2 : create record history for this production process
     const createdHistory = await ProductionProcessHistory.create({
       production_process: objectProcessId,
+      process_model: process_type,
     });
-
+    console.log("Lịch sử vừa tạo => " , createdHistory)
     if (!createdHistory) {
       return {
         success: false,
         message: "Không thể tạo lịch sử cho quy trình này",
       };
     }
-
     return {
       success: true,
       message: "Đã hoàn thành toàn bộ quy trình!",
@@ -403,8 +421,9 @@ const finishStage = async (dataRequest) => {
       await createNextStage(process_id, parseInt(noStage), process_type);
     }
 
-    if (noStage === 7) {
-      const result = await completeProductionProcess(process_id);
+    if (parseInt(noStage) === 7) {
+      console.log("Tạo lịch sử")
+      const result = await completeProductionProcess(process_id, process_type);
       if (!result.success) return result;
     }
     return {
@@ -972,7 +991,7 @@ const getDashboardprocess = async () => {
     const totalConsolidateProcess =
       await ConsolidateProductionProcessing.countDocuments();
 
-    // 5. Tổng số kế hoạch sản xuất                                                                      
+    // 5. Tổng số kế hoạch sản xuất
     const totalProductionPlans = await ProductionRequest.countDocuments();
 
     // 6. Danh sách kế hoạch mới nhất
@@ -1105,7 +1124,9 @@ const getProductionProcessChartData = async () => {
 
     return chartData;
   } catch (error) {
-    throw new Error("Lỗi khi lấy dữ liệu biểu đồ quy trình sản xuất: " + error.message);
+    throw new Error(
+      "Lỗi khi lấy dữ liệu biểu đồ quy trình sản xuất: " + error.message
+    );
   }
 };
 

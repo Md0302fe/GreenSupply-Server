@@ -167,7 +167,8 @@ const getAllConsolidateExecuteProcess = async (req, res) => {
 // Get All Histories Proccess
 const getAllHistoriesProcess = async (req, res) => {
   try {
-    const response = await ProductionProcessingService.getAllHistoriesProcess();
+    const { type_process } = req.query;
+    const response = await ProductionProcessingService.getAllHistoriesProcess(type_process);
     return res.status(200).json(response);
   } catch (error) {
     console.error("Lỗi trong getAllHistoriesProcess controller:", error.message);

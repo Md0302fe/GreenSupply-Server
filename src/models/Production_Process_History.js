@@ -4,9 +4,14 @@ const ProductionProcessHistorySchema = new mongoose.Schema(
   {
     production_process: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "single_processes",
+      refPath: "process_model", 
       required: true,
-    }, // ref to Single_Process model
+    }, 
+    process_model: {
+      type: String,
+      required: true,
+      enum: ["single_processes", "consolidated_processes"], 
+    }
   },
   { timestamps: true }
 );
