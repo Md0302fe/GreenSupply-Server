@@ -68,7 +68,7 @@ const authUserMidleware = async (req, res, next) => {
       // Kiểm tra user sau khi decode token
       // console.log("Token giải mã được:", user); 
       req.user = user; // Gán thông tin user vào request
-      console.log("req.user ", req.user)
+    
       next();
     });
   } catch (error) {
