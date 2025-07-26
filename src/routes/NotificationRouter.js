@@ -7,7 +7,7 @@ const { authUserMidleware } = require("../middleware/AuthMidleware");
 // ===== BOX CATEGORIES =====
 
 // get all by admin
-router.get("/getNotifications",authUserMidleware, NotifController.getAllNotifications);
+router.get("/getNotifications", authUserMidleware, NotifController.getAllNotifications);
 
 // get all byid
 router.get(

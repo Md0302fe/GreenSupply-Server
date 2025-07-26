@@ -4,7 +4,6 @@ const Notifications = require("../services/notificationsService");
 const getAllNotifications = async (req, res) => {
   try {
     const role_id = req.user.role_id;
-    console.log("role_id", role_id)
     const data = await Notifications.getAllNotifications(role_id);
     if (!data) {
       res.status(500).json({
@@ -39,7 +38,8 @@ const getAllNotificationsById = async (req, res) => {
 // read notifications
 const readNotification = async (req, res) => {
   try {
-    const { notification_id } = req.body;
+    
+    const { notification_id } = req.query;
     const data = await Notifications.readNotification(notification_id);
     if (!data) {
       res.status(500).json({

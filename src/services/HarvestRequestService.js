@@ -7,6 +7,10 @@ const mongoose = require("mongoose");
 const object_admin_role = new mongoose.Types.ObjectId(
   "67950da386a0a462d408c7b9"
 );
+const object_raw_material = new mongoose.Types.ObjectId(
+  "686f3835d7eaed8a9fd5a8b8"
+);
+
 const object_management_role = "";
 
 const createHarvestRequest = async (data) => {
@@ -46,7 +50,7 @@ const createHarvestRequest = async (data) => {
 
       const newNoti = {
         user_id: new mongoose.Types.ObjectId(supplier?._id), // Người tạo đơn
-        role_id: [object_admin_role], // send to
+        role_id: [object_admin_role , object_raw_material ], // send to
         title: "Đơn yêu cầu thu nguyên liệu",
         text_message: `${supplier?.full_name} vừa tạo đơn yêu cầu thu nguyên liệu mới`,
         type: ["request_supplier"],

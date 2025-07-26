@@ -46,7 +46,7 @@ const authUserMidleware = async (req, res, next) => {
         message: "Không có token, vui lòng đăng nhập.",
       });
     }
-
+    
     // Kiểm tra token có đúng định dạng "Bearer <token>"
     const tokenParts = tokenHeader.split(" ");
     if (tokenParts.length !== 2 || tokenParts[0] !== "Bearer") {
@@ -57,9 +57,9 @@ const authUserMidleware = async (req, res, next) => {
     }
 
     const token = tokenParts[1]; // Lấy token thật
-    
     jwt.verify(token, process.env.ACCESS_TOKEN, (err, user) => {
       if (err) {
+        console.log("JWT Verify Error:", err);  // ✅ In lỗi cụ thể
         return res.status(403).json({
           status: "ERROR",
           message: token,
@@ -68,7 +68,7 @@ const authUserMidleware = async (req, res, next) => {
       // Kiểm tra user sau khi decode token
       // console.log("Token giải mã được:", user); 
       req.user = user; // Gán thông tin user vào request
-    
+      console.log("Pass MidleWare")
       next();
     });
   } catch (error) {
