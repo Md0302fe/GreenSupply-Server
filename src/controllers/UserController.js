@@ -214,6 +214,28 @@ const userLogin = async (req, res) => {
     });
   }
 };
+// Phương Thức Login Của user
+const userLoginWithGoogle = async (req, res) => {
+  try {
+    const respone = await UserService.userLoginWithGoogle(req.body);
+    // Trả về 1 json(object) respone nhận được từ phía services.
+    const { refresh_token, ...newRespone } = respone;
+    // set option cookie
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: false,
+      samSite: "strict",
+    });
+
+    return res.status(200).json(newRespone);
+  } catch (error) {
+    // Trả về 1 json(object) error nhận được từ catch().
+    return res.status(404).json({
+      status: "ERROR",
+      massage: error,
+    });
+  }
+};
 
 // Phương Thức Update Thông Tin Của User
 const updateUser = async (req, res) => {
@@ -497,6 +519,7 @@ module.exports = {
   getUserOverview,
   createUser,
   userLogin,
+  userLoginWithGoogle,
   updateUser,
   blockUser,
   getAllUser,

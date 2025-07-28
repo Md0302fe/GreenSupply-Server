@@ -14,7 +14,12 @@ const {
 } = require("../services/JwtService");
 const { default: mongoose } = require("mongoose");
 
-const isAdminRoles = ["Admin", "Material Manager", "Warehouse Manager", "Process Manager"];
+const isAdminRoles = [
+  "Admin",
+  "Material Manager",
+  "Warehouse Manager",
+  "Process Manager",
+];
 
 // Tạo mã otp
 const generateOTP = () => {
@@ -58,7 +63,7 @@ const sendOtpEmail = async (email, phone) => {
 
       // Tạo mã OTP
       const otp = generateOTP(); // Hàm generateOTP() tạo mã OTP
-      console.log("otp ", otp)
+      console.log("otp ", otp);
 
       // Nội dung email
       const mailOptions = {
@@ -374,118 +379,126 @@ const userLogin = (userLogin) => {
     const { email, password, googleToken } = userLogin; // Thêm googleToken vào input
 
     try {
-      // Trường hợp đăng nhập bằng Google
-      if (googleToken) {
-        // 1. Xác thực token Google
-        const ticket = await client.verifyIdToken({
-          idToken: googleToken,
-          audience: process.env.GOOGLE_CLIENT_ID,
+      // Trường hợp đăng nhập bằng email và password
+
+      // Tìm user trong hệ thống thông qua email
+      const user = await User.findOne({ email }).populate("role_id");
+
+      if (user === null) {
+        return resolve({
+          status: "ERROR",
+          message: `Tài khoản không tồn tại`,
         });
+      }
+      if (user && user?.is_blocked) {
+        return resolve({
+          status: "BLOCKED",
+          message:
+            "Tài khoản của bạn vi phạm một số chính sách của hệ thống nên đã bị khóa",
+        });
+      }
 
-        const payload = ticket.getPayload(); // Thông tin người dùng Google
-        const { email, name, picture, sub: googleId } = payload;
-        // 2. Kiểm tra xem người dùng đã tồn tại chưa
-        let user = await User.findOne({ email }).populate("role_id");
-
-        if (!user) {
-          return resolve({
-            status: "NEW_USER",
-            message: "Người dùng cần cập nhật thông tin bổ sung",
-            user: {
-              email: email,
-              full_name: name,
-              avatar: picture,
-              googleId,
-            },
-          });
-        }
-
-        if (user && user?.is_blocked) {
-          return resolve({
-            status: "BLOCKED",
-            message:
-              "Tài khoản của bạn vi phạm một số chính sách của hệ thống nên đã bị khóa",
-          });
-        }
-
-        
-        // 4. Tạo access_token và refresh_token
+      // So sánh password
+      const comparePassword = bcrypt.compareSync(password, user.password);
+      if (!comparePassword) {
+        return resolve({
+          status: "ERROR",
+          message: "Sai tài khoản hoặc mật khẩu !",
+        });
+      } else {
+        // Tạo token khi đăng nhập thành công
         const access_token = await genneralAccessToken({
           id: user.id,
-          isAdmin: isAdminRoles?.includes(user.role_id?.role_name)? "Admin" : "Other",
+          isAdmin: isAdminRoles?.includes(user.role_id?.role_name)
+            ? "Admin"
+            : "Other",
           role_id: user.role_id?._id,
         });
         const refresh_token = await genneralRefreshToken({
           id: user.id,
-          isAdmin: isAdminRoles?.includes(user.role_id?.role_name)? "Admin" : "Other",
+          isAdmin: isAdminRoles?.includes(user.role_id?.role_name)
+            ? "Admin"
+            : "Other",
           role_id: user.role_id?._id,
         });
-        // 5. Trả về thông tin đăng nhập
+
         return resolve({
           status: "OK",
-          message: "Đăng nhập Google thành công",
+          message: "Đăng nhập thành công",
           access_token,
           refresh_token,
+        });
+      }
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+const userLoginWithGoogle = (userLogin) => {
+  return new Promise(async (resolve, reject) => {
+    const { email, password, googleToken } = userLogin; // Thêm googleToken vào input
+
+    try {
+      // Trường hợp đăng nhập bằng Google
+
+      // 1. Xác thực token Google
+      const ticket = await client.verifyIdToken({
+        idToken: googleToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+
+      const payload = ticket.getPayload(); // Thông tin người dùng Google
+      const { email, name, picture, sub: googleId } = payload;
+      // 2. Kiểm tra xem người dùng đã tồn tại chưa
+      let user = await User.findOne({ email }).populate("role_id");
+
+      if (!user) {
+        return resolve({
+          status: "NEW_USER",
+          message: "Người dùng cần cập nhật thông tin bổ sung",
           user: {
-            email: user.email,
-            name: user.name,
-            avatar: user.avatar,
+            email: email,
+            full_name: name,
+            avatar: picture,
+            googleId,
           },
         });
       }
 
-      // Trường hợp đăng nhập bằng email và password
-      if (email && password) {
-        // Tìm user trong hệ thống thông qua email
-        const user = await User.findOne({ email }).populate("role_id");
-
-        if (user === null) {
-          return resolve({
-            status: "ERROR",
-            message: `Tài khoản không tồn tại`,
-          });
-        }
-        if (user && user?.is_blocked) {
-          return resolve({
-            status: "BLOCKED",
-            message:
-              "Tài khoản của bạn vi phạm một số chính sách của hệ thống nên đã bị khóa",
-          });
-        }
-
-        // So sánh password
-        const comparePassword = bcrypt.compareSync(password, user.password);
-        if (!comparePassword) {
-          return resolve({
-            status: "ERROR",
-            message: "Sai tài khoản hoặc mật khẩu !",
-          });
-        } else {
-          // Tạo token khi đăng nhập thành công
-          const access_token = await genneralAccessToken({
-            id: user.id,
-            isAdmin: isAdminRoles?.includes(user.role_id?.role_name)? "Admin" : "Other",
-            role_id: user.role_id?._id,
-          });
-          const refresh_token = await genneralRefreshToken({
-            id: user.id,
-            isAdmin: isAdminRoles?.includes(user.role_id?.role_name)? "Admin" : "Other",
-            role_id: user.role_id?._id,
-          });
-
-          return resolve({
-            status: "OK",
-            message: "Đăng nhập thành công",
-            access_token,
-            refresh_token,
-          });
-        }
+      if (user && user?.is_blocked) {
+        return resolve({
+          status: "BLOCKED",
+          message:
+            "Tài khoản của bạn vi phạm một số chính sách của hệ thống nên đã bị khóa",
+        });
       }
 
-      // Nếu không có thông tin đăng nhập nào được cung cấp
+      // 4. Tạo access_token và refresh_token
+      const access_token = await genneralAccessToken({
+        id: user.id,
+        isAdmin: isAdminRoles?.includes(user.role_id?.role_name)
+          ? "Admin"
+          : "Other",
+        role_id: user.role_id?._id,
+      });
+      const refresh_token = await genneralRefreshToken({
+        id: user.id,
+        isAdmin: isAdminRoles?.includes(user.role_id?.role_name)
+          ? "Admin"
+          : "Other",
+        role_id: user.role_id?._id,
+      });
+      // 5. Trả về thông tin đăng nhập
       return resolve({
-        status: "ERROR",
-        message: "Vui lòng cung cấp thông tin đăng nhập",
+        status: "OK",
+        message: "Đăng nhập Google thành công",
+        access_token,
+        refresh_token,
+        user: {
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+        },
       });
     } catch (error) {
       reject(error);
@@ -629,7 +642,7 @@ const getAllUser = () => {
   return new Promise(async (resolve, reject) => {
     try {
       const allUser = await User.find()
-        .sort({ createdAt: -1 }) 
+        .sort({ createdAt: -1 })
         .populate("role_id");
       return resolve({
         status: "OK",
@@ -845,9 +858,6 @@ const deleteAddress = async (user_id, address_id) => {
   }
 };
 
-
-
-
 const getUserOverview = async () => {
   try {
     // 1. Tổng số user
@@ -859,7 +869,9 @@ const getUserOverview = async () => {
     // 3. Số user mới hôm nay
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
-    const newToday = await User.countDocuments({ createdAt: { $gte: startOfToday } });
+    const newToday = await User.countDocuments({
+      createdAt: { $gte: startOfToday },
+    });
 
     // 4. Số user dùng Google đăng nhập
     const googleLogin = await User.countDocuments({ googleId: { $ne: null } });
@@ -872,7 +884,7 @@ const getUserOverview = async () => {
       .populate("role_id", "role_name");
 
     // 6. Số user chưa bị chặn
-      const totalActive = await User.countDocuments({ is_blocked: false });
+    const totalActive = await User.countDocuments({ is_blocked: false });
 
     // Thống kê vai trò
     const role = await User.aggregate([
@@ -881,23 +893,23 @@ const getUserOverview = async () => {
           from: "roles",
           localField: "role_id",
           foreignField: "_id",
-          as: "role"
-        }
+          as: "role",
+        },
       },
       { $unwind: "$role" },
       {
         $group: {
           _id: "$role.role_name",
-          count: { $sum: 1 }
-        }
+          count: { $sum: 1 },
+        },
       },
       {
         $project: {
           role: "$_id",
           count: 1,
-          _id: 0
-        }
-      }
+          _id: 0,
+        },
+      },
     ]);
     return {
       status: "OK",
@@ -909,14 +921,14 @@ const getUserOverview = async () => {
         newToday,
         googleLogin,
         latestUsers,
-      }
+      },
     };
   } catch (error) {
     console.error("DashboardService error:", error);
     return {
       status: "ERROR",
       message: "Lỗi khi lấy dữ liệu thống kê",
-      error: error.message
+      error: error.message,
     };
   }
 };
@@ -925,6 +937,7 @@ module.exports = {
   getUserOverview,
   createUser,
   userLogin,
+  userLoginWithGoogle,
   updateUser,
   blockUser,
   getAllUser,

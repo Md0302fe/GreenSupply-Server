@@ -18,6 +18,8 @@ router.post("/complete-profile", UserController.completeProfile);
 router.post("/create-otp", UserController.createOtp);
 // # LOGIN - USER / POST
 router.post("/sign-in", UserController.userLogin);
+// # LOGIN WITH GOOGLE - USER / POST
+router.post("/sign-in-with-google", UserController.userLoginWithGoogle);
 // # LOGOUT - USER / POST
 router.post("/log-out", UserController.userLogout);
 // # UPDATE - USER / PUT
