@@ -224,25 +224,40 @@ const createNewBatchStorageExport = async (material_export_id) => {
 };
 
 // Reject Storage Export
-const RejectStorageExport = async (storage_export_id) => {
+const RejectStorageExport = async (storage_export_id, res) => {
   try {
-    const deleted = await MaterialStorageExport.findByIdAndDelete(
-      storage_export_id
-    );
-
-    if (!deleted) {
-      return { success: false, message: "Xóa đơn thất bại"};
+    // B1: Tìm đơn xuất kho
+    const exportDoc = await MaterialStorageExport.findById(storage_export_id);
+    if (!exportDoc) {
+      return { success: false, message: "Không tìm thấy đơn xuất kho" };
     }
 
-    return { success: true, message: "Xóa đơn thành công" };
+    // B2: Tìm lô nguyên liệu tương ứng
+    const existingBatch = await RawMaterialBatch.findById(exportDoc.batch_id);
+    if (!existingBatch) {
+      throw new Error(`Không tìm thấy lô nguyên liệu với ID: ${exportDoc.batch_id}`);
+    }
+
+    // B3: Cập nhật status của RawMaterialBatch
+    existingBatch.status = "Đang chuẩn bị";
+    await existingBatch.save();
+
+    // B4: Xóa đơn xuất kho
+    await MaterialStorageExport.findByIdAndDelete(storage_export_id);
+
+    return {
+      success: true,
+      message: "Hủy đơn thành công. Lô nguyên liệu đã được chuyển về trạng thái 'Đang chuẩn bị'.",
+    };
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Xóa đơn xuất lô thất bại",
+      message: "Hủy đơn xuất kho thất bại",
       error: error.message,
     });
   }
 };
+
 
 // Dashboard
 const getTotalMaterialStorageExports = async () => {
