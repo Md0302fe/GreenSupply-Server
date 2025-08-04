@@ -329,7 +329,7 @@ const acceptFuelSupplyOrder = async (req, res) => {
 
       await FuelSupplyOrder.updateMany(
         { request_id: order.request_id, status: "Chờ duyệt" },
-        { status: "Vô hiệu hóa", note: "Đơn hàng của bạn bị vô hiệu hóa do yêu cầu đã đủ chỉ tiêu" }
+        // { status: "Vô hiệu hóa", note: "Đơn hàng của bạn bị vô hiệu hóa do yêu cầu đã đủ chỉ tiêu" }
       );
     }
 
