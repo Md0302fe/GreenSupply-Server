@@ -9,6 +9,9 @@ const socket = require("../socket.js");
 const object_admin_role = new mongoose.Types.ObjectId(
   "67950da386a0a462d408c7b9"
 );
+const object_raw_material_manager_role = new mongoose.Types.ObjectId(
+  "686f3835d7eaed8a9fd5a8b8"
+);
 const object_management_role = "";
 
 const createFuelSupplyRequest = async (data) => {
@@ -43,8 +46,8 @@ const createFuelSupplyRequest = async (data) => {
       const io = socket.getIO();
 
       const newNoti = {
-        user_id: new mongoose.Types.ObjectId(data.supplier_id), // Người tạo đơn
-        role_id: [object_admin_role], // send to
+        user_id: new mongoose.Types.ObjectId(data.supplier_id),
+        role_id: [object_admin_role, object_raw_material_manager_role],
         title: "Đơn cung cấp nguyên liệu",
         text_message: `${supplier?.full_name} vừa tạo đơn cung cấp nguyên liệu mới`,
         type: ["request_supplier"],
