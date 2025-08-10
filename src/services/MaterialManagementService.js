@@ -8,6 +8,7 @@ const getAllFuel = async () => {
   try {
     const requests = await MaterialManagement.find()
       .populate("fuel_type_id")
+      .populate("storage_id")
       .sort({ createdAt: -1 }); // Sắp xếp theo ngày tạo mới nhất trước;
 
     return {
