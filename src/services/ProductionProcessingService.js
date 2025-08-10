@@ -303,11 +303,22 @@ const getAllHistoriesProcess = async (type_process) => {
 // Update infomation data
 const update = async (id, data) => {
   try {
-    const updated = await SingleProductionProcessing.findByIdAndUpdate(
-      id,
-      { ...data, updatedAt: new Date() },
-      { new: true }
-    );
+    let updated;
+    console.log("dataUpdate => ", data)
+    if (data?.process_type === "single") {
+      updated = await SingleProductionProcessing.findByIdAndUpdate(
+        id,
+        { ...data, updatedAt: new Date() },
+        { new: true }
+      );
+    } else {
+      updated = await ConsolidateProductionProcessing.findByIdAndUpdate(
+        id,
+        { ...data, updatedAt: new Date() },
+        { new: true }
+      );
+    }
+    console.log("newUpdated => ", updated)
 
     if (!updated) {
       throw new Error("Không tìm thấy quy trình sản xuất!");
@@ -332,7 +343,7 @@ const completeProductionProcess = async (process_id, process_type) => {
       const productionProcessing = await SingleProductionProcessing.findById(
         process_id
       );
-      console.log("Đơn => " , productionProcessing)
+      console.log("Đơn => ", productionProcessing);
 
       if (!productionProcessing) {
         return {
@@ -345,10 +356,9 @@ const completeProductionProcess = async (process_id, process_type) => {
       productionProcessing.final_time_finish = date;
       await productionProcessing.save();
     } else {
-      const productionProcessing = await ConsolidateProductionProcessing.findById(
-        process_id
-      );
-      console.log("Tổng hợp => " , productionProcessing)
+      const productionProcessing =
+        await ConsolidateProductionProcessing.findById(process_id);
+      console.log("Tổng hợp => ", productionProcessing);
       if (!productionProcessing) {
         return {
           success: false,
@@ -367,7 +377,7 @@ const completeProductionProcess = async (process_id, process_type) => {
       production_process: objectProcessId,
       process_model: process_type,
     });
-    console.log("Lịch sử vừa tạo => " , createdHistory)
+    console.log("Lịch sử vừa tạo => ", createdHistory);
     if (!createdHistory) {
       return {
         success: false,
@@ -422,7 +432,7 @@ const finishStage = async (dataRequest) => {
     }
 
     if (parseInt(noStage) === 7) {
-      console.log("Tạo lịch sử")
+      console.log("Tạo lịch sử");
       const result = await completeProductionProcess(process_id, process_type);
       if (!result.success) return result;
     }

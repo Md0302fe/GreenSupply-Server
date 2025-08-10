@@ -22,6 +22,8 @@ const getAllFuel = async () => {
 
 const updateFuel = async (id, data) => {
   try {
+    console.log("id" ,id )
+    console.log("data" ,data )
     const updatedFuel = await MaterialManagement.findByIdAndUpdate(
       id,
       {

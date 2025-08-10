@@ -760,26 +760,28 @@ const updateAddress = async (user_id, address_id, data) => {
         message: "Bạn cần đăng nhập để cập nhật địa chỉ.",
       };
     }
-    // Kiểm tra địa chỉ có tồn tại không
-    const address = await UserAddress.findOne({ _id: address_id, user_id });
 
+    const address = await UserAddress.findOne({ _id: address_id, user_id });
     if (!address) {
       return {
         status: "ERROR",
         message: "Không tìm thấy địa chỉ hoặc bạn không có quyền chỉnh sửa.",
       };
     }
-    // Không cho phép cập nhật user_id
-    if (data.user_id) {
-      return {
-        status: "ERROR",
-        message: "Không thể thay đổi quyền sở hữu địa chỉ.",
-      };
-    }
+
+    // Loại bỏ các trường không được cập nhật
+    const { full_name, company_name, address: addr, phone, note } = data;
+
     const updatedAddress = await UserAddress.findByIdAndUpdate(
       address_id,
-      data,
-      { new: true }
+      {
+        full_name,
+        company_name,
+        address: addr,
+        phone,
+        note,
+      },
+      { new: true, runValidators: true } // runValidators để đảm bảo validate model
     );
 
     return {
