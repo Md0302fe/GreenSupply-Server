@@ -85,7 +85,14 @@ const createProductRequest = async (productData) => {
 const getAll = async (filters) => {
   try {
     // Kết quả
-    const requests = await ProductionRequest.find().sort({ createdAt: -1 });
+    const requests = await ProductionRequest
+    .find()
+    .populate({
+      path: 'material',
+      populate : {path : 'fuel_type_id'}
+    })
+    .sort({ createdAt: -1 })
+    
 
     return {
       success: true,
