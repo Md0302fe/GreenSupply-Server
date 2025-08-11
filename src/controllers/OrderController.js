@@ -345,70 +345,66 @@ const getFuelSupplyOrderById = async (req, res) => {
 // };
 
 const acceptFuelSupplyOrder = async (req, res) => {
+  const session = await mongoose.startSession();
   try {
     const { id } = req.params;
 
-    // 1) Tìm đơn trước, chưa đổi trạng thái
-    const order = await FuelSupplyOrder.findById(id);
-    if (!order) {
-      return res.status(404).json({ success: false, error: "Đơn hàng không tồn tại" });
-    }
+    await session.withTransaction(async () => {
+      // 1) Đọc đơn + ràng buộc trạng thái
+      const order = await FuelSupplyOrder.findById(id).session(session);
+      if (!order) throw new Error("Đơn hàng không tồn tại");
+      if (order.status === "Đã duyệt") {
+        // idempotent
+        return res.json({ success: true, data: order, message: "Đơn đã ở trạng thái Đã duyệt" });
+      }
+      if (order.status !== "Chờ duyệt") {
+        throw new Error("Chỉ có thể duyệt đơn ở trạng thái 'Chờ duyệt'");
+      }
+      if (!order.request_id) throw new Error("Thiếu request_id liên kết");
 
-    // Idempotent: nếu đã duyệt rồi thì trả về luôn
-    if (order.status === "Đã duyệt") {
-      return res.json({ success: true, data: order, message: "Đơn đã ở trạng thái Đã duyệt" });
-    }
-    if (!order.request_id) {
-      return res.status(400).json({ success: false, error: "Thiếu request_id liên kết" });
-    }
+      // 2) Trừ chỉ tiêu ATOMIC (chỉ trừ nếu còn đủ)
+      const qty = Number(order.quantity) || 0;
+      if (qty <= 0) throw new Error("Số lượng đơn không hợp lệ");
 
-    // 2) Lấy kế hoạch nhập (AdminFuelEntry)
-    const entry = await AdminFuelEntry.findById(order.request_id);
-    if (!entry) {
-      return res.status(404).json({ success: false, error: "Không tìm thấy AdminFuelEntry" });
-    }
-
-    const qty = Number(order.quantity) || 0;
-    const remain = Number(entry.quantity_remain) || 0;
-    const newRemain = remain - qty;
-
-    if (qty <= 0) {
-      return res.status(400).json({ success: false, error: "Số lượng đơn không hợp lệ" });
-    }
-    if (newRemain < 0) {
-      return res.status(400).json({
-        success: false,
-        error: "Số lượng còn lại không đủ để duyệt đơn này",
-      });
-    }
-
-    // 3) Cập nhật số lượng còn lại trước (để nếu fail thì chưa đổi status)
-    const updatedEntry = await AdminFuelEntry.findByIdAndUpdate(
-      order.request_id,
-      { $set: { quantity_remain: newRemain } },
-      { new: true }
-    );
-
-    // 4) Nếu đã đủ/âm về 0 thì cập nhật trạng thái kế hoạch + vô hiệu hóa đơn pending khác
-    if ((updatedEntry.quantity_remain || 0) <= 0) {
-      await AdminFuelEntry.findByIdAndUpdate(
-        order.request_id,
-        { $set: { status: "Đã Hoàn Thành" } },
-        { new: true }
+      const dec = await AdminFuelEntry.updateOne(
+        { _id: order.request_id, quantity_remain: { $gte: qty } },
+        { $inc: { quantity_remain: -qty } },
+        { session }
       );
 
-      await FuelSupplyOrder.updateMany(
-        { request_id: order.request_id, status: "Chờ duyệt" },
-        { $set: { status: "Vô hiệu hóa", note: "Đơn hàng bị vô hiệu hóa do đã đủ chỉ tiêu" } }
+      if (dec.matchedCount === 0) {
+        throw new Error("Số lượng còn lại không đủ để duyệt đơn này");
+      }
+
+      // 3) Lấy lại entry sau khi trừ
+      const updatedEntry = await AdminFuelEntry.findById(order.request_id).session(session);
+
+      // 4) Nếu đã đủ chỉ tiêu -> set entry Completed + auto-cancel các pending khác
+      if ((updatedEntry.quantity_remain || 0) === 0) {
+        await AdminFuelEntry.updateOne(
+          { _id: order.request_id },
+          { $set: { status: "Đã Hoàn Thành" } },
+          { session }
+        );
+
+        await FuelSupplyOrder.updateMany(
+          { request_id: order.request_id, status: "Chờ duyệt", _id: { $ne: order._id } },
+          { $set: { status: "Đã hủy", note: "Đủ chỉ tiêu, tự động hủy đơn chờ" } },
+          { session }
+        );
+      }
+
+      // 5) Đổi trạng thái đơn hiện tại thành Đã duyệt
+      await FuelSupplyOrder.updateOne(
+        { _id: order._id, status: "Chờ duyệt" },
+        { $set: { status: "Đã duyệt" } },
+        { session }
       );
-    }
+    });
 
-    // 5) Mọi thứ OK → đổi trạng thái đơn sang Đã duyệt
-    order.status = "Đã duyệt";
-    await order.save();
-
-    // 6) Gửi notification SAU khi mọi cập nhật thành công
+    // 6) Gửi noti ngoài transaction (không làm fail quy trình nếu lỗi)
     try {
+      const order = await FuelSupplyOrder.findById(req.params.id);
       const supplier_id = order?.supplier_id;
       const io = socket.getIO();
       const newNoti = await Notifications.create({
@@ -428,18 +424,19 @@ const acceptFuelSupplyOrder = async (req, res) => {
         });
       }
     } catch (e) {
-      // Không fail cả request chỉ vì gửi noti lỗi
       console.warn("Gửi notification lỗi:", e?.message);
     }
 
-    return res.json({ success: true, data: order });
+    // Trả về đơn đã cập nhật
+    const updatedOrder = await FuelSupplyOrder.findById(req.params.id);
+    return res.json({ success: true, data: updatedOrder });
   } catch (error) {
-    console.error("Lỗi khi chấp nhận đơn cung cấp nhiên liệu:", error);
-    return res.status(500).json({ success: false, error: "Lỗi khi chấp nhận đơn cung cấp nhiên liệu" });
+    console.error("Approve lỗi:", error);
+    return res.status(400).json({ success: false, error: error.message || "Lỗi khi chấp nhận đơn" });
+  } finally {
+    session.endSession();
   }
 };
-
-
 
 // Từ chối đơn cung cấp nhiên liệu
 const rejectFuelSupplyOrder = async (req, res) => {
