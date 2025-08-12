@@ -7,7 +7,7 @@ const getAll = (options = {}, user_id = null) => {
       const { page, limit, paginate = false } = options;
       const createdRequests = await MaterialProvideRequest.find({
         supplier_id: user_id,
-      });
+      }).sort({ createdAt: -1 });
       const createdRequestIds = createdRequests.map(
         (request) => request.request_id
       );
@@ -18,15 +18,18 @@ const getAll = (options = {}, user_id = null) => {
         end_received: { $gt: now },
         _id: { $nin: createdRequestIds },
       };
-      
+
       if (paginate) {
         const skip = (page - 1) * limit;
 
         const [data, total] = await Promise.all([
-          Purchase_Material_Plan.find(filter).skip(skip).limit(limit),
+          Purchase_Material_Plan.find(filter)
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 }),
           Purchase_Material_Plan.countDocuments(filter),
         ]);
-        console.log("data",data);
+        console.log("data", data);
         return resolve({
           status: "OK",
           message: "Get Paginated Fuel Success",
@@ -41,7 +44,9 @@ const getAll = (options = {}, user_id = null) => {
       }
 
       // Trường hợp không phân trang
-      const res = await Purchase_Material_Plan.find(filter);
+      const res = await Purchase_Material_Plan.find(filter).sort({
+        createdAt: -1,
+      });
       return resolve({
         status: "OK",
         message: "Get All Fuel Success",
