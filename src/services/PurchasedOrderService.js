@@ -228,7 +228,7 @@ const getDashboardSupplyrequest = async () => {
     }).select("request_name quantity quantity_remain fuel_image priority");
 
     const completed = await PurchaseOrder.countDocuments({
-      status: { $in: ["Hoàn thành", "Đã Hoàn Thành"] },
+      status: { $in: ["Đã Hoàn Thành"] },
       is_deleted: false,
     });
     
