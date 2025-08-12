@@ -98,7 +98,8 @@ const getAllFuelStorageReceipts = async (query) => {
     let receipts = await FuelStorageReceipt.find(filter)
       .populate("manager_id", "full_name")
       .populate("storage_id", "name_storage")
-      .populate("receipt_supply_id", "receipt_request_id")
+      .populate("receipt_supply_id")
+      .populate("receipt_request_id") 
       .populate({
         path: "production",
         populate: {
