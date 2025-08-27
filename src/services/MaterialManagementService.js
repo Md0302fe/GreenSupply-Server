@@ -23,8 +23,6 @@ const getAllFuel = async () => {
 
 const updateFuel = async (id, data) => {
   try {
-    console.log("id" ,id )
-    console.log("data" ,data )
     const updatedFuel = await MaterialManagement.findByIdAndUpdate(
       id,
       {
@@ -35,6 +33,20 @@ const updateFuel = async (id, data) => {
       },
       { new: true }
     );
+
+    const fuel_type_id = updatedFuel?.fuel_type_id?._id;
+    const updatedFuelType = await Materials.findByIdAndUpdate(
+      fuel_type_id,
+      {
+        type_name: data.type_name,
+        description: data.description,
+        updatedAt: new Date(),
+      },
+      { new: true }
+    );
+
+    console.log("updatedFuelType ==> ", updatedFuelType)
+
 
     if (!updatedFuel) {
       throw new Error("Không tìm thấy nhiên liệu!");
@@ -65,9 +77,9 @@ const cancelFuel = async (id) => {
       fuel_type_id,
       { is_deleted: true, updatedAt: new Date() },
       { new: true }
-    )
+    );
 
-    console.log("updateDeleteMaterial ==> ", updateDeleteMaterial)
+    console.log("updateDeleteMaterial ==> ", updateDeleteMaterial);
 
     if (!canceledFuel) {
       throw new Error("Không tìm thấy nhiên liệu!");
@@ -99,7 +111,7 @@ const UndoCancelFuel = async (id) => {
       fuel_type_id,
       { is_deleted: false, updatedAt: new Date() },
       { new: true }
-    )
+    );
 
     if (!canceledFuel) {
       throw new Error("Không tìm thấy nhiên liệu!");
