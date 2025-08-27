@@ -656,25 +656,55 @@ const getAllUser = () => {
 };
 
 // Hàm Get Detail User
+// const getDetailUser = (id) => {
+//   return new Promise(async (resolve, reject) => {
+//     try {
+//       const user = await User.findOne({
+//         _id: id,
+//       }).populate("role_id");
+//       if (user === null) {
+//         return resolve({
+//           status: "OK",
+//           message: "The user is not defined !",
+//         });
+//       }
+//       return resolve({
+//         status: "OK",
+//         message: "Get User Success",
+//         data: user,
+//       });
+//     } catch (error) {
+//       reject(error);
+//     }
+//   });
+// };
+
+// Hàm Get Detail User
 const getDetailUser = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const user = await User.findOne({
-        _id: id,
-      }).populate("role_id");
-      if (user === null) {
+      const [user, addresses] = await Promise.all([
+        User.findOne({ _id: id }).populate("role_id").lean(),
+        UserAddress.find({ user_id: id, is_deleted: false }).lean(),
+      ]);
+
+      if (!user) {
         return resolve({
-          status: "OK",
-          message: "The user is not defined !",
+          status: "ERROR",
+          message: "The user is not defined!",
         });
       }
+
+      // Gắn danh sách địa chỉ vào object user (giữ backward-compatibility)
+      user.address = addresses || [];
+
       return resolve({
         status: "OK",
         message: "Get User Success",
         data: user,
       });
     } catch (error) {
-      reject(error);
+      return reject(error);
     }
   });
 };
