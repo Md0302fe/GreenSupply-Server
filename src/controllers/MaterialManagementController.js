@@ -40,6 +40,20 @@ const cancelFuel = async (req, res) => {
   }
 };
 
+// Undo Fuel
+const UndoCancelFuel = async (req, res) => {
+  try {
+    const canceledFuel = await FuelManagementService.UndoCancelFuel(req.params.id);
+    if (!canceledFuel) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy nhiên liệu!" });
+    }
+    res.json({ success: true, message: "Đã đánh dấu 'Đã xóa'!", data: canceledFuel });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Lỗi khi hủy!", error: error.message });
+  }
+};
+
+
 const createFuel = async (req, res) => {
   try {
     const result = await FuelManagementService.createFuel(req.body);
@@ -92,6 +106,7 @@ module.exports = {
   getAll,
   updateFuel,
   cancelFuel, 
+  UndoCancelFuel,
   getDashboardSummary,
   getFuelTypesOverview,
   getFuelHistory,
