@@ -58,6 +58,48 @@ const cancelFuel = async (id) => {
       { is_deleted: true, updatedAt: new Date() },
       { new: true }
     );
+    // get material in material management
+    const fuel_type_id = canceledFuel?.fuel_type_id?._id;
+
+    const updateDeleteMaterial = await Materials?.findByIdAndUpdate(
+      fuel_type_id,
+      { is_deleted: true, updatedAt: new Date() },
+      { new: true }
+    )
+
+    console.log("updateDeleteMaterial ==> ", updateDeleteMaterial)
+
+    if (!canceledFuel) {
+      throw new Error("Không tìm thấy nhiên liệu!");
+    }
+
+    return {
+      success: true,
+      message: "Đã đánh dấu nhiên liệu là 'Đã xóa'!",
+      data: canceledFuel,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Undo Cancel Fuel
+// ✅ Đổi deleteFuel -> cancelFuel (Chỉ đánh dấu là 'Đã xóa', không xóa khỏi DB)
+const UndoCancelFuel = async (id) => {
+  try {
+    const canceledFuel = await MaterialManagement.findByIdAndUpdate(
+      id,
+      { is_deleted: true, updatedAt: new Date() },
+      { new: true }
+    );
+    // get material in material management
+    const fuel_type_id = canceledFuel?.fuel_type_id?._id;
+
+    const updateDeleteMaterial = await Materials?.findByIdAndUpdate(
+      fuel_type_id,
+      { is_deleted: false, updatedAt: new Date() },
+      { new: true }
+    )
 
     if (!canceledFuel) {
       throw new Error("Không tìm thấy nhiên liệu!");
@@ -257,6 +299,7 @@ const getLowStockAlerts = async () => {
 module.exports = {
   getAllFuel,
   updateFuel,
+  UndoCancelFuel,
   getDashboardSummary,
   getFuelTypesOverview,
   getFuelHistory,
